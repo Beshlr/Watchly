@@ -26,7 +26,7 @@ This is a full-stack web application that recommends movies to users based on va
 ### Backend:
 - ASP.NET Core Web API
 - SQL Server
-- ADO.NET or Entity Framework Core
+- ADO.NET
 - Swagger / Swashbuckle
 
 ## 📦 Project Structure
