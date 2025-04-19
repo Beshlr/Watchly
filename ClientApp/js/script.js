@@ -1,6 +1,7 @@
 document.addEventListener('DOMContentLoaded', function() {
     const searchForm = document.querySelector('.d-flex');
-    const searchInput = document.querySelector('.form-control.me-2');
+    const searchInput = document.getElementById('searchInput');
+    const searchResults = document.getElementById('searchResults');
     const popularMoviesContainer = document.querySelector('.row:first-of-type');
     const recommendedMoviesContainer = document.querySelector('.row:last-of-type');
     const baseApiUrl = 'https://localhost:7009/api/MovieRecommenderAPI';
@@ -19,7 +20,8 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 
     async function loadPopularMovies() {
-        const movies = await fetchData(`${baseApiUrl}/GetTop100MovieWithGenre?GenreName=Action`);
+        popularMoviesContainer.innerHTML = '<p class="text-muted">Loading popular movies...</p>';
+        const movies = await fetchData(`${baseApiUrl}/GetTop100MovieWithGenre?GenreName=Sci_FI`);
         if (movies) {
             displayMovies(movies.slice(0, 4), popularMoviesContainer);
         } else {
@@ -27,12 +29,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function searchMovies(query) {
-        const movies = await fetchData(`${baseApiUrl}/StartName/${query}`);
+    async function loadRecommendedMovies() {
+        recommendedMoviesContainer.innerHTML = '<p class="text-muted">Loading recommendations...</p>';
+        const movies = await fetchData(`${baseApiUrl}/GetRecommandedMovies/1`);
         if (movies) {
-            displayMovies(movies, recommendedMoviesContainer);
+            displayMovies(movies.slice(0, 4), recommendedMoviesContainer);
         } else {
-            recommendedMoviesContainer.innerHTML = `<p class="text-danger">No results for "${query}"</p>`;
+            recommendedMoviesContainer.innerHTML = '<p class="text-danger">Error loading recommended movies.</p>';
         }
     }
 
@@ -44,7 +47,12 @@ document.addEventListener('DOMContentLoaded', function() {
                     <div class="card-body">
                         <h5 class="card-title">${movie.movieName}</h5>
                         <p class="card-text">${movie.year} • ★ ${movie.rate}</p>
-                        <a href="#" class="btn btn-sm btn-outline-primary">Details</a>
+                        <a href="${movie.imDbMovieURL || '#'}" 
+                           class="btn btn-sm btn-outline-primary details-link"
+                           ${movie.imDbMovieURL ? '' : 'style="pointer-events: none; opacity: 0.5;"'}
+                           target="_blank">
+                            Details
+                        </a>
                     </div>
                 </div>
             </div>
@@ -54,21 +62,20 @@ document.addEventListener('DOMContentLoaded', function() {
     searchForm.addEventListener('submit', (e) => {
         e.preventDefault();
         const query = searchInput.value.trim();
-        if (query) searchMovies(query);
+        if (query) {
+            // يمكنك تفعيل دالة البحث هنا إذا أردت
+            console.log('Search for:', query);
+        }
     });
 
-    loadPopularMovies();
     searchInput.addEventListener('input', async function(e) {
         const query = e.target.value.trim();
         
-        if (query.length === 0) 
+        if (query.length === 0) {
             searchResults.style.display = 'none';
-        else if (query.length >= 2) { 
+        } else if (query.length >= 2) { 
             const movies = await fetchData(`${baseApiUrl}/NameHasWord/${query}`);
-            showQuickResults(movies?.slice(0, 3)); // عرض أول 3 نتائج فقط
-        }
-        else {
-            searchResults.style.display = 'none';
+            showQuickResults(movies?.slice(0, 3));
         }
     });
 
@@ -79,11 +86,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         searchResults.innerHTML = movies.map(movie => `
-            <div class="search-result-item" onclick="selectMovie('${movie.id}')">
-                <img src="${movie.posterImageURL || 'https://via.placeholder.com/50x75'}" alt="${movie.Title}">
+            <div class="search-result-item" onclick="selectMovie(${JSON.stringify(movie).replace(/"/g, '&quot;')})">
+                <img src="${movie.posterImageURL || 'https://via.placeholder.com/50x75'}" 
+                     alt="${movie.movieName}"
+                     onerror="this.src='https://via.placeholder.com/50x75'">
                 <div class="info">
-                    <h6>${movie.movieName}</h6>
-                    <small>${movie.year} • ★ ${movie.rate}</small>
+                    <h6>${movie.movieName || 'Unknown Title'}</h6>
+                    <small class="text-muted">${movie.year || 'N/A'} • ★ ${movie.rate?.toFixed(1) || 'N/A'}</small>
                 </div>
             </div>
         `).join('');
@@ -91,13 +100,19 @@ document.addEventListener('DOMContentLoaded', function() {
         searchResults.style.display = 'block';
     }
 
-    window.selectMovie = function(movieId) {
-        window.location.href = `movie-details.html?id=${movieId}`; // انتقل لصفحة التفاصيل
+    window.selectMovie = function(movie) {
+        if (movie && movie.imDbMovieURL) {
+            window.open(movie.imDbMovieURL, '_blank');
+        }
     };
 
     document.addEventListener('click', function(e) {
-        if (!searchForm.contains(e.target)) {
+        if (!searchForm.contains(e.target) && e.target !== searchResults) {
             searchResults.style.display = 'none';
         }
     });
+
+    // تحميل البيانات الأولية
+    loadPopularMovies();
+    loadRecommendedMovies();
 });

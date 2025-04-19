@@ -17,7 +17,7 @@ namespace clsDataAccess
 
         public MovieDTO(int iD, string movieName, int year, float rate, string posterImageURL,
             string trailerURL, string contentRating, string duration, string language,
-            string country, float aspectRatio, string genre)
+            string country, float aspectRatio, string genre, string iMDbMovieURL)
         {
             ID = iD;
             MovieName = movieName;
@@ -31,6 +31,7 @@ namespace clsDataAccess
             Country = country;
             AspectRatio = aspectRatio;
             Genre = genre;
+            IMDbMovieURL = iMDbMovieURL;
         }
 
         public int ID { get; set; }
@@ -45,7 +46,7 @@ namespace clsDataAccess
         public string Country { get; set; }
         public float AspectRatio { get; set; }
         public string Genre { get; set; }
-
+        public string IMDbMovieURL { get; set; }
     }
 
     public class clsMoviePasicDetailsData
@@ -81,7 +82,9 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
                                 reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
-                                reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres"))
+                                reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
+
                             );
                         }
                     }
@@ -97,7 +100,7 @@ namespace clsDataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                string query = "Select Top(10) * From vw_MovieBasicInfo Where movie_title LIKE @MovieName + '%' Order By imdb_score DESC";
+                string query = "Select Top(5) * From vw_MovieBasicInfo Where movie_title LIKE @MovieName + '%' Order By imdb_score DESC";
 
                 using (SqlCommand cmd = new SqlCommand(query, connection))
                 {
@@ -123,7 +126,8 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
                                 reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
-                                reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres"))
+                                reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
                             );
 
                             MDTOs.Add(MDTO);
@@ -135,14 +139,13 @@ namespace clsDataAccess
             return MDTOs;
         }
     
-    
         public static List<MovieDTO> GetMoviesWithNameHasWord(string PieceOfName)
         {
             List<MovieDTO> MDTOs = new List<MovieDTO>();
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                string query = "Select Top(10) * From vw_MovieBasicInfo Where movie_title LIKE '%' + @MovieName + '%' Order By imdb_score DESC";
+                string query = "Select Top(5) * From vw_MovieBasicInfo Where movie_title LIKE '%' + @MovieName + '%' Order By imdb_score DESC";
 
                 using (SqlCommand cmd = new SqlCommand(query, connection))
                 {
@@ -168,8 +171,10 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
                                 reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
-                                reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres"))
-                            );
+                                reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
+                                
+                                );
 
                             MDTOs.Add(MDTO);
                         }
@@ -212,8 +217,10 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
                                 reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
-                                reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres"))
-                            );
+                                reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
+
+                                );
 
                             MDTOs.Add(MDTO);
                         }
@@ -259,7 +266,9 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
                                 reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
-                                reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres"))
+                                reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
+
                             );
 
                             MDTOs.Add(MDTO);
@@ -271,6 +280,99 @@ namespace clsDataAccess
             return MDTOs;
         }
     
-        
+        public static List<MovieDTO> GetTop10MoviesRecommendedForUserWithID(int UserID)
+        {
+            List<MovieDTO> MDTOs = new List<MovieDTO>();
+
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_GetSuggestMoviesForUser", con))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+
+                    con.Open();
+                    
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            MovieDTO MDTO = null;
+                            MDTO = new
+                            (
+                                reader.IsDBNull(reader.GetOrdinal("ID")) ? 0 : reader.GetInt32(reader.GetOrdinal("ID")),
+                                reader.IsDBNull(reader.GetOrdinal("movie_title")) ? null : reader.GetString(reader.GetOrdinal("movie_title")),
+                                reader.IsDBNull(reader.GetOrdinal("title_year")) ? 0 : reader.GetInt32(reader.GetOrdinal("title_year")),
+                                reader.IsDBNull(reader.GetOrdinal("imdb_score")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("imdb_score")),
+                                reader.IsDBNull(reader.GetOrdinal("poster_url")) ? @"https://www.movienewz.com/img/films/poster-holder.jpg"
+                                                                                 : reader.GetString(reader.GetOrdinal("poster_url")),
+                                reader.IsDBNull(reader.GetOrdinal("trailer_url")) ? null : reader.GetString(reader.GetOrdinal("trailer_url")),
+                                reader.IsDBNull(reader.GetOrdinal("content_rating")) ? null : reader.GetString(reader.GetOrdinal("content_rating")),
+                                reader.IsDBNull(reader.GetOrdinal("Duration")) ? null : reader.GetString(reader.GetOrdinal("duration")),
+                                reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
+                                reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
+                                reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
+                                reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
+
+                            );
+
+                            MDTOs.Add(MDTO);
+                        }
+                    }
+
+                    con.Close();
+                }
+
+            }
+            return MDTOs;
+        }
+    
+        public static List<MovieDTO> GetTop100MoviesBetweenTwoYears(int StartYear, int EndYear)
+        {
+            using(SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_GetTop100MoviePopularInAperiod", con))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Start_Year", StartYear);
+                    cmd.Parameters.AddWithValue("@End_Year", EndYear);
+
+                    con.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        List<MovieDTO> MDTOs = new List<MovieDTO>();
+                        while (reader.Read())
+                        {
+                            MovieDTO MDTO = null;
+                            MDTO = new
+                            (
+                                reader.IsDBNull(reader.GetOrdinal("ID")) ? 0 : reader.GetInt32(reader.GetOrdinal("ID")),
+                                reader.IsDBNull(reader.GetOrdinal("movie_title")) ? null : reader.GetString(reader.GetOrdinal("movie_title")),
+                                reader.IsDBNull(reader.GetOrdinal("title_year")) ? 0 : reader.GetInt32(reader.GetOrdinal("title_year")),
+                                reader.IsDBNull(reader.GetOrdinal("imdb_score")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("imdb_score")),
+                                reader.IsDBNull(reader.GetOrdinal("poster_url")) ? @"https://www.movienewz.com/img/films/poster-holder.jpg"
+                                                                                 : reader.GetString(reader.GetOrdinal("poster_url")),
+                                reader.IsDBNull(reader.GetOrdinal("trailer_url")) ? null : reader.GetString(reader.GetOrdinal("trailer_url")),
+                                reader.IsDBNull(reader.GetOrdinal("content_rating")) ? null : reader.GetString(reader.GetOrdinal("content_rating")),
+                                reader.IsDBNull(reader.GetOrdinal("Duration")) ? null : reader.GetString(reader.GetOrdinal("duration")),
+                                reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
+                                reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
+                                reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
+                                reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
+                            );
+                            MDTOs.Add(MDTO);
+                        }
+                        con.Close();
+
+                        return MDTOs;
+                    }
+                }
+            }
+
+        }
     }
+
+    
 }

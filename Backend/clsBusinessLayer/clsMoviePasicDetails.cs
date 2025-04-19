@@ -6,15 +6,18 @@ using System.Text;
 using System.Threading.Tasks;
 using clsDataAccess;
 using System.Text.Json.Serialization;
+using MovieRecommendations_DataLayer;
 
 namespace clsBusinessLayer
 {
     public class clsMoviePasicDetails
     {
+        
+
         // Set object from data transfer object to return data
         public MovieDTO MDTO { get {
                 return new MovieDTO(this.ID, this.MovieName, this.Year, this.Rate, this.PosterImageURL
-            , this.TrailerURL, this.ContentRating, this.Duration, this.Language, this.Country, this.AspectRatio, this.Genre);
+            , this.TrailerURL, this.ContentRating, this.Duration, this.Language, this.Country, this.AspectRatio, this.Genre,this.IMDbMovieURL);
             } }
 
 
@@ -30,6 +33,7 @@ namespace clsBusinessLayer
         public string Country { get; set; }
         public float AspectRatio { get; set; }
         public string Genre { get; set; }
+        public string IMDbMovieURL { get; set; }
 
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum enGenres {
@@ -150,12 +154,40 @@ namespace clsBusinessLayer
                 return false;
             }
         }
-    
+        /// <summary>
+        /// Get the top 100 movies with the genre name and year and order them by rating According to IMDb in descending order.
+        /// </summary>
+        /// <param name="genreName"> </param>
+        /// <param name="Year"></param>
+        /// <returns></returns>
         public static List<MovieDTO> GetTop100MovieWithGenreInYearAndOrderThemByRatingDESC(enGenres genreName, int Year)
         {
             //Get the genre name from enum when we need to use it.
             string genre = GetGenreName(genreName);
             return clsMoviePasicDetailsData.GetTop100MovieWithGenreInYearAndOrderThemByRatingDESC(genre, Year);
         }
+
+        /// <summary>
+        /// Get the top 10 movies recommended for the user with the given ID according to his active in site.
+        /// </summary>
+        /// <param name="UserID"></param>
+        /// <returns></returns>
+        public static List<MovieDTO> GetTop10MoviesRecommendedForUserWithID(int UserID)
+        {
+            return clsMoviePasicDetailsData.GetTop10MoviesRecommendedForUserWithID(UserID);
+        }
+
+        /// <summary>
+        /// Get the top 100 movies between two years and order them by rating According to IMDb in descending order.
+        /// </summary>
+        /// <param name="Year1"></param>
+        /// <param name="Year2"></param>
+        /// <returns></returns>
+        public static List<MovieDTO> GetTop100MovieBetweenTwoYears(int Year1, int Year2)
+        {
+            return clsMoviePasicDetailsData.GetTop100MoviesBetweenTwoYears(Year1, Year2);
+        }
+
+        
     }
 }

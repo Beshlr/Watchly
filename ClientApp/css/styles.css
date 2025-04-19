@@ -16,6 +16,10 @@ body {
     text-decoration: none;
 }
 
+/* a{
+    text-decoration: none;
+} */
+
 .nav-item .active{
     color: white;
 }
