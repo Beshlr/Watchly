@@ -1,0 +1,212 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Movies | Movie Recommender</title>
+    <meta name="description" content="Browse movies by genre, year, rating and more">
+    <!-- CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="../css/styles_movies.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slider-range@1.0.0/dist/slider-range.min.css">
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
+        <div class="container">
+            <a class="navbar-brand" href="main.html">
+                <h4 class="mb-0">Movie Recommender</h4>
+            </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav me-auto">
+                    <li class="nav-item">
+                        <a class="nav-link" href="../pages/main.html">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link active" aria-current="page" href="explore_Movies.html">Browse Movies</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="genres.html">Genres</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="recommendation.html">For You</a>
+                    </li>
+                </ul>
+                
+                <form class="d-flex position-relative">
+                    <input class="form-control me-2" 
+                           type="search" 
+                           placeholder="Search movies..." 
+                           id="searchInput" 
+                           autocomplete="off"
+                           aria-label="Search movies">
+                    <button class="btn btn-outline-light" type="submit">Search</button>
+                    <div class="dropdown-menu w-100 position-absolute top-100 start-0" 
+                         id="searchResults" 
+                         style="display: none; z-index: 1000;"></div>
+                </form>
+                <button class="btn log-btn btn-outline-light ms-2" type="button">Login</button>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="container-fluid mt-4">
+        <div class="row">
+            <!-- Filters Sidebar -->
+            <aside class="col-lg-3 col-md-4 mb-4">
+                <div class="card shadow-sm">
+                    <div class="card-header bg-primary text-white">
+                        <h5 class="mb-0">Filters</h5>
+                    </div>
+                    <div class="card-body">
+                        <!-- Genre Filter -->
+                        <div class="mb-4">
+                            <h6 class="mb-3">Genres</h6>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="action" checked>
+                                <label class="form-check-label" for="action">Action</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="comedy" checked>
+                                <label class="form-check-label" for="comedy">Comedy</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="drama" checked>
+                                <label class="form-check-label" for="drama">Drama</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="sci-fi" checked>
+                                <label class="form-check-label" for="sci-fi">Sci-Fi</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="checkbox" id="horror">
+                                <label class="form-check-label" for="horror">Horror</label>
+                            </div>
+                            <button class="btn btn-sm btn-link mt-2 p-0" data-bs-toggle="collapse" data-bs-target="#moreGenres">More...</button>
+                            <div class="collapse" id="moreGenres">
+                                <!-- Additional genres will be loaded here -->
+                            </div>
+                        </div>
+
+                        <!-- Year Range Filter -->
+                        <div class="mb-4">
+                            <h6 class="mb-3">Release Year</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span id="yearMinValue">1980</span>
+                                <span id="yearMaxValue">2023</span>
+                            </div>
+                            <input type="range" class="form-range" min="1980" max="2023" step="1" id="yearRange" value="2023">
+                        </div>
+
+                        <!-- Rating Filter -->
+                        <div class="mb-4">
+                            <h6 class="mb-3">Minimum Rating</h6>
+                            <div class="d-flex align-items-center">
+                                <input type="range" class="form-range me-3" min="0" max="10" step="0.1" id="ratingRange" value="6">
+                                <span id="ratingValue">6.0</span>
+                            </div>
+                        </div>
+
+                        <!-- Sort Options -->
+                        <div class="mb-3">
+                            <h6 class="mb-3">Sort By</h6>
+                            <select class="form-select" id="sortBy">
+                                <option value="popularity">Popularity</option>
+                                <option value="rating">Rating</option>
+                                <option value="newest">Newest First</option>
+                                <option value="oldest">Oldest First</option>
+                            </select>
+                        </div>
+
+                        <button class="btn btn-primary w-100" id="applyFilters">Apply Filters</button>
+                        <button class="btn btn-outline-secondary w-100 mt-2" id="resetFilters">Reset</button>
+                    </div>
+                </div>
+            </aside>
+
+            <!-- Movies Grid -->
+            <section class="col-lg-9 col-md-8">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2 class="mb-0">Browse Movies</h2>
+                    <div class="d-flex">
+                        <div class="btn-group" role="group">
+                            <button type="button" class="btn btn-outline-secondary active" data-view="grid">
+                                <i class="bi bi-grid"></i>
+                            </button>
+                            <button type="button" class="btn btn-outline-secondary" data-view="list">
+                                <i class="bi bi-list-ul"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row row-cols-1 row-cols-sm-2 row-cols-md-3 row-cols-lg-4 g-4" id="moviesGrid">
+                    <!-- Movies will be loaded here -->
+                    <div class="col-12 text-center py-5">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Pagination -->
+                <nav aria-label="Movies pagination" class="mt-4">
+                    <ul class="pagination justify-content-center">
+                        <li class="page-item disabled">
+                            <a class="page-link" href="#" tabindex="-1">Previous</a>
+                        </li>
+                        <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                        <li class="page-item"><a class="page-link" href="#">2</a></li>
+                        <li class="page-item"><a class="page-link" href="#">3</a></li>
+                        <li class="page-item">
+                            <a class="page-link" href="#">Next</a>
+                        </li>
+                    </ul>
+                </nav>
+            </section>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-dark text-white py-4 mt-4">
+        <div class="container">
+            <div class="row g-4">
+                <div class="col-md-4">
+                    <h5 class="mb-3">MovieRecommender</h5>
+                    <p class="mb-0">Discover movies you'll love</p>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="mb-3">Quick Links</h5>
+                    <ul class="list-unstyled">
+                        <li class="mb-2"><a href="about.html" class="text-white text-decoration-none">About Us</a></li>
+                        <li class="mb-2"><a href="contact.html" class="text-white text-decoration-none">Contact</a></li>
+                        <li><a href="privacy.html" class="text-white text-decoration-none">Privacy Policy</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4">
+                    <h5 class="mb-3">Connect</h5>
+                    <div class="social-links">
+                        <a href="#" class="text-white me-3" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
+                        <a href="#" class="text-white me-3" aria-label="Twitter"><i class="bi bi-twitter"></i></a>
+                        <a href="#" class="text-white me-3" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="my-4">
+            <div class="text-center">
+                <p class="mb-0">&copy; 2025 MovieRecommender. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <!-- JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/slider-range@1.0.0/dist/slider-range.min.js"></script>
+    <script src="../js/script_movies.js"></script>
+</body>
+</html>
