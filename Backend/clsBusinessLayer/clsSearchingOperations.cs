@@ -34,7 +34,7 @@ int? SearchingID,int UserID, int MovieID          )
         {
             this.SearchingID = SearchingID;
             this.UserID = UserID;
-            this.UsersInfo = clsUsers.FindByUserID(UserID);
+            this.UsersInfo = clsUsers.Find(UserID);
             this.MovieID = MovieID;
             this.Movies_DetailsInfo = clsMovies_Details.FindByID(MovieID);
             Mode = enMode.Update;

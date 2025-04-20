@@ -52,24 +52,20 @@ namespace MovieRecommendations_BusinessLayer
 
        private bool _AddNewUsers()
        {
-            string HashedPassword = SqlHelper.ComputeHash(this.Password);
-            this.UserID = clsUsersData.AddNewUsers(
-this.Username, HashedPassword, this.IsAcive, this.Permissions, this.Age);
+            this.Password = SqlHelper.ComputeHash(UDTO.Password);
+            this.UserID = clsUsersData.AddNewUsers(UDTO);
 
             return (this.UserID != null);
 
        }
 
-
-       public static bool AddNewUsers(
-ref int? UserID,string Username, string Password, bool IsAcive, byte Permissions, byte Age)
+       public static bool AddNewUsers(UserDTO UDTO)
         {
-            string HashedPassword = SqlHelper.ComputeHash(Password);
+            UDTO.Password = SqlHelper.ComputeHash(UDTO.Password);
 
-            UserID = clsUsersData.AddNewUsers(
-Username, HashedPassword, IsAcive, Permissions, Age);
+            UDTO.ID = clsUsersData.AddNewUsers(UDTO);
 
-            return (UserID != null);
+            return (UDTO.ID != null);
 
        }
 
@@ -93,17 +89,34 @@ UserID, Username, HashedPassword, IsAcive, Permissions, Age);
 
         }
 
+        public static bool ChangeUserPassword(int UserID, string NewPassword)
+        {
+            string HashedPassword = SqlHelper.ComputeHash(NewPassword);
+            return clsUsersData.ChangeUserPassword(UserID, HashedPassword);
+        }
 
-       public static clsUsers FindByUserID(int UserID)
+        public static clsUsers Find(int UserID)
 
         {
-            clsUsers user = new clsUsers(clsUsersData.GetUsersInfoByID(UserID));
-            
-            return user;
+            UserDTO uDTO = clsUsersData.GetUsersInfoByID(UserID);
+            if (uDTO != null)
+                return new clsUsers(uDTO);
+            else
+                return null;
+
+        }
+
+        public static clsUsers Find(string Username)
+        {
+            UserDTO uDTO = clsUsersData.GetUsersInfoByUsername(Username);
+            if (uDTO != null)
+                return new clsUsers(uDTO);
+            else
+                return null;
         }
 
 
-       public static DataTable? GetAllUsers()
+        public static List<UserDTO> GetAllUsers()
        {
 
         return clsUsersData.GetAllUsers();
@@ -169,8 +182,9 @@ UserID, Username, HashedPassword, IsAcive, Permissions, Age);
             return clsUsersData.CheckUserExistByUserID(UserID);
         }
 
-        public static bool CheckIfUsernameExist(string Username)
+        public static bool IsUserExist(string Username)
         {
+            Username = Username.ToLower();
             return clsUsersData.CheckIsUsernameExist(Username);
         }
 

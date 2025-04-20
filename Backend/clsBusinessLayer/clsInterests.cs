@@ -44,7 +44,7 @@ int? InterestsID,int UserID, int GenresID, double? InterestLevel, DateTime? Crea
         {
             this.InterestsID = InterestsID;
             this.UserID = UserID;
-            this.UsersInfo = clsUsers.FindByUserID(UserID);
+            this.UsersInfo = clsUsers.Find(UserID);
             this.GenresID = GenresID;
             this.genresInfo = clsgenres.FindBygenre_id(GenresID);
             this.InterestLevel = InterestLevel;

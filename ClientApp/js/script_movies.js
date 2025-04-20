@@ -7,10 +7,9 @@ document.addEventListener('DOMContentLoaded', function() {
     const yearMaxValue = document.getElementById('yearMaxValue');
     const ratingRange = document.getElementById('ratingRange');
     const ratingValue = document.getElementById('ratingValue');
-    const genreCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="genre-"], #action, #comedy, #drama, #sci-fi, #horror');
+    const genreCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="genre-"], #action, #comedy, #drama, #sci-fi, #horror, #romance, #thriller, #animation');
     const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
-
     // إعدادات API
     const apiConfig = {
         baseUrl: 'https://localhost:7009/api/MovieRecommenderAPI',
@@ -25,23 +24,41 @@ document.addEventListener('DOMContentLoaded', function() {
     initPage();
 
     // تعريف الدوال الأساسية
-    function initPage() {
-        // تعيين القيم الافتراضية للمنزلقات
-        const currentYear = new Date().getFullYear();
-        yearRange.min = 1900;
-        yearRange.max = currentYear;
-        yearRange.value = currentYear;
-        yearMaxValue.textContent = currentYear;
-        
-        ratingRange.value = 6;
-        ratingValue.textContent = '6.0';
-        
-        // إضافة مستمعي الأحداث
-        setupEventListeners();
-        
-        // تحميل الأفلام عند البدء
-        loadInitialMovies();
-    }
+    // في دالة initPage، تأكد من تعيين القيم الافتراضية بشكل صحيح
+function initPage() {
+    // تعيين القيم الافتراضية للمنزلقات
+    yearRange.min = 1980;
+    yearRange.max = 2016;
+    yearRange.value = 2016;
+    yearMaxValue.textContent = 2016;
+    
+    ratingRange.value = 6;
+    ratingValue.textContent = '6.0';
+    
+    // إضافة مستمعي الأحداث
+    setupEventListeners();
+    
+    // تحميل الأفلام عند البدء
+    loadInitialMovies();
+}
+
+// في دالة resetFilters، تأكد من إعادة التعيين بشكل صحيح
+resetFiltersBtn.addEventListener('click', function() {
+    // إعادة تعيين صناديق الاختيار
+    genreCheckboxes.forEach(checkbox => {
+        checkbox.checked = ['action', 'comedy', 'drama', 'sci-fi'].includes(checkbox.id);
+    });
+    
+    // إعادة تعيين المنزلقات
+    yearRange.value = 2016;
+    yearMaxValue.textContent = 2016;
+    
+    ratingRange.value = 6;
+    ratingValue.textContent = '6.0';
+    
+    // تطبيق الفلاتر من جديد
+    applyFilters();
+});
 
     function setupEventListeners() {
         // تحديث عرض قيمة السنة عند التغيير
@@ -65,9 +82,9 @@ document.addEventListener('DOMContentLoaded', function() {
             });
             
             // إعادة تعيين المنزلقات
-            const currentYear = new Date().getFullYear();
-            yearRange.value = currentYear;
-            yearMaxValue.textContent = currentYear;
+            // const currentYear = new Date().getFullYear();
+            yearRange.value = 2016;
+            yearMaxValue.textContent = 2016;
             
             ratingRange.value = 6;
             ratingValue.textContent = '6.0';
@@ -77,6 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
         });
     }
 
+    
     async function loadInitialMovies() {
         try {
             showLoadingState();
@@ -172,6 +190,8 @@ document.addEventListener('click', function(e) {
     }
 });
 
+
+
     async function applyFilters() {
         try {
             showLoadingState();
@@ -186,6 +206,11 @@ document.addEventListener('click', function(e) {
                         case 'drama': return 'Drama';
                         case 'sci-fi': return 'Sci_FI';
                         case 'horror': return 'Horror';
+                        case 'romance': return 'Romance';
+                        case 'thriller': return 'Thriller';
+                        case 'adventure': return 'Adventure';
+                        case 'animation': return 'Animation';
+
                         default: return checkbox.id;
                     }
                 });
@@ -194,7 +219,7 @@ document.addEventListener('click', function(e) {
             const minRating = parseFloat(ratingRange.value);
             
             // 2. تسجيل URL للتحقق
-            const apiUrl = `${apiConfig.baseUrl}${apiConfig.endpoints.byGenreAndYear}?GenreName=${selectedGenres[0]}&Year=${year}`;
+            const apiUrl = `${apiConfig.baseUrl}${apiConfig.endpoints.byGenreAndYear}/${year}?GenreName=${selectedGenres[0]}`;
             console.log("Request URL:", apiUrl); // أضف هذا السطر
             
             // 3. جلب البيانات

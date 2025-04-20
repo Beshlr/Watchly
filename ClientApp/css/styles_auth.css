@@ -1,0 +1,155 @@
+/* General Styles */
+body {
+    background-color: #f8f9fa;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* Auth Container */
+.auth-container {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+}
+
+.auth-card {
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+    padding: 2.5rem;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+.auth-header {
+    text-align: center;
+    margin-bottom: 2rem;
+}
+
+.auth-header h2 {
+    font-weight: 600;
+    color: #212529;
+    margin-bottom: 0.5rem;
+}
+
+.auth-header p {
+    color: #6c757d;
+    margin-bottom: 0;
+}
+
+/* Form Styles */
+.form-control {
+    padding: 0.75rem 1rem;
+    border-radius: 5px;
+    border: 1px solid #ced4da;
+    transition: border-color 0.3s, box-shadow 0.3s;
+}
+
+.show-password {
+    position: absolute;
+    right: 1rem;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+}
+
+.form-control:focus {
+    border-color: #86b7fe;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border: none;
+    padding: 0.75rem;
+    font-weight: 500;
+    transition: background-color 0.3s;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+}
+
+/* Social Buttons */
+.auth-social {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid #e9ecef;
+}
+
+.social-btn {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s;
+}
+
+.social-btn:hover {
+    background-color: #0d6efd;
+    color: white !important;
+}
+
+/* Responsive Adjustments */
+@media (max-width: 576px) {
+    .auth-card {
+        padding: 1.5rem;
+        margin: 0 1rem;
+    }
+}
+
+/* Navbar Styles (to match main page) */
+.navbar {
+    box-shadow: 0 2px 4px rgba(0,0,0,.1);
+}
+
+.log-btn {
+    background-color: #8e42420b;
+    color: white;
+    border-radius: 5px;
+    padding: 7px 25px;
+    margin-left: 5px;
+    text-decoration: none;
+}
+
+.nav-item .active {
+    color: white;
+}
+
+.nav-item a {
+    transition: 0.3s;
+    position: relative;
+}
+
+.nav-item a::after {
+    content: "";
+    position: absolute;
+    height: 2px;
+    width: 50px;
+    bottom: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: white;
+    opacity: 0;
+    transition: 0.3s;
+}
+
+.nav-item a:hover::after {
+    opacity: 1;
+}
+
+.nav-item a:hover {
+    color: white;
+}
+
+.log-btn:hover {
+    background-color: #2196F3;
+    color: white;
+    text-decoration: none;
+}

@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using clsDataAccess;
 using System.Text.Json.Serialization;
 using MovieRecommendations_DataLayer;
+using System.Xml.Linq;
 
 namespace clsBusinessLayer
 {
@@ -17,7 +18,7 @@ namespace clsBusinessLayer
         // Set object from data transfer object to return data
         public MovieDTO MDTO { get {
                 return new MovieDTO(this.ID, this.MovieName, this.Year, this.Rate, this.PosterImageURL
-            , this.TrailerURL, this.ContentRating, this.Duration, this.Language, this.Country, this.AspectRatio, this.Genre,this.IMDbMovieURL);
+            , this.TrailerURL, this.ContentRating, this.Duration, this.Language, this.Country, this.AspectRatio, this.Genre,this.IMDbMovieURL,this.Keywords);
             } }
 
 
@@ -34,8 +35,12 @@ namespace clsBusinessLayer
         public float AspectRatio { get; set; }
         public string Genre { get; set; }
         public string IMDbMovieURL { get; set; }
+        public string Keywords { get; set; }
 
-    [JsonConverter(typeof(JsonStringEnumConverter))]
+        public enum enMode { AddNew = 0, Update = 1 };
+        public enMode Mode = enMode.AddNew;
+
+        [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum enGenres {
             Action,
             Adventure,
@@ -65,11 +70,30 @@ namespace clsBusinessLayer
             Western
         };
 
+        public clsMoviePasicDetails(MovieDTO MDTO, enMode mode= enMode.AddNew)
+        {
+            this.ID = MDTO.ID;
+            this.MovieName = MDTO.MovieName;
+            this.Year = MDTO.Year;
+            this.Rate = MDTO.Rate;
+            this.PosterImageURL = MDTO.PosterImageURL;
+            this.TrailerURL = MDTO.TrailerURL;
+            this.ContentRating = MDTO.ContentRating;
+            this.Duration = MDTO.Duration;
+            this.Language = MDTO.Language;
+            this.Country = MDTO.Country;
+            this.AspectRatio = MDTO.AspectRatio;
+            this.Genre = MDTO.Genre;
+            this.IMDbMovieURL = MDTO.IMDbMovieURL;
+            this.Keywords = MDTO.Keywords;
+            Mode = mode;
+        }
+
         public static enGenres enGenre = enGenres.Comedy;
 
         public static MovieDTO GetMovieByID(int ID)
         {
-            return clsMoviePasicDetailsData.GetMovieByID(ID);
+            return clsMovieBasicDetailsData.GetMovieByID(ID);
         }
 
         /// <summary>
@@ -79,7 +103,7 @@ namespace clsBusinessLayer
         /// <returns></returns>
         public static List<MovieDTO> GetMoviesStartWithName(string MovieName)
         {
-            return clsMoviePasicDetailsData.GetMoviesStartWithName(MovieName);
+            return clsMovieBasicDetailsData.GetMoviesStartWithName(MovieName);
         }
 
 
@@ -90,7 +114,12 @@ namespace clsBusinessLayer
         /// <returns></returns>
         public static List<MovieDTO> GetMoviesWithNameHasWord(string PieceOfName)
         {
-            return clsMoviePasicDetailsData.GetMoviesWithNameHasWord(PieceOfName);
+            return clsMovieBasicDetailsData.GetMoviesWithNameHasWord(PieceOfName);
+        }
+
+        public static bool IsMovieExist(string MovieName)
+        {
+            return clsMovieBasicDetailsData.IsMovieExist(MovieName);
         }
 
         public static string GetGenreName(enGenres genre)
@@ -127,7 +156,7 @@ namespace clsBusinessLayer
 
             string genreName= GetGenreName(genre);
 
-            return clsMoviePasicDetailsData.GetTop100MovieWithGenreAndOrderThemByRatingDESC(genreName);
+            return clsMovieBasicDetailsData.GetTop100MovieWithGenreAndOrderThemByRatingDESC(genreName);
         }
 
         /// <summary>
@@ -164,7 +193,7 @@ namespace clsBusinessLayer
         {
             //Get the genre name from enum when we need to use it.
             string genre = GetGenreName(genreName);
-            return clsMoviePasicDetailsData.GetTop100MovieWithGenreInYearAndOrderThemByRatingDESC(genre, Year);
+            return clsMovieBasicDetailsData.GetTop100MovieWithGenreInYearAndOrderThemByRatingDESC(genre, Year);
         }
 
         /// <summary>
@@ -174,7 +203,7 @@ namespace clsBusinessLayer
         /// <returns></returns>
         public static List<MovieDTO> GetTop10MoviesRecommendedForUserWithID(int UserID)
         {
-            return clsMoviePasicDetailsData.GetTop10MoviesRecommendedForUserWithID(UserID);
+            return clsMovieBasicDetailsData.GetTop10MoviesRecommendedForUserWithID(UserID);
         }
 
         /// <summary>
@@ -185,9 +214,49 @@ namespace clsBusinessLayer
         /// <returns></returns>
         public static List<MovieDTO> GetTop100MovieBetweenTwoYears(int Year1, int Year2)
         {
-            return clsMoviePasicDetailsData.GetTop100MoviesBetweenTwoYears(Year1, Year2);
+            return clsMovieBasicDetailsData.GetTop100MoviesBetweenTwoYears(Year1, Year2);
         }
 
-        
+        public static List<MovieDTO> GetTop10MoviesWithKeyword(string Keyword)
+        {
+            return clsMovieBasicDetailsData.GetTop10MoviesWithKeyword(Keyword);
+        }
+
+        private bool _AddNewMovie()
+        {
+            this.ID = clsMovieBasicDetailsData.AddNewMovie(this.MDTO);
+
+            return this.ID != -1;
+        }
+
+        public bool Save()
+        {
+            switch(Mode)
+            {
+                case enMode.AddNew:
+                    if(_AddNewMovie())
+                    {
+                        this.Mode = enMode.Update;
+                        return true;
+                    }
+                    else
+                        return false;
+                case enMode.Update:
+                    if (_UpdateMovieByID())
+                    {
+                        return true;
+                    }
+                    else
+                        return false;
+
+            }
+
+            return false;
+        }
+
+        private bool _UpdateMovieByID()
+        {
+            throw new NotImplementedException();
+        }
     }
 }

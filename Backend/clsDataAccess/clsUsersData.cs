@@ -51,7 +51,7 @@ namespace MovieRecommendations_DataLayer
                                 UserID,
                              (string)reader["Username"],
                              (string)reader["Password"],
-                             reader["IsAcive"] != DBNull.Value ? (bool)reader["IsAcive"] : false,
+                             reader["IsActive"] != DBNull.Value ? (bool)reader["IsActive"] : false,
                              (byte)reader["Permissions"],
                             (byte)reader["Age"]);
 
@@ -63,65 +63,104 @@ namespace MovieRecommendations_DataLayer
             return userDTO;
             }
 
-        public static DataTable GetAllUsers()
-{
-    DataTable dt = new DataTable();
-
-    using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
-    {
-        string query = "SELECT * FROM Users";
-
-        using (SqlCommand command = new SqlCommand(query, connection))
+        public static UserDTO GetUsersInfoByUsername(string username)
         {
-
-            connection.Open();
-
-            using (SqlDataReader reader = command.ExecuteReader())
+            using(SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                if (reader.HasRows)
-                    dt.Load(reader);
+                string query = "SELECT * FROM Users WHERE LOWER(Username) COLLATE SQL_Latin1_General_CP1_CS_AS = @Username";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@Username", username);
+                    connection.Open();
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            return new UserDTO(
+                                (int)reader["UserID"],
+                                (string)reader["Username"],
+                                (string)reader["Password"],
+                                reader["IsActive"] != DBNull.Value ? (bool)reader["IsActive"] : false,
+                                (byte)reader["Permissions"],
+                                (byte)reader["Age"]);
+                        }
+                    }
+                }
             }
+            return null;
         }
-    }
-    return dt;
 
-}
-
-         public static int AddNewUsers(string Username, string Password, bool IsAcive, byte Permissions, byte Age)
+        public static List<UserDTO> GetAllUsers()
         {
-            int UserID = -1;
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                string query = @"Insert Into Users ([Username],[Password],[IsAcive],[Permissions],[Age])
-                            Values (@Username,@Password,@IsAcive,@Permissions,@Age)
-                            SELECT SCOPE_IDENTITY();";
+                string query = "SELECT * FROM Users";
 
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
 
-                    command.Parameters.AddWithValue("@Username", Username);
-                    command.Parameters.AddWithValue("@Password", Password);
-                    if(IsAcive == null)
+                    connection.Open();
+
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            List<UserDTO> users = new List<UserDTO>();
+                            do
+                            {
+                                users.Add(new UserDTO(
+                                    (int)reader["UserID"],
+                                    (string)reader["Username"],
+                                    (string)reader["Password"],
+                                    reader["IsActive"] != DBNull.Value ? (bool)reader["IsActive"] : false,
+                                    (byte)reader["Permissions"],
+                                    (byte)reader["Age"]));
+                            } while (reader.Read());
+                            return users;
+                        }
+                        else
+                        {
+                            return null;
+                        }
+                    }
+                }
+            }
+
+        }
+
+         public static int AddNewUsers(UserDTO UDTO)
+        {
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("SP_AddNewUser", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+
+                    command.Parameters.AddWithValue("@Username", UDTO.Username);
+                    command.Parameters.AddWithValue("@Password", UDTO.Password);
+                    if(UDTO.IsAcive == null)
                         command.Parameters.AddWithValue("@IsAcive", DBNull.Value);
                     else
-                        command.Parameters.AddWithValue("@IsAcive", IsAcive  );
-                    command.Parameters.AddWithValue("@Permissions", Permissions);
-                    command.Parameters.AddWithValue("@Age", Age);
+                        command.Parameters.AddWithValue("@IsActive", UDTO.IsAcive);
+                    command.Parameters.AddWithValue("@Permissions", UDTO.Permissions);
+                    command.Parameters.AddWithValue("@Age", UDTO.Age);
 
+                    var outputParam = new SqlParameter("@NewUserID", SqlDbType.Int)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    command.Parameters.Add(outputParam);
 
                     connection.Open();
 
-                    object result = command.ExecuteScalar();
+                    command.ExecuteNonQuery();
 
-                    if (result != null && int.TryParse(result.ToString(), out int insertedID))
-                    {
-                        UserID = insertedID;
-                    }
+                    // Retrieve the value of the output parameter
+                    return (int)outputParam.Value;
                 }
 
             }
-            return UserID;
 
         }
 
@@ -135,7 +174,7 @@ namespace MovieRecommendations_DataLayer
                                     set 
                                          [Username] = @Username,
                                          [Password] = @Password,
-                                         [IsAcive] = @IsAcive,
+                                         [IsActive] = @IsActive,
                                          [Permissions] = @Permissions,
                                          [Age] = @Age
                                   where [UserID]= @UserID";
@@ -145,7 +184,7 @@ namespace MovieRecommendations_DataLayer
                     command.Parameters.AddWithValue("@UserID", UserID);
                     command.Parameters.AddWithValue("@Username", Username);
                     command.Parameters.AddWithValue("@Password", Password);
-                    command.Parameters.AddWithValue("@IsAcive", IsAcive ?? (object)DBNull.Value);
+                    command.Parameters.AddWithValue("@IsActive", IsAcive ?? (object)DBNull.Value);
                     command.Parameters.AddWithValue("@Permissions", Permissions);
                     command.Parameters.AddWithValue("@Age", Age);
 
@@ -160,12 +199,35 @@ namespace MovieRecommendations_DataLayer
             return (rowsAffected > 0);
         }
 
+        public static bool ChangeUserPassword(int UserID, string Password)
+        {
+            int rowsAffected = 0;
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                string query = @"Update Users
+                                    set 
+                                         [Password] = @Password
+                                  where [UserID]= @UserID";
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@UserID", UserID);
+                    command.Parameters.AddWithValue("@Password", Password);
+                    connection.Open();
+                    rowsAffected = command.ExecuteNonQuery();
+
+                }
+
+            }
+
+            return (rowsAffected > 0);
+        }
+
         public static bool CheckIsUsernameExist(string Username)
         {
             bool IsFound = false;
             using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                string query = @"Select Found=1 From Users Where Username COLLATE SQL_Latin1_General_CP1_CS_AS = @Username";
+                string query = @"Select Found=1 From Users Where LOWER(Username) COLLATE SQL_Latin1_General_CP1_CS_AS = @Username";
                 using (SqlCommand cmd = new SqlCommand(query, con))
                 {
                     cmd.Parameters.AddWithValue("@Username", Username);
@@ -238,33 +300,31 @@ namespace MovieRecommendations_DataLayer
 
         public static bool DeleteUsers(int UserID)
 {
-    int rowsAffected = 0;
+            int rowsAffected = 0;
 
-    using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
-    {
-        string query = @"Delete Users 
-                        where UserID = @UserID";
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                string query = @"Delete Users 
+                                where UserID = @UserID";
 
-        using (SqlCommand command = new SqlCommand(query, connection))
-        {
-            command.Parameters.AddWithValue("@UserID", UserID);
+                using (SqlCommand command = new SqlCommand(query, connection))
+                {
+                    command.Parameters.AddWithValue("@UserID", UserID);
 
 
-            connection.Open();
+                    connection.Open();
             
-            rowsAffected = command.ExecuteNonQuery();
+                    rowsAffected = command.ExecuteNonQuery();
 
 
-        }
+                }
 
-    }
+            }
     
-    return (rowsAffected > 0);
+            return (rowsAffected > 0);
 
 }
         
-        
-
         public static DataTable SearchData(string ColumnName, string Data)
 {
     DataTable dt = new DataTable();
