@@ -1,64 +1,77 @@
 import requests
+import pandas as pd
 import time
-import csv
+from tqdm import tqdm  # لعرض شريط التقدم
 
-OMDB_API_KEY = '151a4f95'  # ← استبدله بمفتاحك الخاص
-CSV_FILE_NAME = 'movies_2017_2025.csv'
+# إعدادات API
+OMDB_API_KEY = "3d5fe386d89641603bd792b59254710a"  # استبدل بمفتاح API الخاص بك
+OMDB_URL = "http://www.omdbapi.com/"
 
-def fetch_all_movies_to_csv(start_year=2017, end_year=2025, max_pages=5):
-    url = 'http://www.omdbapi.com/'
-    all_movies = []
-    search_terms = ['a', 'the', 'movie', 'film']  # كلمات بحث متنوعة
+# ملف الإدخال (يجب أن يحتوي على عمود imdbID)
+INPUT_CSV = "movies_2017_2025.csv"  # استبدل بمسار ملفك
+OUTPUT_CSV = "movies_detailed_info.csv"  # ملف المخرجات
 
-    for year in range(start_year, end_year + 1):
-        print(f"\n📅 جاري استرجاع الأفلام من سنة {year}...")
+def get_movie_details(imdb_id):
+    """جلب تفاصيل الفيلم من OMDB API"""
+    params = {
+        'i': imdb_id,
+        'apikey': OMDB_API_KEY,
+        'plot': 'full'  # للحصول على الوصف الكامل
+    }
+    
+    try:
+        response = requests.get(OMDB_URL, params=params)
+        response.raise_for_status()
+        data = response.json()
         
-        for term in search_terms:
-            for page in range(1, max_pages + 1):
-                params = {
-                    'apikey': OMDB_API_KEY,
-                    'type': 'movie',
-                    'y': year,
-                    's': term,  # استخدام مصطلح بحث مختلف
-                    'page': page
-                }
+        if data.get('Response') == 'True':
+            return data
+        else:
+            print(f"Error fetching {imdb_id}: {data.get('Error', 'Unknown error')}")
+            return None
+            
+    except requests.exceptions.RequestException as e:
+        print(f"Request failed for {imdb_id}: {e}")
+        return None
 
-                try:
-                    response = requests.get(url, params=params)
-                    data = response.json()
+def process_movies(input_file, output_file):
+    """معالجة الأفلام وحفظ النتائج"""
+    # قراءة ملف الإدخال
+    try:
+        df_input = pd.read_csv(input_file)
+        if 'imdbID' not in df_input.columns:
+            raise ValueError("Input CSV must contain 'imdbID' column")
+    except Exception as e:
+        print(f"Error reading input file: {e}")
+        return
 
-                    if data.get('Response') == 'True':
-                        for movie in data.get('Search', []):
-                            all_movies.append([
-                                movie.get('Title', 'N/A'),
-                                movie.get('Year', 'N/A'),
-                                movie.get('imdbID', 'N/A'),
-                                movie.get('Type', 'N/A'),
-                                movie.get('Poster', 'N/A')
-                            ])
-                        print(f"تمت إضافة {len(data['Search'])} أفلام للصفحة {page}")
-                    
-                    elif data.get('Error') == 'Too many results.':
-                        print(f"⚠️ تخطي البحث بـ '{term}' لسنة {year} (كثرة النتائج)")
-                        break  # انتقل إلى مصطلح البحث التالي
-                    
-                    else:
-                        print(f"⚠️ {data.get('Error', 'خطأ غير معروف')}")
-                        break  # توقف إذا كان هناك خطأ آخر
+    # قائمة لتخزين النتائج
+    all_movies = []
+    
+    # معالجة كل فيلم مع شريط التقدم
+    for imdb_id in tqdm(df_input['imdbID'], desc="Processing movies"):
+        # جلب تفاصيل الفيلم
+        movie_data = get_movie_details(imdb_id)
+        
+        if movie_data:
+            # إضافة البيانات إلى القائمة
+            all_movies.append(movie_data)
+        
+        # تأخير لتجنب تجاوز حد معدل الطلبات (40 طلب/دقيقة لـ OMDB API المجاني)
+        time.sleep(1.5)  # 1.5 ثانية بين الطلبات
+    
+    # تحويل القائمة إلى DataFrame
+    if all_movies:
+        df_output = pd.DataFrame(all_movies)
+        
+        # حفظ النتائج في ملف CSV
+        try:
+            df_output.to_csv(output_file, index=False, encoding='utf-8')
+            print(f"\nSuccessfully saved detailed info for {len(all_movies)} movies to {output_file}")
+        except Exception as e:
+            print(f"Error saving output file: {e}")
+    else:
+        print("No movie data was retrieved")
 
-                except Exception as e:
-                    print(f"❌ خطأ: {e}")
-                    break
-
-                time.sleep(1.5)  # زيادة التأخير بين الطلبات
-
-    # حفظ النتائج في CSV
-    with open(CSV_FILE_NAME, 'w', encoding='utf-8', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow(['Title', 'Year', 'imdbID', 'Type', 'Poster'])
-        writer.writerows(all_movies)
-
-    print(f"\n✅ تم حفظ {len(all_movies)} فيلم بنجاح في {CSV_FILE_NAME}")
-
-if __name__ == '__main__':
-    fetch_all_movies_to_csv()
+if __name__ == "__main__":
+    process_movies(INPUT_CSV, OUTPUT_CSV)
