@@ -205,6 +205,42 @@ namespace MovieRecommendationAPI.Controllers
 
         }
 
+        [HttpGet("GetTop100MovieWithFiltersAndSorting/{StartYear}/{EndYear}/{GenresList}/{MinRatingValue}/{OrderBy}/{OrderValue}",
+            Name = "GetTop100MovieWithFiltersAndSorting")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<List<MovieDTO>> GetTop100MovieWithFiltersAndSorting(int StartYear,int EndYear,
+                                                    string GenresList,float MinRatingValue,string OrderBy="Year", string OrderValue="DESC")
+        {
+            if(OrderValue != "ASC" && OrderValue != "DESC")
+            {
+                return BadRequest($"Bad Request: Rating Order Value: {OrderValue} Is Not valid");
+            }
+            if (StartYear < 1900 || StartYear > DateTime.Now.Year || EndYear < 1900 || EndYear > DateTime.Now.Year || StartYear > EndYear)
+            {
+                return BadRequest($"Bad Request: Year: {StartYear} or {EndYear} Is Not valid");
+            }
+            if (String.IsNullOrEmpty(GenresList))
+            {
+                return BadRequest("Bad Request: Genres List is empty");
+            }
+            List<MovieDTO> movies = clsMoviePasicDetails.GetTop100MovieBetweenTwoYearsWithGenreAndOrderRating(
+                                                                OrderValue, StartYear, EndYear, GenresList, MinRatingValue,OrderBy);
+            if (movies == null || movies.Count == 0)
+            {
+                return NotFound($"Not Found: No movie found between {StartYear} and {EndYear} with Genre: {GenresList}");
+            }
+            if (MinRatingValue > 0)
+            {
+                movies = movies.Where(m => m.Rate >= MinRatingValue).ToList();
+            }
+            
+
+            return Ok(movies);
+        }
+
         // End Movie API
 
         // =======================================

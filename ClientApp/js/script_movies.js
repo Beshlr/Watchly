@@ -3,20 +3,25 @@ document.addEventListener('DOMContentLoaded', function() {
     const moviesGrid = document.getElementById('moviesGrid');
     const applyFiltersBtn = document.getElementById('applyFilters');
     const resetFiltersBtn = document.getElementById('resetFilters');
-    const yearRange = document.getElementById('yearRange');
-    const yearMaxValue = document.getElementById('yearMaxValue');
+    const StartYear = document.getElementById('startYear');
+    const EndYear = document.getElementById('endYear');
+    const StartYearMaxValue = document.getElementById('startYearMaxValue');
+    const EndYearMaxValue = document.getElementById('endYearMaxValue');
     const ratingRange = document.getElementById('ratingRange');
     const ratingValue = document.getElementById('ratingValue');
     const genreCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="genre-"], #action, #comedy, #drama, #sci-fi, #horror, #romance, #thriller, #animation');
     const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
+    const searchBtn = document.getElementById('searchButton');
+    const sortBy = document.getElementById('sortBy');
     // إعدادات API
     const apiConfig = {
         baseUrl: 'https://localhost:7009/api/MovieRecommenderAPI',
         endpoints: {
             byGenre: '/GetTop100MovieWithGenre',
             byGenreAndYear: '/GetTop100MovieWithGenreInYear',
-            byYearsRange: '/GetTop100MovieBetweenTwoYears'
+            byYearsRange: '/GetTop100MovieBetweenTwoYears',
+            byYearsRangeAndGenreSorted: '/GetTop100MovieWithFiltersAndSorting'
         }
     };
 
@@ -27,11 +32,16 @@ document.addEventListener('DOMContentLoaded', function() {
     // في دالة initPage، تأكد من تعيين القيم الافتراضية بشكل صحيح
 function initPage() {
     // تعيين القيم الافتراضية للمنزلقات
-    yearRange.min = 1980;
-    yearRange.max = 2016;
-    yearRange.value = 2016;
-    yearMaxValue.textContent = 2016;
+    StartYear.min = 1980;
+    StartYear.max = 2025;
+    StartYear.value = 2021;
+    StartYearMaxValue.textContent = '2021';
     
+    EndYear.min = 1980;
+    EndYear.max = 2025;
+    EndYear.value = 2025;
+    EndYearMaxValue.textContent = '2025';
+
     ratingRange.value = 6;
     ratingValue.textContent = '6.0';
     
@@ -50,8 +60,11 @@ resetFiltersBtn.addEventListener('click', function() {
     });
     
     // إعادة تعيين المنزلقات
-    yearRange.value = 2016;
-    yearMaxValue.textContent = 2016;
+    StartYear.value = 2021;
+    StartYearMaxValue.textContent = 2021;
+
+    EndYear.value = 2025;
+    EndYearMaxValue.textContent = 2025;
     
     ratingRange.value = 6;
     ratingValue.textContent = '6.0';
@@ -62,8 +75,11 @@ resetFiltersBtn.addEventListener('click', function() {
 
     function setupEventListeners() {
         // تحديث عرض قيمة السنة عند التغيير
-        yearRange.addEventListener('input', function() {
-            yearMaxValue.textContent = this.value;
+        StartYear.addEventListener('input', function() {
+            StartYearMaxValue.textContent = this.value;
+        });
+        EndYear.addEventListener('input', function() {
+            EndYearMaxValue.textContent = this.value;
         });
         
         // تحديث عرض قيمة التقييم عند التغيير
@@ -74,6 +90,8 @@ resetFiltersBtn.addEventListener('click', function() {
         // تطبيق الفلاتر عند النقر على الزر
         applyFiltersBtn.addEventListener('click', applyFilters);
         
+        searchBtn.addEventListener('click', getMoviesBySearch);
+
         // إعادة تعيين الفلاتر
         resetFiltersBtn.addEventListener('click', function() {
             // إعادة تعيين صناديق الاختيار
@@ -83,8 +101,11 @@ resetFiltersBtn.addEventListener('click', function() {
             
             // إعادة تعيين المنزلقات
             // const currentYear = new Date().getFullYear();
-            yearRange.value = 2016;
-            yearMaxValue.textContent = 2016;
+            StartYear.value = 2021;
+            StartYearMaxValue.textContent = 2021;
+            
+            EndYear.value = 2025;
+            EndYearMaxValue.textContent = 2025;
             
             ratingRange.value = 6;
             ratingValue.textContent = '6.0';
@@ -94,6 +115,7 @@ resetFiltersBtn.addEventListener('click', function() {
         });
     }
 
+    
     
     async function loadInitialMovies() {
         try {
@@ -114,7 +136,45 @@ resetFiltersBtn.addEventListener('click', function() {
         }
     }
 
-    // دالة البحث عند الكتابة
+// دالة جلب نتائج البحث من API
+async function searchMovies(query, displayInGrid = true) {
+    if (query.length < 2) {
+        loadInitialMovies();
+        searchResults.style.display = 'none'; 
+        if (!displayInGrid) {
+            return [];
+        }
+        throw new Error('Please enter at least 2 characters to search.');
+    }
+    
+    const response = await fetch(`${apiConfig.baseUrl}/NameHasWord/${query}`);
+    
+    if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+    }
+    
+    const movies = await response.json();
+    
+    if (displayInGrid) {
+        displayMovies(movies);
+    }
+    
+    return movies;
+}
+
+async function getMoviesBySearch(e) {
+    if (e) e.preventDefault();
+    
+    try {
+        showLoadingState();
+        searchResults.style.display = 'none';
+        await searchMovies(searchInput.value.trim(), true);
+    } catch (error) {
+        console.error('Search error:', error);
+        showErrorState(error);
+    }
+}
+
 searchInput.addEventListener('input', async function(e) {
     const query = e.target.value.trim();
     
@@ -123,29 +183,15 @@ searchInput.addEventListener('input', async function(e) {
         return;
     }
     
-    if (query.length >= 2) {
-        try {
-            const movies = await searchMovies(query);
-            showSearchResults(movies);
-        } catch (error) {
-            console.error('Search error:', error);
-            searchResults.innerHTML = '<div class="p-2 text-danger">Error loading results</div>';
-            searchResults.style.display = 'block';
-        }
+    try {
+        const movies = await searchMovies(query, false);
+        showSearchResults(movies);
+    } catch (error) {
+        console.error('Search error:', error);
+        searchResults.innerHTML = '<div class="p-2 text-danger">Error loading results</div>';
+        searchResults.style.display = 'block';
     }
 });
-
-// دالة جلب نتائج البحث من API
-async function searchMovies(query) {
-    const response = await fetch(`${apiConfig.baseUrl}/NameHasWord/${query}`);
-    
-    if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
-    }
-    
-    return await response.json();
-}
-
 // دالة عرض نتائج البحث
 function showSearchResults(movies) {
     if (!movies || movies.length === 0) {
@@ -214,19 +260,31 @@ document.addEventListener('click', function(e) {
                         default: return checkbox.id;
                     }
                 });
+
+            const selectedGenresString = selectedGenres.join(',');
             
-            const year = yearRange.value;
+            const startYear = StartYear.value;
+            const endYear = EndYear.value;
             const minRating = parseFloat(ratingRange.value);
-            
+            var SortByValue = sortBy.value;
+            var OrderValue = SortByValue === 'rating' ? 'DESC' : SortByValue === 'newest' ? 'DESC' : 'ASC';
+                let apiUrl = `${apiConfig.baseUrl}${apiConfig.endpoints.byGenre}?GenreName=Sci_Fi`;
+
             // 2. تسجيل URL للتحقق
-            const apiUrl = `${apiConfig.baseUrl}${apiConfig.endpoints.byGenreAndYear}/${year}?GenreName=${selectedGenres[0]}`;
+            if(selectedGenres.length != 0) {
+                apiUrl = `${apiConfig.baseUrl}${apiConfig.endpoints.byYearsRangeAndGenreSorted}/${startYear}/${endYear}/${selectedGenresString}/${minRating}/${SortByValue}/${OrderValue}`;
+            }
+            
             console.log("Request URL:", apiUrl); // أضف هذا السطر
             
             // 3. جلب البيانات
             const response = await fetch(apiUrl);
             
             if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
+                if( response.status === 404) 
+                    throw new Error(`No movies found for the selected filters.`);
+                else
+                    throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const movies = await response.json();
@@ -260,22 +318,22 @@ document.addEventListener('click', function(e) {
     }
 
     // أضف هذه الدالة مع الدوال الأخرى في ملف script_movies.js
-        function generateStarRating(rating) {
-            if (!rating || rating === 0) {
-                return '<span class="text-muted">No rating</span>';
-            }
-            
-            const fullStars = Math.floor(rating / 2);
-            const halfStar = rating % 2 >= 0.5 ? 1 : 0;
-            const emptyStars = 5 - fullStars - halfStar;
-            
-            let stars = '';
-            for (let i = 0; i < fullStars; i++) stars += '<i class="bi bi-star-fill text-warning"></i>';
-            if (halfStar) stars += '<i class="bi bi-star-half text-warning"></i>';
-            for (let i = 0; i < emptyStars; i++) stars += '<i class="bi bi-star text-warning"></i>';
-            
-            return stars;
+    function generateStarRating(rating) {
+        if (!rating || rating === 0) {
+            return '<span class="text-muted">No rating</span>';
         }
+        
+        const fullStars = Math.floor(rating / 2);
+        const halfStar = rating % 2 >= 0.5 ? 1 : 0;
+        const emptyStars = 5 - fullStars - halfStar;
+        
+        let stars = '';
+        for (let i = 0; i < fullStars; i++) stars += '<i class="bi bi-star-fill text-warning"></i>';
+        if (halfStar) stars += '<i class="bi bi-star-half text-warning"></i>';
+        for (let i = 0; i < emptyStars; i++) stars += '<i class="bi bi-star text-warning"></i>';
+        
+        return stars;
+    }
 
     function displayMovies(movies) {
         if (!movies || movies.length === 0) {

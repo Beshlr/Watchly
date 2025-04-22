@@ -30,9 +30,6 @@
                         <a class="nav-link active" aria-current="page" href="explore_Movies.html">Browse Movies</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="genres.html">Genres</a>
-                    </li>
-                    <li class="nav-item">
                         <a class="nav-link" href="recommendation.html">For You</a>
                     </li>
                 </ul>
@@ -44,7 +41,7 @@
                            id="searchInput" 
                            autocomplete="off"
                            aria-label="Search movies">
-                    <button class="btn btn-outline-light" id="searchButton" type="submit">Search</button>
+                    <button class="btn btn-outline-light" id="searchButton">Search</button>
                     <div class="dropdown-menu w-100 position-absolute top-100 start-0" 
                          id="searchResults" 
                          style="display: none; z-index: 1000;"></div>
@@ -105,12 +102,19 @@
 
                         <!-- Year Range Filter -->
                         <div class="mb-4">
-                            <h6 class="mb-3">Release Year</h6>
+                            <h6 class="mb-3">Start Year</h6>
                             <div class="d-flex justify-content-between mb-2">
                                 <span id="yearMinValue">1980</span>
-                                <span id="yearMaxValue">2016</span>
+                                <span id="startYearMaxValue">2021</span>
                             </div>
-                            <input type="range" class="form-range" min="1980" max="2016" step="1" id="yearRange" value="2016">
+                            <input type="range" class="form-range" min="1980" max="2025" step="1" id="startYear" value="2021">
+                            
+                            <h6 class="mb-3">End Year</h6>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span id="yearMinValue">1980</span>
+                                <span id="endYearMaxValue">2025</span>
+                            </div>
+                            <input type="range" class="form-range" min="1980" max="2025" step="1" id="endYear" value="2025">
                         </div>
 
                         <!-- Rating Filter -->
@@ -126,7 +130,6 @@
                         <div class="mb-3">
                             <h6 class="mb-3">Sort By</h6>
                             <select class="form-select" id="sortBy">
-                                <option value="popularity">Popularity</option>
                                 <option value="rating">Rating</option>
                                 <option value="newest">Newest First</option>
                                 <option value="oldest">Oldest First</option>

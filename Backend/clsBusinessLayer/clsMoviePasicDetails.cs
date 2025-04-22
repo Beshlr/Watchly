@@ -117,6 +117,29 @@ namespace clsBusinessLayer
             return clsMovieBasicDetailsData.GetMoviesWithNameHasWord(PieceOfName);
         }
 
+        public static List<MovieDTO> GetTop100MovieBetweenTwoYearsWithGenreAndOrderRating(string OrderValue, int StartYear,
+                                                                                         int EndYear, string GenresList,float MinRatingValue, string SortBy="Year")
+        {
+            //Check if the user has selected the rating order value or not.
+            if (SortBy.ToLower() == "oldest first" || SortBy.ToLower() == "newest first" || SortBy.ToLower() == "year")
+            {
+                if (SortBy.ToLower() == "oldest first")
+                    OrderValue = "ASC";
+                else if(SortBy.ToLower() == "newest first")
+                    OrderValue = "DESC";
+                SortBy = "title_year";
+            }
+            else if (SortBy.ToLower() == "rating")
+            {
+                SortBy = "imdb_score";
+            }
+            else
+            {
+                SortBy = "title_year";
+            }
+            return clsMovieBasicDetailsData.GetTop100MovieBetweenTwoYearsWithGenreAndOrderRating(OrderValue, StartYear, EndYear, GenresList, MinRatingValue,SortBy);
+        }
+
         public static bool IsMovieExist(string MovieName)
         {
             return clsMovieBasicDetailsData.IsMovieExist(MovieName);
@@ -138,7 +161,7 @@ namespace clsBusinessLayer
             else if (genre == enGenres.Reality_TV)
                 return "Reality-TV";
             else if (genre == enGenres.Sci_Fi)
-                return "Sci-Fi";
+                return "Sci_Fi";
 
             // If the genre name doesn't have underscore then we can use Enum.GetName to get the name of the enum.
                 
@@ -193,7 +216,7 @@ namespace clsBusinessLayer
         {
             //Get the genre name from enum when we need to use it.
             string genre = GetGenreName(genreName);
-            return clsMovieBasicDetailsData.GetTop100MovieWithGenreInYearAndOrderThemByRatingDESC(genre, Year);
+            return clsMovieBasicDetailsData.GetTop100MovieWithGenreInYearAndOrderThemByRating(genre, Year);
         }
 
         /// <summary>
