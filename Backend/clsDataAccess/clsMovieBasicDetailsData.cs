@@ -137,6 +137,26 @@ namespace clsDataAccess
             }
             return IsExist;
         }
+        public static bool IsMovieExist(int MovieID)
+        {
+            bool IsExist = false;
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                string query = "Select Found=1 From vw_MovieBasicInfo Where ID = @MovieID";
+                using (SqlCommand cmd = new SqlCommand(query, connection))
+                {
+                    cmd.Parameters.AddWithValue("@MovieID", MovieID);
+                    connection.Open();
+                    object result = cmd.ExecuteScalar();
+                    if (result != null && result != DBNull.Value)
+                    {
+                        IsExist = true;
+                    }
+                   
+                }
+            }
+            return IsExist;
+        }
 
         public static List<MovieDTO> GetMoviesStartWithName(string MovieName)
         {
@@ -372,15 +392,16 @@ namespace clsDataAccess
             return MDTOs;
         }
     
-        public static List<MovieDTO> GetTop100MoviesBetweenTwoYears(int StartYear, int EndYear)
+        public static List<MovieDTO> GetTop100MoviesBetweenTwoYears(int StartYear, int EndYear, string Genre="Action")
         {
             using(SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                using (SqlCommand cmd = new SqlCommand("SP_GetTop100MoviePopularInAperiod", con))
+                using (SqlCommand cmd = new SqlCommand("SP_GetTop100MoviePopularInAperiodWithGenre", con))
                 {
                     cmd.CommandType = System.Data.CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@Start_Year", StartYear);
                     cmd.Parameters.AddWithValue("@End_Year", EndYear);
+                    cmd.Parameters.AddWithValue("@Genre", Genre);
 
                     con.Open();
                     using (SqlDataReader reader = cmd.ExecuteReader())
@@ -545,6 +566,33 @@ namespace clsDataAccess
 
             return MDTOs;
         }
+
+        public static bool DeleteMovieByID(int MovieID)
+        {
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_DeleteMovieByID", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@MovieID", MovieID);
+                    con.Open();
+                    try
+                    {
+                        object rowsAffected = cmd.ExecuteScalar();
+                        return (int)rowsAffected > 0;
+
+                    }
+                    catch(Exception ex)
+                    {
+                        Console.WriteLine("Error ", ex.Message);
+                    }
+                }
+            }
+
+            return false;
+        }
+
+       
     }
 
     

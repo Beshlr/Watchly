@@ -1,85 +1,186 @@
-document.addEventListener('DOMContentLoaded', function() {
-    const baseApiUrl = 'https://localhost:7009/api/MovieRecommenderAPI';
-    
-    // Login Form Handling
+document.addEventListener('DOMContentLoaded', () => {
+    const baseApiUrl = 'https://localhost:7009/api/UsersAPI';
+    const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
+
+    function showError(message, fieldId = null) {
+        // إذا كان هناك حقل محدد، عرض الخطأ تحته
+        if (fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.classList.add('is-invalid');
+                const feedback = field.nextElementSibling;
+                if (feedback && feedback.classList.contains('invalid-feedback')) {
+                    feedback.textContent = message;
+                    feedback.style.display = 'block';
+                }
+            }
+        } else {
+            // عرض الخطأ في Toast كحالة افتراضية
+            const errorToastBody = document.getElementById('errorToastBody');
+            if (errorToastBody) {
+                errorToastBody.textContent = message;
+                errorToast.show();
+            }
+        }
+    }
+
+    // إزالة رسائل الخطأ عند التركيز على الحقل
+    function clearError(fieldId) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.classList.remove('is-invalid');
+            const feedback = field.nextElementSibling;
+            if (feedback && feedback.classList.contains('invalid-feedback')) {
+                feedback.style.display = 'none';
+            }
+        }
+    }
+
+    // إضافة مستمعات الأحداث للحقول
+    function setupFieldValidation(fieldId, validationFn, errorMessage) {
+        const field = document.getElementById(fieldId);
+        if (field) {
+            field.addEventListener('focus', () => clearError(fieldId));
+            field.addEventListener('blur', () => {
+                if (!validationFn(field.value)) {
+                    showError(errorMessage, fieldId);
+                }
+            });
+            field.addEventListener('input', () => {
+                if (validationFn(field.value)) {
+                    clearError(fieldId);
+                }
+            });
+        }
+    }
+
+    // Login Handling
     const loginForm = document.getElementById('loginForm');
     if (loginForm) {
-        loginForm.addEventListener('submit', async function(e) {
+        // إعداد تحقق الحقول
+        setupFieldValidation('username', 
+            val => val.length >= 3 && val.length <= 20,
+            'Username must be between 3-20 characters');
+            
+        setupFieldValidation('password',
+            val => val.length >= 6,
+            'Password must be at least 6 characters');
+
+        loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            const username = document.getElementById('username').value;
+            let isValid = true;
+
+            // التحقق من صحة الحقول
+            const username = document.getElementById('username').value.trim();
+            if (username.length < 3 || username.length > 20) {
+                showError('Username must be between 3-20 characters', 'username');
+                isValid = false;
+            }
+
             const password = document.getElementById('password').value;
-            
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters', 'password');
+                isValid = false;
+            }
+
+            if (!isValid) return;
+
             try {
-                const response = await fetch(`${baseApiUrl}/CheckPasswordForUsername/${username}?Password=${password}`, {
-                    method: 'GET'
+                const response = await fetch(`${baseApiUrl}/CheckPasswordForUsername?Username=${encodeURIComponent(username)}&Password=${encodeURIComponent(password)}`, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
                 });
-                
+
                 if (response.ok) {
-                    // Successful login
+                    const userData = await response.json();
+                    // تخزين بيانات المستخدم...
                     window.location.href = '../pages/main.html';
                 } else {
-                    // Handle error
                     const error = await response.text();
-                    alert(error || 'Login failed. Please check your credentials.');
+                    showError('Invalid username or password');
                 }
             } catch (error) {
-                console.error('Error during login:', error);
-                alert('An error occurred during login. Please try again.');
+                console.error('Login error:', error);
+                showError('Network error. Please try again.');
             }
         });
     }
-    
-    // Signup Form Handling
+
+    // Signup Handling
     const signupForm = document.getElementById('signupForm');
     if (signupForm) {
-        signupForm.addEventListener('submit', async function(e) {
+        // إعداد تحقق الحقول
+        setupFieldValidation('username', 
+            val => val.length >= 3 && val.length <= 20,
+            'Username must be between 3-20 characters');
+            
+        setupFieldValidation('password',
+            val => val.length >= 6,
+            'Password must be at least 6 characters');
+            
+        setupFieldValidation('confirmPassword',
+            val => val === document.getElementById('password').value,
+            'Passwords do not match');
+            
+        setupFieldValidation('age',
+            val => !isNaN(val) && val >= 1 && val <= 120,
+            'Please enter a valid age (1-120)');
+            
+        setupFieldValidation('email',
+            val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+            'Please enter a valid email address');
+
+        signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            
-            // Validate form
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const confirmPassword = document.getElementById('confirmPassword').value;
-            const age = document.getElementById('age').value;
-            
-            // Client-side validation
+            let isValid = true;
+
+            // التحقق من صحة الحقول
+            const username = document.getElementById('username').value.trim();
             if (username.length < 3 || username.length > 20) {
-                document.getElementById('username').classList.add('is-invalid');
-                return;
-            } else {
-                document.getElementById('username').classList.remove('is-invalid');
+                showError('Username must be between 3-20 characters', 'username');
+                isValid = false;
             }
-            
-            if (password.length < 3 || password.length > 20) {
-                document.getElementById('password').classList.add('is-invalid');
-                return;
-            } else {
-                document.getElementById('password').classList.remove('is-invalid');
+
+            const password = document.getElementById('password').value;
+            if (password.length < 6) {
+                showError('Password must be at least 6 characters', 'password');
+                isValid = false;
             }
-            
+
+            const confirmPassword = document.getElementById('confirmPassword').value;
             if (password !== confirmPassword) {
-                document.getElementById('confirmPassword').classList.add('is-invalid');
-                return;
-            } else {
-                document.getElementById('confirmPassword').classList.remove('is-invalid');
+                showError('Passwords do not match', 'confirmPassword');
+                isValid = false;
             }
-            
-            if (age < 1 || age > 120) {
-                document.getElementById('age').classList.add('is-invalid');
-                return;
-            } else {
-                document.getElementById('age').classList.remove('is-invalid');
+
+            const age = parseInt(document.getElementById('age').value);
+            if (isNaN(age) || age < 1 || age > 120) {
+                showError('Please enter a valid age (1-120)', 'age');
+                isValid = false;
             }
-            
-            // Prepare user data
+
+            const email = document.getElementById('email').value.trim();
+            if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+                showError('Please enter a valid email address', 'email');
+                isValid = false;
+            }
+
+            if (!document.getElementById('terms').checked) {
+                showError('You must agree to the terms and conditions');
+                isValid = false;
+            }
+
+            if (!isValid) return;
+
             const userData = {
                 Username: username,
                 Password: password,
-                Age: parseInt(age),
-                IsAcive: true,
-                Permissions: 1 // Default permissions
+                Age: age,
+                Email: email,
             };
-            
+
             try {
                 const response = await fetch(`${baseApiUrl}/AddNewUser`, {
                     method: 'POST',
@@ -88,18 +189,26 @@ document.addEventListener('DOMContentLoaded', function() {
                     },
                     body: JSON.stringify(userData)
                 });
-                
+
                 if (response.ok) {
-                    const user = await response.json();
-                    alert('Account created successfully! Please login.');
-                    window.location.href = 'login.html';
+                    showError('Account created successfully! Redirecting to login...');
+                    setTimeout(() => {
+                        window.location.href = 'login.html';
+                    }, 2000);
                 } else {
-                    const error = await response.text();
-                    alert(error || 'Signup failed. Please try again.');
+                    const error = await response.json();
+                    // معالجة أخطاء محددة من API
+                    if (error.includes("Email is not avalible")) {
+                        showError('Email is already in use', 'email');
+                    } else if (error.includes("User with username")) {
+                        showError('Username is already taken', 'username');
+                    } else {
+                        showError(error || 'Signup failed. Please try again.');
+                    }
                 }
             } catch (error) {
-                console.error('Error during signup:', error);
-                alert('An error occurred during signup. Please try again.');
+                console.error('Signup error:', error);
+                showError('An error occurred during signup. Please try again.');
             }
         });
     }

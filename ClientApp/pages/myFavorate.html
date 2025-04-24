@@ -3,22 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Watchly - Discover Your Next Favorite Movie</title>
+    <title>My Favorites | Watchly</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="../css/styles_main.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
+    <style>
+        .movie-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .movie-card {
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+
+        .movie-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .movie-card img {
+            border-radius: 8px;
+            height: 270px;
+            object-fit: cover;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem;
+            color: #6c757d;
+        }
+
+        .empty-state-icon {
+            font-size: 5rem;
+            margin-bottom: 1rem;
+            color: #dee2e6;
+        }
+    </style>
 </head>
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a class="navbar-brand" href="#">
+            <a class="navbar-brand" href="../pages/main.html">
                 <h4 class="mb-0">Watchly</h4>
             </a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
             <div class="collapse navbar-collapse" id="navbarNav">
                 <ul class="navbar-nav me-auto">
                     <li class="nav-item">
-                        <a class="nav-link active" href="../pages/main.html">Home</a>
+                        <a class="nav-link" href="../pages/main.html">Home</a>
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="explore_Movies.html">Browse Movies</a>
@@ -27,7 +64,7 @@
                         <a class="nav-link" href="foryou.html">For You</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="myFavorate.html">My Favorate</a>
+                        <a class="nav-link active" href="myFavorate.html">My Favorites</a>
                     </li>
                 </ul>
                 <form class="d-flex position-relative me-2">
@@ -40,35 +77,20 @@
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="hero-section text-center">
-        <div class="container">
-            <h1 class="display-4 fw-bold mb-4">Discover Movies You'll Love</h1>
-            <p class="lead mb-5">Personalized recommendations just for you, <span id="welcomeText"></span></p>
-            <a href="explore_Movies.html" class="btn btn-primary btn-lg px-4">Explore Movies</a>
+    <main class="container py-5">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h1>My Favorite Movies</h1>
+            <div id="welcomeText" class="text-muted"></div>
         </div>
-    </section>
 
-    <!-- Main Content -->
-    <div class="container py-5">
-        <h2 class="mb-4">Popular This Week</h2>
-        <div class="row" id="popularMovies">
-            <div class="col-12 text-center py-5">
+        <div class="movie-grid" id="favoriteMoviesContainer">
+            <div class="text-center py-5">
                 <div class="spinner-border text-primary" role="status">
                     <span class="visually-hidden">Loading...</span>
                 </div>
             </div>
         </div>
-
-        <h2 class="mt-5 mb-4">Recommended For You</h2>
-        <div class="row" id="recommendedMovies">
-            <div class="col-12 text-center py-5">
-                <div class="spinner-border text-primary" role="status">
-                    <span class="visually-hidden">Loading...</span>
-                </div>
-            </div>
-        </div>
-    </div>
+    </main>
 
     <!-- Footer -->
     <footer class="bg-dark text-white py-4">
@@ -99,6 +121,6 @@
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../js/script_main.js"></script>
+    <script src="../js/script_myFavorate.js"></script>
 </body>
 </html>

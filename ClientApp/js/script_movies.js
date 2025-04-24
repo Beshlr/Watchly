@@ -24,6 +24,24 @@ document.addEventListener('DOMContentLoaded', function() {
             byYearsRangeAndGenreSorted: '/GetTop100MovieWithFiltersAndSorting'
         }
     };
+    const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+            
+    // Check authentication and update UI
+    if (userJson) {
+        const user = JSON.parse(userJson);
+        
+        const loginBtn = document.getElementById('log-btn');
+        loginBtn.textContent = 'Logout';
+        loginBtn.href = '#';
+        loginBtn.onclick = () => {
+            localStorage.removeItem('loggedInUser');
+            sessionStorage.removeItem('loggedInUser');
+            window.location.href = 'login.html';
+        };
+    } else {
+        window.location.href = 'login.html';
+        return;
+    }
 
     // تهيئة الصفحة
     initPage();
@@ -87,41 +105,18 @@ resetFiltersBtn.addEventListener('click', function() {
             ratingValue.textContent = this.value;
         });
         
-        // تطبيق الفلاتر عند النقر على الزر
+        // When the user clicks on applyFilters button, apply the filters
         applyFiltersBtn.addEventListener('click', applyFilters);
         
+        // When the user clicks on search button, search for movies
         searchBtn.addEventListener('click', getMoviesBySearch);
-
-        // إعادة تعيين الفلاتر
-        resetFiltersBtn.addEventListener('click', function() {
-            // إعادة تعيين صناديق الاختيار
-            genreCheckboxes.forEach(checkbox => {
-                checkbox.checked = ['action', 'comedy', 'drama', 'sci-fi'].includes(checkbox.id);
-            });
-            
-            // إعادة تعيين المنزلقات
-            // const currentYear = new Date().getFullYear();
-            StartYear.value = 2021;
-            StartYearMaxValue.textContent = 2021;
-            
-            EndYear.value = 2025;
-            EndYearMaxValue.textContent = 2025;
-            
-            ratingRange.value = 6;
-            ratingValue.textContent = '6.0';
-            
-            // تطبيق الفلاتر من جديد
-            applyFilters();
-        });
     }
 
-    
-    
     async function loadInitialMovies() {
         try {
             showLoadingState();
             
-            // جلب الأفلام الشائعة (أفلام الأكشن كمثال)
+            // We can use a default genre for the initial load, e.g., "Sci-Fi"
             const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.byGenre}?GenreName=Sci_Fi`);
             
             if (!response.ok) {
@@ -225,8 +220,8 @@ window.selectMovie = function(url) {
     if (url) {
         window.open(url, '_blank');
     }
-    searchResults.style.display = 'none';
-    searchInput.value = '';
+    // searchResults.style.display = 'none';
+    // searchInput.value = '';
 };
 
 // إخفاء نتائج البحث عند النقر خارجها
@@ -236,13 +231,11 @@ document.addEventListener('click', function(e) {
     }
 });
 
-
-
     async function applyFilters() {
         try {
             showLoadingState();
             
-            // 1. جمع معايير التصفية
+            // 1. Collect the selected genres 
             const selectedGenres = Array.from(genreCheckboxes)
                 .filter(checkbox => checkbox.checked)
                 .map(checkbox => {
@@ -261,6 +254,7 @@ document.addEventListener('click', function(e) {
                     }
                 });
 
+                // Put All Selected Genres in the selectedGenresString variable
             const selectedGenresString = selectedGenres.join(',');
             
             const startYear = StartYear.value;
@@ -295,6 +289,8 @@ document.addEventListener('click', function(e) {
             showErrorState(error);
         }
     }
+
+    // Function to show circular loading state
     function showLoadingState() {
         moviesGrid.innerHTML = `
             <div class="col-12 text-center py-5">
@@ -330,7 +326,8 @@ document.addEventListener('click', function(e) {
         let stars = '';
         for (let i = 0; i < fullStars; i++) stars += '<i class="bi bi-star-fill text-warning"></i>';
         if (halfStar) stars += '<i class="bi bi-star-half text-warning"></i>';
-        for (let i = 0; i < emptyStars; i++) stars += '<i class="bi bi-star text-warning"></i>';
+        if(emptyStars)
+            for (let i = 0; i < emptyStars; i++) stars += '<i class="bi bi-star text-warning"></i>';
         
         return stars;
     }
@@ -346,27 +343,116 @@ document.addEventListener('click', function(e) {
         }
         
         moviesGrid.innerHTML = movies.map(movie => `
-            <div class="col-md-4 col-lg-3 mb-4 movie-card-container">
-                <div class="card h-100" onclick="window.open('${movie.imDbMovieURL || '#'}', '_blank')" style="cursor: pointer;">
+        <div class="col-md-4 col-lg-3 mb-4 movie-card-container">
+            <a href="${movie.imDbMovieURL || '#'}" 
+                class="card h-100 d-block text-decoration-none" 
+                onclick="window.open('${movie.imDbMovieURL || '#'}', '_blank'); return false;" 
+                style="cursor: pointer;">
+                <div class="position-relative">
                     <img src="${movie.posterImageURL || 'https://via.placeholder.com/300x450'}" 
-                         class="card-img-top" 
-                         alt="${movie.movieName}"
-                         onerror="this.src='https://via.placeholder.com/300x450?text=Poster+Not+Found'">
-                    <div class="card-body">
-                        <h5 class="card-title">${movie.movieName}</h5>
-                        <p class="card-text">
-                            <span class="text-muted">${movie.year}</span>
-                            <span class="float-end rating-stars">
-                                ${generateStarRating(movie.rate)}
-                                <small>${movie.rate?.toFixed(1) || 'N/A'}</small>
-                            </span>
-                        </p>
-                    </div>
+                        class="card-img-top" 
+                        alt="${movie.movieName}"
+                        onerror="this.src='https://via.placeholder.com/300x450?text=Poster+Not+Found'">
+                    <button class="btn btn-sm btn-favorite position-absolute top-0 end-0 m-2" 
+                                onclick="event.stopPropagation(); toggleFavorite(${movie.id}, this)">
+                            <i class="bi bi-heart${isFavorite(movie.id) ? '-fill text-danger' : ''}"></i>
+                        </button>
                 </div>
-            </div>
+                <div class="card-body">
+                    <h5 class="card-title">${movie.movieName}</h5>
+                    <p class="card-text">
+                        <span class="text-muted">${movie.year}</span>
+                        <span class="float-end rating-stars">
+                            ${generateStarRating(movie.rate)}
+                            <small>${movie.rate?.toFixed(1) || 'N/A'}</small>
+                        </span>
+                    </p>
+                </div>
+            </a>
+        </div>
         `).join('');
     }
     
+    function isFavorite(movieId) {
+        const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+        if (!userJson) return false;
+        
+        // يمكنك تخزين قائمة المفضلة في localStorage للتحسين
+        const favorites = JSON.parse(localStorage.getItem('userFavorites') || '[]');
+        return favorites.includes(movieId);
+    }
+    
+    // تبديل حالة المفضلة
+    async function toggleFavorite(movieId, buttonElement) {
+        const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+        if (!userJson) {
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        const user = JSON.parse(userJson);
+        const isFav = isFavorite(movieId);
+        const icon = buttonElement.querySelector('i');
+        
+        try {
+            const response = await fetch('https://localhost:7009/api/UsersAPI/AddMovieToFavorate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    UserID: user.id,
+                    MovieID: movieId
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to update favorite');
+            }
+            
+            // تحديث الواجهة
+            if (isFav) {
+                icon.classList.remove('bi-heart-fill', 'text-danger');
+                icon.classList.add('bi-heart');
+                // إزالة من localStorage
+                const favorites = JSON.parse(localStorage.getItem('userFavorites') || []);
+                localStorage.setItem('userFavorites', JSON.stringify(favorites.filter(id => id !== movieId)));
+            } else {
+                icon.classList.remove('bi-heart');
+                icon.classList.add('bi-heart-fill', 'text-danger');
+                // إضافة إلى localStorage
+                const favorites = JSON.parse(localStorage.getItem('userFavorites') || []);
+                favorites.push(movieId);
+                localStorage.setItem('userFavorites', JSON.stringify(favorites));
+            }
+        } catch (error) {
+            console.error('Error updating favorite:', error);
+            alert('Failed to update favorite. Please try again.');
+        }
+    }
+    
+    // تحميل قائمة المفضلة عند بدء التشغيل
+    async function loadFavorites() {
+        const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+        if (!userJson) return;
+        
+        const user = JSON.parse(userJson);
+        
+        try {
+            const response = await fetch(`https://localhost:7009/api/UsersAPI/GetAllFavorateMoviesforUser?UserID=${user.id}`);
+            if (!response.ok) throw new Error('Failed to load favorites');
+            
+            const favorites = await response.json();
+            const favoriteIds = favorites.map(movie => movie.movieID);
+            localStorage.setItem('userFavorites', JSON.stringify(favoriteIds));
+        } catch (error) {
+            console.error('Error loading favorites:', error);
+        }
+    }
+    
+    // استدعاء loadFavorites عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', loadFavorites);
+
     // جعل الدالة متاحة عالمياً لأزرار إعادة المحاولة
     window.applyFilters = applyFilters;
 });

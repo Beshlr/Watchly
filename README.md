@@ -20,14 +20,15 @@ This is a full-stack web application that recommends movies to users based on va
 ## 💻 Technologies Used
 
 ### Frontend:
+
 - HTML, CSS, JavaScript
-- Bootstrap / Responsive UI (or any framework used)
+- Bootstrap / Responsive UI
 
 ### Backend:
+
 - ASP.NET Core Web API
 - SQL Server
 - ADO.NET
 - Swagger / Swashbuckle
 
 ## 📦 Project Structure
-

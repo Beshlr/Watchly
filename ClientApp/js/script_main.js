@@ -1,118 +1,236 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const searchForm = document.querySelector('.d-flex');
-    const searchInput = document.getElementById('searchInput');
-    const searchResults = document.getElementById('searchResults');
-    const popularMoviesContainer = document.querySelector('.row:first-of-type');
-    const recommendedMoviesContainer = document.querySelector('.row:last-of-type');
     const baseApiUrl = 'https://localhost:7009/api/MovieRecommenderAPI';
+    const userJson = localStorage.getItem('loggedInUser');
+    
+    // Check authentication
+    // if (!userJson) {
+    //     window.location.href = 'login.html';
+    //     return;
+    // }
 
-    async function fetchData(url) {
-        try {
-            const response = await fetch(url);
-            if (!response.ok) {
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }
-            return await response.json();
-        } catch (error) {
-            console.error('Error fetching data:', error);
-            return null;
-        }
+    const user = JSON.parse(userJson);
+    const loginLogoutBtn = document.querySelector('.log-btn');
+    
+    // Update UI based on login state
+    if (user) {
+        loginLogoutBtn.textContent = 'Logout';
+        loginLogoutBtn.href = '#';
+        loginLogoutBtn.onclick = () => {
+            localStorage.removeItem('loggedInUser');
+            window.location.href = 'login.html';
+        };
     }
 
-    async function loadPopularMovies() {
-        popularMoviesContainer.innerHTML = '<p class="text-muted">Loading popular movies...</p>';
-        const movies = await fetchData(`${baseApiUrl}/GetTop100MovieWithGenre?GenreName=Sci_FI`);
-        if (movies) {
-            displayMovies(movies.slice(0, 4), popularMoviesContainer);
-        } else {
-            popularMoviesContainer.innerHTML = '<p class="text-danger">Error loading popular movies.</p>';
-        }
-    }
 
-    async function loadRecommendedMovies() {
-        recommendedMoviesContainer.innerHTML = '<p class="text-muted">Loading recommendations...</p>';
-        const movies = await fetchData(`${baseApiUrl}/GetRecommandedMovies/1`);
-        if (movies) {
-            displayMovies(movies.slice(0, 4), recommendedMoviesContainer);
-        } else {
-            recommendedMoviesContainer.innerHTML = '<p class="text-danger">Error loading recommended movies.</p>';
-        }
-    }
 
-    function displayMovies(movies, container) {
-        container.innerHTML = movies?.map(movie => `
-            <div class="col-md-4 col-lg-3">
+    // Load popular movies
+    loadMovies('GetTop100MovieWithGenre?GenreName=Sci_FI', 'popularMovies');
+    
+    // Load recommended movies (using user ID 1 for demo)
+    loadMovies('GetRecommandedMovies/1', 'recommendedMovies');
+    
+    
+    // استخدم بياناته زي ما تحب
+    document.getElementById('welcomeText').innerText = `Welcome, ${user.username}!`;
+
+    // Search functionality
+    const searchInput = document.getElementById('searchInput');
+    searchInput.addEventListener('input', debounce(handleSearch, 300));
+    
+    function loadMovies(endpoint, containerId) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
+        
+        fetch(`${baseApiUrl}/${endpoint}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(movies => {
+                displayMovies(movies.slice(0, 4), containerId);
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                container.innerHTML = `<div class="col-12 text-center py-5"><p class="text-danger">Error loading movies. Please try again.</p></div>`;
+            });
+    }
+    
+    function displayMovies(movies, containerId) {
+        const container = document.getElementById(containerId);
+        
+        if (!movies || movies.length === 0) {
+            container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No movies found</p></div>';
+            return;
+        }
+        
+        container.innerHTML = movies.map(movie => `
+            <div class="col-md-6 col-lg-3">
                 <div class="card movie-card">
-                    <img src="${movie.posterImageURL || 'https://via.placeholder.com/300x450'}" class="card-img-top" alt="${movie.Title}">
+                    <div class="position-relative">
+                        <img src="${movie.posterImageURL || 'https://via.placeholder.com/300x450'}" 
+                            class="card-img-top" 
+                            alt="${movie.movieName}"
+                            onerror="this.src='https://via.placeholder.com/300x450'">
+                        <button class="btn btn-sm btn-favorite position-absolute top-0 end-0 m-2" 
+                                onclick="event.stopPropagation(); toggleFavorite(${movie.movieID}, this)">
+                            <i class="bi bi-heart${isFavorite(movie.movieID) ? '-fill text-danger' : ''}"></i>
+                        </button>
+                    </div>
                     <div class="card-body">
                         <h5 class="card-title">${movie.movieName}</h5>
-                        <p class="card-text">${movie.year} • ★ ${movie.rate}</p>
+                        <p class="card-text">${movie.year} • ⭐ ${movie.rate?.toFixed(1) || 'N/A'}</p>
                         <a href="${movie.imDbMovieURL || '#'}" 
-                           class="btn btn-sm btn-outline-primary details-link"
-                           ${movie.imDbMovieURL ? '' : 'style="pointer-events: none; opacity: 0.5;"'}
+                           class="btn btn-sm btn-outline-primary"
                            target="_blank">
                             Details
                         </a>
                     </div>
                 </div>
             </div>
-        `).join('') || '<p class="text-muted">No movies found.</p>';
+        `).join('');
     }
-
-    searchForm.addEventListener('submit', (e) => {
-        e.preventDefault();
-        const query = searchInput.value.trim();
-        if (query) {
-            // يمكنك تفعيل دالة البحث هنا إذا أردت
-            console.log('Search for:', query);
-        }
-    });
-
-    searchInput.addEventListener('input', async function(e) {
-        const query = e.target.value.trim();
+    
+    function isFavorite(movieId) {
+        const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+        if (!userJson) return false;
         
-        if (query.length === 0) {
-            searchResults.style.display = 'none';
-        } else if (query.length >= 2) { 
-            const movies = await fetchData(`${baseApiUrl}/NameHasWord/${query}`);
-            showQuickResults(movies?.slice(0, 3));
-        }
-    });
-
-    function showQuickResults(movies) {
-        if (!movies || movies.length === 0) {
-            searchResults.style.display = 'none';
+        // يمكنك تخزين قائمة المفضلة في localStorage للتحسين
+        const favorites = JSON.parse(localStorage.getItem('userFavorites') || '[]');
+        return favorites.includes(movieId);
+    }
+    
+    // تبديل حالة المفضلة
+    async function toggleFavorite(movieId, buttonElement) {
+        const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+        if (!userJson) {
+            window.location.href = 'login.html';
             return;
         }
+        
+        const user = JSON.parse(userJson);
+        const isFav = isFavorite(movieId);
+        const icon = buttonElement.querySelector('i');
+        
+        try {
+            const response = await fetch('https://localhost:7009/api/UsersAPI/AddMovieToFavorate', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    UserID: user.id,
+                    MovieID: movieId
+                })
+            });
+            
+            if (!response.ok) {
+                throw new Error('Failed to update favorite');
+            }
+            
+            // تحديث الواجهة
+            if (isFav) {
+                icon.classList.remove('bi-heart-fill', 'text-danger');
+                icon.classList.add('bi-heart');
+                // إزالة من localStorage
+                const favorites = JSON.parse(localStorage.getItem('userFavorites') || []);
+                localStorage.setItem('userFavorites', JSON.stringify(favorites.filter(id => id !== movieId)));
+            } else {
+                icon.classList.remove('bi-heart');
+                icon.classList.add('bi-heart-fill', 'text-danger');
+                // إضافة إلى localStorage
+                const favorites = JSON.parse(localStorage.getItem('userFavorites') || []);
+                favorites.push(movieId);
+                localStorage.setItem('userFavorites', JSON.stringify(favorites));
+            }
+        } catch (error) {
+            console.error('Error updating favorite:', error);
+            alert('Failed to update favorite. Please try again.');
+        }
+    }
+    
+    // تحميل قائمة المفضلة عند بدء التشغيل
+    async function loadFavorites() {
+        const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+        if (!userJson) return;
+        
+        const user = JSON.parse(userJson);
+        
+        try {
+            const response = await fetch(`https://localhost:7009/api/UsersAPI/GetAllFavorateMoviesforUser?UserID=${user.id}`);
+            if (!response.ok) throw new Error('Failed to load favorites');
+            
+            const favorites = await response.json();
+            const favoriteIds = favorites.map(movie => movie.movieID);
+            localStorage.setItem('userFavorites', JSON.stringify(favoriteIds));
+        } catch (error) {
+            console.error('Error loading favorites:', error);
+        }
+    }
+    
+    // استدعاء loadFavorites عند تحميل الصفحة
+    document.addEventListener('DOMContentLoaded', loadFavorites);
 
-        searchResults.innerHTML = movies.map(movie => `
-            <div class="search-result-item" onclick="selectMovie(${JSON.stringify(movie).replace(/"/g, '&quot;')})">
+    function handleSearch() {
+        const query = searchInput.value.trim();
+        const resultsContainer = document.getElementById('searchResults');
+        
+        if (query.length < 2) {
+            resultsContainer.style.display = 'none';
+            return;
+        }
+        
+        fetch(`${baseApiUrl}/NameHasWord/${query}`)
+            .then(response => {
+                if (!response.ok) throw new Error('Network response was not ok');
+                return response.json();
+            })
+            .then(movies => {
+                showSearchResults(movies.slice(0, 5));
+            })
+            .catch(error => {
+                console.error('Search error:', error);
+                resultsContainer.innerHTML = '<div class="p-3 text-muted">Error loading results</div>';
+                resultsContainer.style.display = 'block';
+            });
+    }
+    
+    function showSearchResults(movies) {
+        const resultsContainer = document.getElementById('searchResults');
+        
+        if (!movies || movies.length === 0) {
+            resultsContainer.innerHTML = '<div class="p-3 text-muted">No results found</div>';
+            resultsContainer.style.display = 'block';
+            return;
+        }
+        
+        resultsContainer.innerHTML = movies.map(movie => `
+            <div class="search-result-item" onclick="window.open('${movie.imDbMovieURL || '#'}', '_blank')">
                 <img src="${movie.posterImageURL || 'https://via.placeholder.com/50x75'}" 
                      alt="${movie.movieName}"
                      onerror="this.src='https://via.placeholder.com/50x75'">
                 <div class="info">
-                    <h6>${movie.movieName || 'Unknown Title'}</h6>
-                    <small class="text-muted">${movie.year || 'N/A'} • ★ ${movie.rate?.toFixed(1) || 'N/A'}</small>
+                    <h6>${movie.movieName}</h6>
+                    <small class="text-muted">${movie.year} • ⭐ ${movie.rate?.toFixed(1) || 'N/A'}</small>
                 </div>
             </div>
         `).join('');
-
-        searchResults.style.display = 'block';
+        
+        resultsContainer.style.display = 'block';
     }
-
-    window.selectMovie = function(movie) {
-        if (movie && movie.imDbMovieURL) {
-            window.open(movie.imDbMovieURL, '_blank');
-        }
-    };
-
+    
+    function debounce(func, wait) {
+        let timeout;
+        return function() {
+            const context = this, args = arguments;
+            clearTimeout(timeout);
+            timeout = setTimeout(() => func.apply(context, args), wait);
+        };
+    }
+    
+    // Hide search results when clicking outside
     document.addEventListener('click', function(e) {
-        if (!searchForm.contains(e.target) && e.target !== searchResults) {
-            searchResults.style.display = 'none';
+        if (!searchInput.contains(e.target) && !document.getElementById('searchResults').contains(e.target)) {
+            document.getElementById('searchResults').style.display = 'none';
         }
     });
-
-    // تحميل البيانات الأولية
-    loadPopularMovies();
-    loadRecommendedMovies();
 });

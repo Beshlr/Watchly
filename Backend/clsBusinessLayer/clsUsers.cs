@@ -2,6 +2,7 @@
 using System;
 using System.Data;
 using System.Runtime.CompilerServices;
+using clsDataAccess;
 using MovieRecommendations_DataLayer;
 
 namespace MovieRecommendations_BusinessLayer
@@ -15,15 +16,23 @@ namespace MovieRecommendations_BusinessLayer
             }
         }
 
+        public AddUserInfoDTO AUserInfoDTO{
+            get
+            {
+                return new AddUserInfoDTO(this.Username, this.Password, this.Age, this.Email);
+            }
+        }
+
         public enum enMode { AddNew = 0, Update = 1 };
         public enMode Mode = enMode.AddNew;
 
         public int UserID { get; set; }
         public string Username { get; set; }
+        public string Email { get; set; }
         public string Password { get; set; }
         public bool IsAcive { get; set; }
         public byte Permissions { get; set; }
-        public byte Age { get; set; }
+        public int Age { get; set; }
 
 
         public clsUsers()
@@ -52,20 +61,20 @@ namespace MovieRecommendations_BusinessLayer
 
        private bool _AddNewUsers()
        {
-            this.Password = SqlHelper.ComputeHash(UDTO.Password);
-            this.UserID = clsUsersData.AddNewUsers(UDTO);
+            this.Password = SqlHelper.ComputeHash(AUserInfoDTO.Password);
+            this.UserID = clsUsersData.AddNewUsers(AUserInfoDTO);
 
             return (this.UserID != null);
 
        }
 
-       public static bool AddNewUsers(UserDTO UDTO)
+       public static bool AddNewUsers(AddUserInfoDTO AUserInfoDTO)
         {
-            UDTO.Password = SqlHelper.ComputeHash(UDTO.Password);
+            AUserInfoDTO.Password = SqlHelper.ComputeHash(AUserInfoDTO.Password);
 
-            UDTO.ID = clsUsersData.AddNewUsers(UDTO);
+            AUserInfoDTO.ID = clsUsersData.AddNewUsers(AUserInfoDTO);
 
-            return (UDTO.ID != null);
+            return (AUserInfoDTO.ID != null);
 
        }
 
@@ -75,7 +84,7 @@ namespace MovieRecommendations_BusinessLayer
             string HashedPassword = SqlHelper.ComputeHash(this.Password);
 
             return clsUsersData.UpdateUsersByID(
-this.UserID, this.Username, HashedPassword, this.IsAcive, this.Permissions, this.Age       );
+this.UserID, this.Username, HashedPassword, this.IsAcive, this.Permissions, this.Age);
        }
 
 
@@ -167,19 +176,14 @@ UserID, Username, HashedPassword, IsAcive, Permissions, Age);
             Age
          }
 
-
-        public static DataTable? SearchData(enUsersColumns enChose, string Data)
-        {
-            if(!SqlHelper.IsSafeInput(Data))
-                return null;
-            
-            return clsUsersData.SearchData(enChose.ToString(), Data);
-
-        }
-
         public static bool IsUserExist(int UserID)
         {
             return clsUsersData.CheckUserExistByUserID(UserID);
+        }
+
+        public static bool IsUserActive(int UserID)
+        {
+            return clsUsersData.IsUserActive(UserID);
         }
 
         public static bool IsUserExist(string Username)
@@ -195,5 +199,57 @@ UserID, Username, HashedPassword, IsAcive, Permissions, Age);
             return clsUsersData.CheckUsernameAndPassword(Username, HashedPassword);
         }
 
+        public static bool CheckIfEmailNotUsed(string Email)
+        {
+            return clsUsersData.CheckIfEmailNotUsed(Email);
+        }
+
+        public static bool AddMovieToFavorate(int MovieID, int UserID)
+        {
+            return clsUsersData.AddMovieToFavorate(MovieID, UserID);
+        }
+
+        public static bool CheckIfMovieInFavorateList(int MovieID, int UserID)
+        {
+            return clsUsersData.CheckIfMovieIsFavorateForUser(MovieID, UserID);
+        }
+
+        public static bool RemoveMovieFromFavorate(int MovieID, int UserID, ref string message)
+        {
+            return clsUsersData.RemoveMovieFromFavorate(MovieID, UserID, ref message);
+        }
+
+        public static bool AddMovieToSearchingList(int MovieID, int UserID)
+        {
+            return clsUsersData.AddMovieToSearchingList(MovieID, UserID);
+        }
+
+        public static bool AddMovieToWatchingList(int MovieID, int UserID, bool AddToFav, ref string message)
+        {
+            return clsUsersData.AddMovieToWatchingList(MovieID, UserID, AddToFav, ref message);
+        }
+
+        public static bool CheckIfMovieInWatchedList(int MovieID, int UserID)
+        {
+            return clsUsersData.CheckIfMovieWatchedByUser(MovieID, UserID);
+        }
+
+        public static bool RemoveMovieFromWatchedList(int MovieID, int UserID, ref string message)
+        {
+            return clsUsersData.RemoveMovieFromWatchedList(MovieID, UserID,ref message);
+        }
+
+        public static List<MovieDTO> GetAllFavorateMoviesForUser(int UserID)
+        {
+            return clsUsersData.GetAllFavorateMoviesForUser(UserID);
+        }
+
+        public static bool IsMovieInFavorateList(int movieID, int userID)
+        {
+            return clsUsersData.CheckIfMovieIsFavorateForUser(movieID, userID);
+        }
+        
+
     }
+
 }

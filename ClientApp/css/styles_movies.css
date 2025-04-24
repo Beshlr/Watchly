@@ -83,6 +83,7 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     margin-bottom: 0.5rem;
+    
 }
 
 .movie-card .card-text {
@@ -247,6 +248,7 @@ body {
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
+    line-clamp: 2;
 }
 
 /* تحسينات للعرض على الأجهزة المحمولة */

@@ -96,6 +96,11 @@ namespace clsBusinessLayer
             return clsMovieBasicDetailsData.GetMovieByID(ID);
         }
 
+        public static bool DeleteMovieByID(int ID)
+        {
+            return clsMovieBasicDetailsData.DeleteMovieByID(ID);
+        }
+
         /// <summary>
         /// Get the movies that start with the given name.
         /// </summary>
@@ -143,6 +148,11 @@ namespace clsBusinessLayer
         public static bool IsMovieExist(string MovieName)
         {
             return clsMovieBasicDetailsData.IsMovieExist(MovieName);
+        }
+
+        public static bool IsMovieExist(int MovieID)
+        {
+            return clsMovieBasicDetailsData.IsMovieExist(MovieID);
         }
 
         public static string GetGenreName(enGenres genre)
@@ -235,9 +245,9 @@ namespace clsBusinessLayer
         /// <param name="Year1"></param>
         /// <param name="Year2"></param>
         /// <returns></returns>
-        public static List<MovieDTO> GetTop100MovieBetweenTwoYears(int Year1, int Year2)
+        public static List<MovieDTO> GetTop100MovieBetweenTwoYears(int Year1, int Year2, string Genre="Action")
         {
-            return clsMovieBasicDetailsData.GetTop100MoviesBetweenTwoYears(Year1, Year2);
+            return clsMovieBasicDetailsData.GetTop100MoviesBetweenTwoYears(Year1, Year2, Genre);
         }
 
         public static List<MovieDTO> GetTop10MoviesWithKeyword(string Keyword)
@@ -281,5 +291,7 @@ namespace clsBusinessLayer
         {
             throw new NotImplementedException();
         }
+
+        
     }
 }
