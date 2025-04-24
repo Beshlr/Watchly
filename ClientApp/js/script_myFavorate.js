@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const baseApiUrl = 'https://localhost:7009/api/UsersAPI';
+    const baseApiUrl = 'http://watchly.runasp.net/api/UsersAPI';
     const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
     
     // Check authentication and update UI
@@ -17,6 +17,7 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = 'login.html';
         };
     } else {
+        alert('You are not logged in. Redirecting to login page...');
         window.location.href = 'login.html';
         return;
     }
@@ -99,7 +100,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const icon = buttonElement.querySelector('i');
         
         try {
-            const response = await fetch('https://localhost:7009/api/UsersAPI/AddMovieToFavorate', {
+            const response = await fetch('http://watchly.runasp.net/api/UsersAPI/AddMovieToFavorate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-            const baseApiUrl = 'https://localhost:7009/api/MovieRecommenderAPI';
+            const baseApiUrl = 'http://watchly.runasp.net/api/MovieRecommenderAPI';
             const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
             
             // Check authentication and update UI
@@ -16,6 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     window.location.href = 'login.html';
                 };
             } else {
+                alert('You are not logged in. Redirecting to login page...');
                 window.location.href = 'login.html';
                 return;
             }
@@ -98,7 +99,7 @@ window.toggleFavorite= async function(movieId, buttonElement) {
     const icon = buttonElement.querySelector('i');
     
     try {
-        const response = await fetch('https://localhost:7009/api/UsersAPI/AddMovieToFavorate', {
+        const response = await fetch('http://watchly.runasp.net/api/UsersAPI/AddMovieToFavorate', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
@@ -142,7 +143,7 @@ async function loadFavorites() {
     const user = JSON.parse(userJson);
     
     try {
-        const response = await fetch(`https://localhost:7009/api/UsersAPI/GetAllFavorateMoviesforUser?UserID=${user.id}`);
+        const response = await fetch(`http://watchly.runasp.net/api/UsersAPI/GetAllFavorateMoviesforUser?UserID=${user.id}`);
         if (!response.ok) throw new Error('Failed to load favorites');
         
         const favorites = await response.json();

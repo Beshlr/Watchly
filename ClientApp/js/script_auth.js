@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const baseApiUrl = 'https://localhost:7009/api/UsersAPI';
+    const baseApiUrl = 'http://watchly.runasp.net/api/UsersAPI';
     const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
 
     function showError(message, fieldId = null) {
@@ -96,6 +96,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (response.ok) {
                     const userData = await response.json();
                     // تخزين بيانات المستخدم...
+                    localStorage.setItem('loggedInUser', JSON.stringify(userData));
                     window.location.href = '../pages/main.html';
                 } else {
                     const error = await response.text();
