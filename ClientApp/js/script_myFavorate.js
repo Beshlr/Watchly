@@ -25,30 +25,34 @@ document.addEventListener('DOMContentLoaded', function() {
     // Load favorite movies
     loadFavoriteMovies();
 
-    function loadFavoriteMovies() {
+    async function loadFavoriteMovies() {
         const container = document.getElementById('favoriteMoviesContainer');
         const userId = JSON.parse(userJson).id;
         
-        fetch(`${baseApiUrl}/GetAllFavorateMoviesforUser?UserID=${userId}`)
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json();
-            })
-            .then(movies => {
-                displayFavoriteMovies(movies);
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                container.innerHTML = `
-                    <div class="empty-state">
-                        <div class="empty-state-icon">
-                            <i class="bi bi-heartbreak"></i>
-                        </div>
-                        <h3>Error loading favorite movies</h3>
-                        <p>Please try again later.</p>
+        try {
+            const response = await fetch(`${baseApiUrl}/GetAllFavorateMoviesforUser?UserID=${userId}`);
+            if (!response.ok) throw new Error('Network response was not ok');
+            
+            const movies = await response.json();
+            // Add isFavorite flag to each movie
+            const moviesWithFavorites = movies.map(movie => ({ ...movie, isFavorite: true }));
+            displayFavoriteMovies(moviesWithFavorites);
+            
+            // Update localStorage
+            const favoriteIds = movies.map(movie => movie.movieID);
+            localStorage.setItem('userFavorites', JSON.stringify(favoriteIds));
+        } catch (error) {
+            console.error('Error:', error);
+            container.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-heartbreak"></i>
                     </div>
-                `;
-            });
+                    <h3>Error loading favorite movies</h3>
+                    <p>Please try again later.</p>
+                </div>
+            `;
+        }
     }
 
     function displayFavoriteMovies(movies) {
@@ -88,7 +92,7 @@ document.addEventListener('DOMContentLoaded', function() {
         `).join('');
     }
 
-    // Toggle favorite function (same as in other pages)
+    // Toggle favorite function
     window.toggleFavorite = async function(movieId, buttonElement) {
         const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
         if (!userJson) {
@@ -100,19 +104,22 @@ document.addEventListener('DOMContentLoaded', function() {
         const icon = buttonElement.querySelector('i');
         
         try {
-            const response = await fetch('http://watchly.runasp.net/api/UsersAPI/AddMovieToFavorate', {
-                method: 'POST',
+            const response = await fetch(`http://watchly.runasp.net/api/UsersAPI/RemoveMovieFromFavorateList?MovieID=${movieId}&UserID=${user.id}`, {
+                method: 'DELETE',
                 headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    UserID: user.id,
-                    MovieID: movieId
-                })
+                    'Content-Type': 'application/json'
+                }
             });
+
+
+
             
             if (!response.ok) {
-                throw new Error('Failed to update favorite');
+                if(response.status === 500) {
+                    alert('Movie not found in favorites or already removed.');
+                    return;
+                }
+                throw new Error('Failed to remove favorite');
             }
             
             // Update UI and localStorage
@@ -128,8 +135,8 @@ document.addEventListener('DOMContentLoaded', function() {
                 displayFavoriteMovies([]);
             }
         } catch (error) {
-            console.error('Error updating favorite:', error);
-            alert('Failed to update favorite. Please try again.');
+            console.error('Error removing favorite:', error);
+            alert('Failed to remove favorite. Please try again.');
         }
     }
 });
