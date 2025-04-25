@@ -23,7 +23,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load personalized recommendations with actual user ID
     const userId = JSON.parse(userJson).id;
-    loadMovies(`GetRecommandedMovies/1`, 'personalRecommendations');
+    loadRecommendedMovies(`http://watchly.runasp.net/api/RecommendationAPI/GetMovieRecommendation`, 'personalRecommendations');
     
     // Load similar movies (Sci-Fi as example)
     loadMovies('GetTop100MovieWithGenre?GenreName=Sci_FI', 'similarMovies');
@@ -36,6 +36,33 @@ document.addEventListener('DOMContentLoaded', function() {
         
         try {
             const response = await fetch(`${baseApiUrl}/${endpoint}`);
+            if (!response.ok) throw new Error('Network response was not ok');
+            const movies = await response.json();
+            
+            // Check favorites for each movie
+            const moviesWithFavorites = await Promise.all(movies.slice(0, 5).map(async movie => {
+                const isFav = await checkIfMovieIsFavorite(userId, movie.id);
+                return { ...movie, isFavorite: isFav };
+            }));
+            
+            displayMovies(moviesWithFavorites, containerId);
+        } catch (error) {
+            console.error('Error:', error);
+            container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-danger">Error loading movies</p></div>';
+        }
+    }
+    async function loadRecommendedMovies(endpoint, containerId) {
+        const container = document.getElementById(containerId);
+        
+        try {
+            const response = await fetch(`${endpoint}`,{
+                method:'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body:
+                JSON.stringify({  genres: ["Sci-Fi"] }) // Pass user ID in the request body
+            });
             if (!response.ok) throw new Error('Network response was not ok');
             const movies = await response.json();
             

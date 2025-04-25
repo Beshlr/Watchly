@@ -251,6 +251,18 @@ body {
     line-clamp: 2;
 }
 
+footer .col-md-4{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+footer .mb-4:last-child {
+    text-align: center;
+    display: block;
+    position: relative;
+}
+
 /* تحسينات للعرض على الأجهزة المحمولة */
 @media (max-width: 768px) {
     .genres-scrollable {

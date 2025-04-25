@@ -15,18 +15,14 @@ document.addEventListener('DOMContentLoaded', function() {
         };
     }
 
-
-
     // Load popular movies
     loadMovies('GetTop100MovieWithGenre?GenreName=Sci_FI', 'popularMovies');
     
     // Load recommended movies (using user ID 1 for demo)
     loadMovies('GetRecommandedMovies/1', 'recommendedMovies');
-    
-    
-    // استخدم بياناته زي ما تحب
-    document.getElementById('welcomeText').innerText = `Welcome, ${user.username}!`;
-
+    if (user) {
+        document.getElementById('welcomeText').innerText = `Welcome, ${user.username}!`;
+    }
     // Search functionality
     const searchInput = document.getElementById('searchInput');
     searchInput.addEventListener('input', debounce(handleSearch, 300));

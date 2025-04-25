@@ -5,6 +5,7 @@ using clsDataAccess;
 using clsBusinessLayer;
 using MovieRecommendations_DataLayer;
 using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.IdentityModel.Tokens;
 
 namespace MovieRecommendationAPI.Controllers
 {
@@ -184,7 +185,7 @@ namespace MovieRecommendationAPI.Controllers
         public ActionResult<List<MovieDTO>> GetTop100MovieWithFiltersAndSorting(int StartYear,int EndYear,
                                                     string GenresList,float MinRatingValue,string OrderBy="Year", string OrderValue="DESC")
         {
-            if(OrderValue != "ASC" && OrderValue != "DESC")
+            if(OrderValue.ToUpper() != "ASC" && OrderValue.ToUpper() != "DESC")
             {
                 return BadRequest($"Bad Request: Rating Order Value: {OrderValue} Is Not valid");
             }
@@ -243,7 +244,7 @@ namespace MovieRecommendationAPI.Controllers
 
         }
 
-        [HttpDelete("UpdateMovie/{ID}", Name = "UpdateMovie")]
+        [HttpDelete("DeleteMovie/{ID}", Name = "UpdateMovie")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -649,6 +650,53 @@ namespace MovieRecommendationAPI.Controllers
 
     // =======================================
 
+    [Route("api/RecommendationAPI")]
+    [ApiController]
+    public class RecommedationController : ControllerBase
+    {
+        private readonly IHttpClientFactory _httpClientFactory;
+
+        public RecommedationController(IHttpClientFactory httpClientFactory)
+        {
+            _httpClientFactory = httpClientFactory;
+        }
+
+        [HttpPost("GetMovieRecommendation", Name = "GetMovieRecommendation")]
+        public async Task<IActionResult> GetMovieRecommendation([FromBody] clsGenreRequest request)
+        {
+            var client = _httpClientFactory.CreateClient();
+
+            try
+            {
+                var aiResponse = await client.PostAsJsonAsync(
+                        "https://8fbd-156-207-126-131.ngrok-free.app/recommend/genre",
+                        request
+                    );
+
+                aiResponse.EnsureSuccessStatusCode();
+
+                var movies = await aiResponse.Content.ReadFromJsonAsync<List<string>>();
+                
+                List<MovieDTO> movieList = new List<MovieDTO>();
+
+                foreach (var movie in movies)
+                {
+                    MovieDTO movieDTO = clsMoviePasicDetails.GetMovieByName(movie);
+                    if (movieDTO != null)
+                    {
+                        movieList.Add(movieDTO);
+                    }
+                }
+
+                return Ok(movieList);
+            }
+            catch (HttpRequestException ex)
+            {
+                return StatusCode(500, new { message = "Error calling AI endpoint", error = ex.Message });
+            }
+        }
+    }
+
     public class clsMovieValidations
     {
         public static bool CheckMovieInputs(MovieDTO movieDTO, ref string message)
@@ -761,8 +809,5 @@ namespace MovieRecommendationAPI.Controllers
         public int UserID { get; set; }
     }
 
-    public class clsAddNewUserInfo
-    {
-       
-    }
+    
 }

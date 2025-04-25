@@ -1,6 +1,18 @@
 document.addEventListener('DOMContentLoaded', () => {
     const baseApiUrl = 'http://watchly.runasp.net/api/UsersAPI';
     const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
+    const userJson = localStorage.getItem('loggedInUser');
+
+    const user = JSON.parse(userJson);
+    const loginLogoutBtn = document.querySelector('.log-btn');
+    
+    if (user) {
+        loginLogoutBtn.textContent = 'Logout';
+        loginLogoutBtn.href = '#';
+        alert(`Welcome back, ${user.username}, you will be redirected to the main page`);
+        window.location.href = 'main.html';
+        
+    }
 
     function showError(message, fieldId = null) {
         // إذا كان هناك حقل محدد، عرض الخطأ تحته

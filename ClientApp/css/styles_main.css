@@ -120,6 +120,20 @@ footer {
     margin-top: 50px;
 }
 
+footer .mb-3{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+footer .mb-3:last-child {
+    text-align: center;
+    display: block;
+    position: relative;
+}
+
+
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .hero-section {

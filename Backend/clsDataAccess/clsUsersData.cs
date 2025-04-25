@@ -492,6 +492,7 @@ namespace MovieRecommendations_DataLayer
                     {
                         Direction = ParameterDirection.ReturnValue
                     };
+                    cmd.Parameters.Add(ReturnParam);
 
                     con.Open();
                     cmd.ExecuteNonQuery();

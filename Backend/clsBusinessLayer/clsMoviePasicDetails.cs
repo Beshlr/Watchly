@@ -96,6 +96,11 @@ namespace clsBusinessLayer
             return clsMovieBasicDetailsData.GetMovieByID(ID);
         }
 
+        public static MovieDTO GetMovieByName(string MovieName)
+        {
+            return clsMovieBasicDetailsData.GetMovieByName(MovieName);
+        }
+
         public static bool DeleteMovieByID(int ID)
         {
             return clsMovieBasicDetailsData.DeleteMovieByID(ID);
