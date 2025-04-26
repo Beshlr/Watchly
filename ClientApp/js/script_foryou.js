@@ -61,7 +61,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     'Content-Type': 'application/json',
                 },
                 body:
-                JSON.stringify({  genres: ["Sci-Fi"] }) // Pass user ID in the request body
+                JSON.stringify({  genres: ["Animation"] }) // Pass user ID in the request body
             });
             if (!response.ok) throw new Error('Network response was not ok');
             const movies = await response.json();

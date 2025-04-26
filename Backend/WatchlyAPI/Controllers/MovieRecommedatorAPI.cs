@@ -669,7 +669,7 @@ namespace MovieRecommendationAPI.Controllers
             try
             {
                 var aiResponse = await client.PostAsJsonAsync(
-                        "https://8fbd-156-207-126-131.ngrok-free.app/recommend/genre",
+                        "https://montaser14-movies.hf.space/recommend/genre",
                         request
                     );
 
