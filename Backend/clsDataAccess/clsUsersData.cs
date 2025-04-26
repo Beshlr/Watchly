@@ -606,6 +606,42 @@ namespace MovieRecommendations_DataLayer
 
         }
 
+        public static List<string> GetAllGenresThatUserInterstOn(int UserID)
+        {
+            List<string> genres = new List<string>();
+
+            using(SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using(SqlCommand cmd = new SqlCommand("SP_GetGenresNameFromInterestsOfUser", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    var ReturnValue = new SqlParameter("@ReturnValue", SqlDbType.Int);
+                    ReturnValue.Direction = ParameterDirection.ReturnValue;
+
+                    cmd.Parameters.Add(ReturnValue);
+
+                    con.Open();
+
+                    try
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                genres.Add((string)reader["genre_name"]);
+                            }
+                        }
+
+                        con.Close();
+                    }
+                    catch(Exception ex) { }
+                }
+            }
+
+            return genres;
+        }
+
         public static bool RemoveMovieFromFavorate(int MovieID, int UserID, ref string message)
         {
             bool IsRemoved = false;

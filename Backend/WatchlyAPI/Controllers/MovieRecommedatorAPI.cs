@@ -487,6 +487,30 @@ namespace MovieRecommendationAPI.Controllers
             return Ok("Movie added to favorites successfully");
         }
 
+        [HttpGet("GetAllGenresThatUserInterstOn/{UserID}", Name = "GetAllGenresThatUserInterstOn")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<List<string>> GetAllGenresThatUserInterstOn(int UserID)
+        {
+            if(UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            List<string> genres = clsUsers.GetAllGenresThatUserInterstOn(UserID);
+
+            if (genres == null || genres.Count == 0)
+            {
+                return NotFound($"Not Found: No genres found for user with ID {UserID} Check Favorate movies");
+            }
+
+            return Ok(genres);
+        }
+
         [HttpPost("AddMovieToSearchingList", Name = "AddMovieToSearchingList")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

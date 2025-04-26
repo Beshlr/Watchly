@@ -209,6 +209,11 @@ UserID, Username, HashedPassword, IsAcive, Permissions, Age);
             return clsUsersData.AddMovieToFavorate(MovieID, UserID);
         }
 
+        public static List<string> GetAllGenresThatUserInterstOn(int UserID)
+        {
+            return clsUsersData.GetAllGenresThatUserInterstOn(UserID);
+        }
+
         public static bool CheckIfMovieInFavorateList(int MovieID, int UserID)
         {
             return clsUsersData.CheckIfMovieIsFavorateForUser(MovieID, UserID);

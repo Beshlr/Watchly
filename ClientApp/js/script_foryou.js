@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const baseApiUrl = 'http://watchly.runasp.net/api/MovieRecommenderAPI';
+    const baseMovieApiUrl = 'http://watchly.runasp.net/api/MovieRecommenderAPI';
+    const baseUsersApiUrl = 'http://watchly.runasp.net/api/UsersAPI';
     const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
     
     // Check authentication and update UI
@@ -35,7 +36,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const container = document.getElementById(containerId);
         
         try {
-            const response = await fetch(`${baseApiUrl}/${endpoint}`);
+            const response = await fetch(`${baseMovieApiUrl}/${endpoint}`);
             if (!response.ok) throw new Error('Network response was not ok');
             const movies = await response.json();
             
@@ -51,19 +52,40 @@ document.addEventListener('DOMContentLoaded', function() {
             container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-danger">Error loading movies</p></div>';
         }
     }
+
+    async function GetNameOfGenresForUser(userID) {
+        try {
+            const response = await fetch(`${baseUsersApiUrl}/GetAllGenresThatUserInterstOn/${userID}`);
+            
+            if (!response.ok) {
+                throw new Error(`User: ${userID} has no interests`);
+            }
+            
+            const genres = await response.json();
+            return genres;
+        }
+        catch (error) {
+            console.error(error); // أفضل بدل alert في النسخ الرسمية
+            return null;
+        }
+    }
+    
+
     async function loadRecommendedMovies(endpoint, containerId) {
         const container = document.getElementById(containerId);
-        
+        const genres = await GetNameOfGenresForUser(userId); 
+    
         try {
-            const response = await fetch(`${endpoint}`,{
-                method:'POST',
+            const response = await fetch(`${endpoint}`, {
+                method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body:
-                JSON.stringify({  genres: ["Animation"] }) // Pass user ID in the request body
+                body: JSON.stringify({ genres: genres || ["Animation"] }) 
             });
+    
             if (!response.ok) throw new Error('Network response was not ok');
+    
             const movies = await response.json();
             
             // Check favorites for each movie
@@ -71,13 +93,14 @@ document.addEventListener('DOMContentLoaded', function() {
                 const isFav = await checkIfMovieIsFavorite(userId, movie.id);
                 return { ...movie, isFavorite: isFav };
             }));
-            
+    
             displayMovies(moviesWithFavorites, containerId);
         } catch (error) {
             console.error('Error:', error);
             container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-danger">Error loading movies</p></div>';
         }
     }
+    
 
     const searchBtn = document.getElementById('searchButton');
     const searchInput = document.getElementById('searchInput');
