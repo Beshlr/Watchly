@@ -12,11 +12,12 @@ namespace MovieRecommendations_DataLayer
     public class UserDTO
     {
 
-        public UserDTO(int ID, string Username, string Password, bool IsAcive, byte Permissions, int Age)
+        public UserDTO(int ID, string Username, string Password,string Email, bool IsAcive, byte Permissions, int Age)
         {
             this.ID = ID;
             this.Username = Username;
             this.Password = Password;
+            this.Email = Email;
             this.IsAcive = IsAcive;
             this.Permissions = Permissions;
             this.Age = Age;
@@ -25,6 +26,7 @@ namespace MovieRecommendations_DataLayer
         public int ID { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+        public string Email { get; set; }
         public bool IsAcive { get; set; }
         public byte Permissions { get; set; }
         public int Age { get; set; }
@@ -70,6 +72,7 @@ namespace MovieRecommendations_DataLayer
                                 UserID,
                              (string)reader["Username"],
                              (string)reader["Password"],
+                             (string)reader["Email"],
                              reader["IsActive"] != DBNull.Value ? (bool)reader["IsActive"] : false,
                              (byte)reader["Permissions"],
                             (byte)reader["Age"]);
@@ -99,6 +102,7 @@ namespace MovieRecommendations_DataLayer
                                 (int)reader["UserID"],
                                 (string)reader["Username"],
                                 (string)reader["Password"],
+                                reader["Email"] != DBNull.Value ? (string)reader["Email"] : null,
                                 reader["IsActive"] != DBNull.Value ? (bool)reader["IsActive"] : false,
                                 (byte)reader["Permissions"],
                                 (byte)reader["Age"]);
@@ -132,6 +136,7 @@ namespace MovieRecommendations_DataLayer
                                     (int)reader["UserID"],
                                     (string)reader["Username"],
                                     (string)reader["Password"],
+                                    (string)reader["Email"],
                                     reader["IsActive"] != DBNull.Value ? (bool)reader["IsActive"] : false,
                                     (byte)reader["Permissions"],
                                     (byte)reader["Age"]));
@@ -241,27 +246,44 @@ namespace MovieRecommendations_DataLayer
             return (rowsAffected > 0);
         }
 
-        public static bool ChangeUserPassword(int UserID, string Password)
+        public static bool ChangeUserPassword(int UserID, string NewPassword,string OldPassword)
         {
-            int rowsAffected = 0;
-            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                string query = @"Update Users
-                                    set 
-                                         [Password] = @Password
-                                  where [UserID]= @UserID";
-                using (SqlCommand command = new SqlCommand(query, connection))
+                using (SqlCommand cmd = new SqlCommand("SP_ChangePasswordForUser", con))
                 {
-                    command.Parameters.AddWithValue("@UserID", UserID);
-                    command.Parameters.AddWithValue("@Password", Password);
-                    connection.Open();
-                    rowsAffected = command.ExecuteNonQuery();
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    cmd.Parameters.AddWithValue("@NewPassword", NewPassword);
+                    cmd.Parameters.AddWithValue("@OldPassword", OldPassword);
+                    cmd.Parameters.AddWithValue("@DateToReset", DateTime.Now);
+                    var ReturnValue = new SqlParameter("@ReturnValue", SqlDbType.Int);
+                    ReturnValue.Direction = ParameterDirection.ReturnValue;
+                    cmd.Parameters.Add(ReturnValue);
 
+                    con.Open();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        if ((int)ReturnValue.Value == 4)
+                        {
+                            Console.WriteLine("Old Password is not correct");
+                            return false;
+                        }
+                        else if ((int)ReturnValue.Value == 0)
+                        {
+                            Console.WriteLine("Password didn't change");
+                            return false;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error ", ex.Message);
+                        return false;
+                    }
                 }
-
             }
-
-            return (rowsAffected > 0);
+            return true;
         }
 
         public static bool CheckIsUsernameExist(string Username)
@@ -362,6 +384,40 @@ namespace MovieRecommendations_DataLayer
             }
         }
 
+        public static bool CheckIfUserEnterOldPassword(int UserID, string EnteredPassword,ref DateTime LastPasswordDateChange )
+        {
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_CheckIfUserEnterOldPassword", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    cmd.Parameters.AddWithValue("@Password", EnteredPassword);
+                    
+                    var outputDate = new SqlParameter("@Date", SqlDbType.DateTime);
+                    var ReturnValue = new SqlParameter("@ReturnValue", SqlDbType.Int);
+                    
+                    ReturnValue.Direction = ParameterDirection.ReturnValue;
+                    outputDate.Direction = ParameterDirection.Output;
+                    
+                    cmd.Parameters.Add(ReturnValue);
+                    cmd.Parameters.Add(outputDate);
+
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                    
+                    if((int)ReturnValue.Value == 1)
+                    {
+                        LastPasswordDateChange = (DateTime)outputDate.Value;
+                        return true;
+                    }
+
+                    con.Close();
+                }
+            }
+            return false;
+        }
         public static bool DeleteUsers(int UserID)
 {
             int rowsAffected = 0;

@@ -1,10 +1,14 @@
-
 using System;
 using System.Data;
+using System.Net.Mail;
 using System.Runtime.CompilerServices;
 using clsDataAccess;
+using MailKit.Net.Smtp;
+using MimeKit;
 using MovieRecommendations_DataLayer;
-
+using SmtpClient = MailKit.Net.Smtp.SmtpClient;
+using System.Configuration;
+using clsBusinessLayer;
 namespace MovieRecommendations_BusinessLayer
 {
     public class clsUsers
@@ -12,7 +16,7 @@ namespace MovieRecommendations_BusinessLayer
         public UserDTO UDTO {
             get
             {
-                return new UserDTO(this.UserID, this.Username, this.Password, this.IsAcive, this.Permissions, this.Age);
+                return new UserDTO(this.UserID, this.Username, this.Password,this.Email, this.IsAcive, this.Permissions, this.Age);
             }
         }
 
@@ -52,6 +56,7 @@ namespace MovieRecommendations_BusinessLayer
             this.UserID = userDTO.ID;
             this.Username = userDTO.Username;
             this.Password = userDTO.Password;
+            this.Email = userDTO.Email;
             this.IsAcive = userDTO.IsAcive;
             this.Permissions = userDTO.Permissions;
             this.Age = userDTO.Age;
@@ -98,10 +103,9 @@ UserID, Username, HashedPassword, IsAcive, Permissions, Age);
 
         }
 
-        public static bool ChangeUserPassword(int UserID, string NewPassword)
+        public static bool ChangeUserPassword(int UserID, string NewPassword, string OldPassword)
         {
-            string HashedPassword = SqlHelper.ComputeHash(NewPassword);
-            return clsUsersData.ChangeUserPassword(UserID, HashedPassword);
+            return clsUsersData.ChangeUserPassword(UserID, NewPassword, OldPassword);
         }
 
         public static clsUsers Find(int UserID)
@@ -194,9 +198,27 @@ UserID, Username, HashedPassword, IsAcive, Permissions, Age);
 
         public static bool CheckIfUsernameAndPasswordIsTrue(string Username, string Password)
         {
-            string HashedPassword = SqlHelper.ComputeHash(Password);
+            return clsUsersData.CheckUsernameAndPassword(Username, Password);
+        }
 
-            return clsUsersData.CheckUsernameAndPassword(Username, HashedPassword);
+        public static bool CheckIfUserEnterOldPassword(int UserID, string EnterdPassword, ref string TheDiffBetweenTwoDates)
+        {
+            DateTime dt = DateTime.Now;
+
+            if(clsUsersData.CheckIfUserEnterOldPassword(UserID, EnterdPassword,ref dt))
+            {
+                if(dt == DateTime.Now.AddMinutes(-3))
+                {
+                    TheDiffBetweenTwoDates = clsSettings.GetTimeDifference(dt, DateTime.Now);
+                }
+                else
+                {
+                    TheDiffBetweenTwoDates = "a few seconds";
+                }
+                return true;
+            }
+
+            return false;
         }
 
         public static bool CheckIfEmailNotUsed(string Email)
@@ -257,4 +279,5 @@ UserID, Username, HashedPassword, IsAcive, Permissions, Age);
 
     }
 
+    
 }

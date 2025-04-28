@@ -6,6 +6,8 @@ using clsBusinessLayer;
 using MovieRecommendations_DataLayer;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.IdentityModel.Tokens;
+using WatchlyAPI.Settings;
+using System.Threading.Tasks;
 
 namespace MovieRecommendationAPI.Controllers
 {
@@ -276,6 +278,12 @@ namespace MovieRecommendationAPI.Controllers
     [ApiController]
     public class UsersAPI : ControllerBase
     {
+        private readonly EmailService _emailService;
+
+        public UsersAPI(EmailService emailService)
+        {
+            this._emailService = emailService;
+        }
 
         [HttpGet("GetUserInfoByID/{id}", Name = "GetUserInfoByID")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -325,7 +333,7 @@ namespace MovieRecommendationAPI.Controllers
                 return BadRequest($"Bad Request: User with username {Username} is not active");
             }
             
-            bool CheckPassword = clsUsers.CheckIfUsernameAndPasswordIsTrue(Username, Password);
+            bool CheckPassword = clsUsers.CheckIfUsernameAndPasswordIsTrue(Username,EncryptionHelper.Encrypt(Password));
 
             if (!CheckPassword)
             {
@@ -440,24 +448,70 @@ namespace MovieRecommendationAPI.Controllers
                 return BadRequest("Bad Request: Old Password or New Password is empty");
             }
 
-            if (user.Password != SqlHelper.ComputeHash(OldPassword))
+            // تحقق من كلمة المرور القديمة (بعد التشفير)
+            if (user.Password != EncryptionHelper.Encrypt(OldPassword))
             {
                 return BadRequest("Bad Request: Old Password is incorrect");
             }
 
-            if (user.Password == SqlHelper.ComputeHash(NewPassword))
+            string LastChangeForPassword = String.Empty;
+
+            // تحقق إذا كانت كلمة المرور الجديدة مستخدمة سابقاً
+            if (clsUsers.CheckIfUserEnterOldPassword(user.UserID,EncryptionHelper.Encrypt(NewPassword), ref LastChangeForPassword))
+            {
+                return BadRequest($"Bad Request: New Password is Used before: {LastChangeForPassword}. please enter anoter one");
+            }
+
+            // تحقق إذا كانت كلمة المرور الجديدة مطابقة للقديمة
+            if (OldPassword == NewPassword)
             {
                 return BadRequest("Bad Request: New Password should be different from Old Password");
             }
 
-            user.Password = NewPassword;
+            string encryptedNewPassword = EncryptionHelper.Encrypt(NewPassword);
+            user.Password = encryptedNewPassword;
 
-            if (!clsUsers.ChangeUserPassword(user.UserID, NewPassword))
+            if (!clsUsers.ChangeUserPassword(user.UserID, encryptedNewPassword,EncryptionHelper.Encrypt(OldPassword)))
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Password not changed");
             }
             return Ok("Password changed successfully");
         }
+
+       [HttpPut("ChangePasswordForUserWhenForgetIt/", Name = "ChangePasswordForUserWhenForgetIt")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult ChangePasswordForUser(string username, string NewPassword)
+        {
+            clsUsers user = clsUsers.Find(username);
+            int userID = user.UserID;
+            string OldPassword = user.Password;
+            if (user == null)
+            {
+                return NotFound($"Not Found: User with username {username} is not found");
+            }
+
+            string LastChangeForPassword = String.Empty;
+
+            // تحقق إذا كانت كلمة المرور الجديدة مستخدمة سابقاً
+            if (clsUsers.CheckIfUserEnterOldPassword(user.UserID,EncryptionHelper.Encrypt(NewPassword), ref LastChangeForPassword))
+            {
+                return BadRequest($"Bad Request: New Password is Used before: {LastChangeForPassword}. please enter anoter one");
+            }
+
+            string encryptedNewPassword = EncryptionHelper.Encrypt(NewPassword);
+            user.Password = encryptedNewPassword;
+
+            if (!clsUsers.ChangeUserPassword(user.UserID, encryptedNewPassword,OldPassword))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Password not changed");
+            }
+            return Ok("Password changed successfully");
+        }
+
+       
 
         [HttpPost("AddMovieToFavorate", Name = "AddMovieToFavorate")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -668,7 +722,55 @@ namespace MovieRecommendationAPI.Controllers
             return Ok("Movie removed from favorate list successfully");
         }
 
-        
+        [HttpGet("SendCodeToUserEmail/{Username}", Name = "SendCodeToUserEmail")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<string>> SendCodeToUserEmail(string Username)
+        {
+            if (String.IsNullOrEmpty(Username))
+            {
+                return BadRequest("Bad Request: Username is empty");
+            }
+            if (!clsUsers.IsUserExist(Username))
+            {
+                return NotFound($"Not Found: User with username {Username} is not exists");
+            }
+
+            clsUsers user = clsUsers.Find(Username);
+            if (user == null)
+            {
+                return NotFound($"Not Found: User with username {Username} is not found");
+            }
+            if (!clsUsers.IsUserActive(user.UserID))
+            {
+                return BadRequest($"Bad Request: User with username {Username} is not active");
+            }
+            if (String.IsNullOrEmpty(user.Email))
+            {
+                return BadRequest($"Bad Request: User with username {Username} has no email. Please call your admin");
+            }
+
+            // Generate a random 6-digit code
+            Random random = new Random();
+            string code = random.Next(100000, 999999).ToString();
+
+            if (String.IsNullOrEmpty(code))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Code not sent");
+            }
+
+            // Prepare the email content
+            string subject = "Password Reset Code";
+            string body = $"Your password reset code is: {code}";
+
+            // Send the email
+            await _emailService.SendEmailAsync(user.Email, subject, body);
+
+            return Ok(code);
+        }
+
         // End Users API
     }
 

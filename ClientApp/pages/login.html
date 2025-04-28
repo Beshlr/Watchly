@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,6 +11,7 @@
     <link rel="icon" href="../images/favicon.ico" type="image/ico">
     <script src="../js/script_auth.js"></script>
 </head>
+
 <body>
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
@@ -39,7 +41,7 @@
                 <h2>Welcome to Watchly</h2>
                 <p>Sign in to access personalized recommendations</p>
             </div>
-            
+
             <form id="loginForm">
                 <div class="mb-3">
                     <label for="username" class="form-label">Username</label>
@@ -60,14 +62,14 @@
                         <label class="form-check-label" for="rememberMe">Remember me</label>
                         <p id="errorMessage" style="color:red;margin:10px 0 0 -25px;"></p>
                     </div>
-                    <a href="#" class="text-muted small">Forgot password?</a>
+                    <a href="ForgotPassword.html" class="text-muted small">Forgot password?</a>
                 </div>
                 <button type="submit" class="btn btn-primary w-100">Login</button>
                 <div class="text-center mt-3">
                     <p>New to Watchly? <a href="signup.html">Create an account</a></p>
                 </div>
             </form>
-            
+
             <div class="auth-social">
                 <p class="text-center text-muted">Or sign in with</p>
                 <div class="d-flex justify-content-center gap-3">
@@ -117,7 +119,7 @@
         function togglePassword() {
             const password = document.getElementById('password');
             const icon = document.querySelector('.show-password');
-            
+
             if (password.type === 'password') {
                 password.type = 'text';
                 icon.classList.remove('bi-eye-slash');
@@ -129,40 +131,41 @@
             }
         }
 
-        document.getElementById('loginForm').addEventListener('submit', async function(e) {
+        document.getElementById('loginForm').addEventListener('submit', async function (e) {
             e.preventDefault();
-            
+
             const username = document.getElementById('username');
             const password = document.getElementById('password');
-            
+
             // Basic validation
             let isValid = true;
-            
+
             if (username.value.length < 3 || username.value.length > 20) {
                 username.classList.add('is-invalid');
                 isValid = false;
             } else {
                 username.classList.remove('is-invalid');
             }
-            
+
             if (password.value.length < 6) {
                 password.classList.add('is-invalid');
                 isValid = false;
             } else {
                 password.classList.remove('is-invalid');
             }
-            
-           
+
+
         });
     </script>
     <div class="toast-container position-fixed bottom-0 end-0 p-3">
         <div id="errorToast" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
-        <div class="toast-header">
-            <strong class="me-auto">Error</strong>
-            <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-        </div>
-        <div class="toast-body" id="errorToastBody"></div>
+            <div class="toast-header">
+                <strong class="me-auto">Error</strong>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body" id="errorToastBody"></div>
         </div>
     </div>
 </body>
+
 </html>
