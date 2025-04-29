@@ -780,6 +780,37 @@ namespace MovieRecommendations_DataLayer
                 }
             }
         }
+    
+        public static bool AddNewReportAboutMovie(int UserID, int MovieID, string ReportMessage, int ReportType = 1)
+        {
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using(SqlCommand cmd = new SqlCommand("SP_AddNewReport", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    cmd.Parameters.AddWithValue("@MovieID", MovieID);
+                    cmd.Parameters.AddWithValue("@ReportMessage", ReportMessage);
+                    cmd.Parameters.AddWithValue("@ReportType", ReportType);
+                    var ReturnParam = new SqlParameter("@ReturnValue", SqlDbType.Int)
+                    {
+                        Direction = ParameterDirection.ReturnValue
+                    };
+                    cmd.Parameters.Add(ReturnParam);
+                    con.Open();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        return (int)ReturnParam.Value == 1;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error ", ex.Message);
+                        return false;
+                    }
+                }
+            }
+        }
     }
 
 }

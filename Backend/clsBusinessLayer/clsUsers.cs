@@ -29,7 +29,8 @@ namespace MovieRecommendations_BusinessLayer
 
         public enum enMode { AddNew = 0, Update = 1 };
         public enMode Mode = enMode.AddNew;
-
+        public enum enReportType { RateMovie = 1, ReportMovie = 2 };
+        public enReportType ReportType = enReportType.RateMovie;
         public int UserID { get; set; }
         public string Username { get; set; }
         public string Email { get; set; }
@@ -207,7 +208,7 @@ UserID, Username, HashedPassword, IsAcive, Permissions, Age);
 
             if(clsUsersData.CheckIfUserEnterOldPassword(UserID, EnterdPassword,ref dt))
             {
-                if(dt == DateTime.Now.AddMinutes(-3))
+                if(dt < DateTime.Now.AddMinutes(-3))
                 {
                     TheDiffBetweenTwoDates = clsSettings.GetTimeDifference(dt, DateTime.Now);
                 }
@@ -275,8 +276,11 @@ UserID, Username, HashedPassword, IsAcive, Permissions, Age);
         {
             return clsUsersData.CheckIfMovieIsFavorateForUser(movieID, userID);
         }
+        public static bool AddNewReport(int UserID, int MovieID, string ReportMessage, enReportType reportType)
         
-
+        {
+            return clsUsersData.AddNewReportAboutMovie(UserID, MovieID, ReportMessage, (int)reportType);
+        }
     }
 
     

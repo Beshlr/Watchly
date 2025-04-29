@@ -490,7 +490,13 @@ namespace MovieRecommendationAPI.Controllers
             string OldPassword = user.Password;
             if (user == null)
             {
-                return NotFound($"Not Found: User with username {username} is not found");
+                return NotFound($"User with username {username} is not found");
+            }
+
+            if (OldPassword == EncryptionHelper.Encrypt(NewPassword))
+            {
+                return BadRequest($"New Password is The same of last password");
+
             }
 
             string LastChangeForPassword = String.Empty;
@@ -498,7 +504,7 @@ namespace MovieRecommendationAPI.Controllers
             // تحقق إذا كانت كلمة المرور الجديدة مستخدمة سابقاً
             if (clsUsers.CheckIfUserEnterOldPassword(user.UserID,EncryptionHelper.Encrypt(NewPassword), ref LastChangeForPassword))
             {
-                return BadRequest($"Bad Request: New Password is Used before: {LastChangeForPassword}. please enter anoter one");
+                return BadRequest($"New Password is Used before: {LastChangeForPassword}. please enter anoter one");
             }
 
             string encryptedNewPassword = EncryptionHelper.Encrypt(NewPassword);
@@ -771,6 +777,35 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(code);
         }
 
+        [HttpPost("AddReportAboutMovie", Name = "AddReportAboutMovie")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult AddReportAboutMovie([FromBody]clsReportAboutMovie reportAboutMovie)
+        {
+            if (reportAboutMovie == null)
+            {
+                return BadRequest("Bad Request: Report about movie is null");
+            }
+            string message = string.Empty;
+            if (!clsUserValidations.CheckUserAndMovieInputs(reportAboutMovie.UserAndMovieID, ref message))
+            {
+                return BadRequest(message);
+            }
+
+            int MovieID = reportAboutMovie.UserAndMovieID.MovieID;
+            int UserID = reportAboutMovie.UserAndMovieID.UserID;
+            string ReportMessage = reportAboutMovie.ReportMessage;
+            clsUsers.enReportType ReportType = reportAboutMovie.ReportTypeEnum;
+
+            if (!clsUsers.AddNewReport(UserID,MovieID,ReportMessage,ReportType))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Report not added");
+            }
+
+            return Ok("Report added successfully");
+        }
         // End Users API
     }
 
@@ -931,9 +966,28 @@ namespace MovieRecommendationAPI.Controllers
 
     public class clsUserAndMovieID
     {
+        public clsUserAndMovieID(int movieID, int userID)
+        {
+            MovieID = movieID;
+            UserID = userID;
+        }
+
         public int MovieID { get; set; }
         public int UserID { get; set; }
     }
 
-    
+    public class clsReportAboutMovie
+    {
+        public clsUserAndMovieID UserAndMovieID { get; set; } 
+        public string ReportMessage { get; set; }
+        public int ReportType { get; set; }
+
+        public clsUsers.enReportType ReportTypeEnum
+        {
+            get
+            {
+                return (clsUsers.enReportType)this.ReportType;
+            }
+        }
+    }
 }
