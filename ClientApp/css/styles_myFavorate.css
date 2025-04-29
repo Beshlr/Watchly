@@ -1,0 +1,7 @@
+footer .mb-3 a i{
+    
+    transition: 0.3s;
+}
+footer .mb-3 a i:hover{
+    color:#2196f3;
+}

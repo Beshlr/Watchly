@@ -62,8 +62,8 @@ document.addEventListener('DOMContentLoaded', function() {
                             alt="${movie.movieName}"
                             onerror="this.src='https://via.placeholder.com/300x450'">
                         <button class="btn btn-sm btn-favorite position-absolute top-0 end-0 m-2" 
-                                onclick="event.stopPropagation(); toggleFavorite(${movie.movieID}, this)">
-                            <i class="bi bi-heart${isFavorite(movie.movieID) ? '-fill text-danger' : ''}"></i>
+                                onclick="event.stopPropagation(); toggleFavorite(${movie.id}, this)">
+                            <i class="bi bi-heart${isFavorite(movie.id) ? '-fill text-danger' : ''}"></i>
                         </button>
                     </div>
                     <div class="card-body">
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // تبديل حالة المفضلة
-    async function toggleFavorite(movieId, buttonElement) {
+    window.toggleFavorite = async function(movieId, buttonElement) {
         const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
         if (!userJson) {
             window.location.href = 'login.html';
@@ -98,40 +98,58 @@ document.addEventListener('DOMContentLoaded', function() {
         }
         
         const user = JSON.parse(userJson);
-        const isFav = isFavorite(movieId);
         const icon = buttonElement.querySelector('i');
+        const isFav = icon.classList.contains('bi-heart-fill');
         
         try {
-            const response = await fetch('http://watchly.runasp.net/api/UsersAPI/AddMovieToFavorate', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({
-                    UserID: user.id,
-                    MovieID: movieId
-                })
-            });
-            
-            if (!response.ok) {
-                throw new Error('Failed to update favorite');
+            const endpoint = isFav ? 'RemoveMovieFromFavorateList' : 'AddMovieToFavorate';
+            const method = isFav ? 'DELETE' : 'POST';
+
+            var response;
+
+            if(method === 'POST') {
+                const body = JSON.stringify({ MovieID: movieId, UserID: user.id });
+                 response = await fetch(`http://watchly.runasp.net/api/UsersAPI/${endpoint}`, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: body
+                });
+            }
+            else if(method === 'DELETE') {
+                 response = await fetch(`http://watchly.runasp.net/api/UsersAPI/${endpoint}?MovieID=${movieId}&UserID=${user.id}`, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    
+                });
             }
             
-            // تحديث الواجهة
+            if (!response.ok) {
+                alert(response.statusText);
+                return;
+                
+            }
+            
             if (isFav) {
                 icon.classList.remove('bi-heart-fill', 'text-danger');
                 icon.classList.add('bi-heart');
-                // إزالة من localStorage
-                const favorites = JSON.parse(localStorage.getItem('userFavorites') || []);
-                localStorage.setItem('userFavorites', JSON.stringify(favorites.filter(id => id !== movieId)));
             } else {
                 icon.classList.remove('bi-heart');
                 icon.classList.add('bi-heart-fill', 'text-danger');
-                // إضافة إلى localStorage
-                const favorites = JSON.parse(localStorage.getItem('userFavorites') || []);
-                favorites.push(movieId);
-                localStorage.setItem('userFavorites', JSON.stringify(favorites));
             }
+            
+            // تحديث localStorage
+            let favorites = JSON.parse(localStorage.getItem('userFavorites') || []);
+            if (isFav) {
+                favorites = favorites.filter(id => id !== movieId);
+            } else {
+                favorites.push(movieId);
+            }
+            localStorage.setItem('userFavorites', JSON.stringify(favorites));
+            
         } catch (error) {
             console.error('Error updating favorite:', error);
             alert('Failed to update favorite. Please try again.');
@@ -150,15 +168,15 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error('Failed to load favorites');
             
             const favorites = await response.json();
-            const favoriteIds = favorites.map(movie => movie.movieID);
+            const favoriteIds = favorites.map(movie => movie.id);
             localStorage.setItem('userFavorites', JSON.stringify(favoriteIds));
         } catch (error) {
             console.error('Error loading favorites:', error);
         }
     }
-    
+    loadFavorites();
     // استدعاء loadFavorites عند تحميل الصفحة
-    document.addEventListener('DOMContentLoaded', loadFavorites);
+    
 
     function handleSearch() {
         const query = searchInput.value.trim();

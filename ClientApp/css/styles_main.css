@@ -125,6 +125,13 @@ footer .mb-3{
     flex-direction: column;
     align-items: center;
 }
+footer .mb-3 a i{
+    
+    transition: 0.3s;
+}
+footer .mb-3 a i:hover{
+    color:#2196f3;
+}
 
 footer .mb-3:last-child {
     text-align: center;
