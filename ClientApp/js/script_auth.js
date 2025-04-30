@@ -112,7 +112,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     window.location.href = '../pages/main.html';
                 } else {
                     const error = await response.text();
-                    showError('Invalid username or password');
+                    showError(error);
                 }
             } catch (error) {
                 console.error('Login error:', error);
