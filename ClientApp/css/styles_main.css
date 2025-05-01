@@ -17,9 +17,9 @@ body {
 
 
 .hero-section {
-    background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)), 
-                url('https://source.unsplash.com/random/1920x600/?movie,theater') no-repeat center center;
+    background: url('/ClientApp/images/background.jpg') no-repeat center center;
     background-size: cover;
+    height: 100vh;
     color: white;
     padding: 120px 0;
     margin-bottom: 50px;
