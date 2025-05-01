@@ -14,27 +14,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
     }
 
-    function showError(message, fieldId = null) {
-        // إذا كان هناك حقل محدد، عرض الخطأ تحته
-        if (fieldId) {
-            const field = document.getElementById(fieldId);
-            if (field) {
-                field.classList.add('is-invalid');
-                const feedback = field.nextElementSibling;
-                if (feedback && feedback.classList.contains('invalid-feedback')) {
-                    feedback.textContent = message;
-                    feedback.style.display = 'block';
-                }
-            }
-        } else {
-            // عرض الخطأ في Toast كحالة افتراضية
-            const errorToastBody = document.getElementById('errorToastBody');
-            if (errorToastBody) {
-                errorToastBody.textContent = message;
-                errorToast.show();
-            }
-        }
-    }
+   
 
     // إزالة رسائل الخطأ عند التركيز على الحقل
     function clearError(fieldId) {
@@ -209,20 +189,34 @@ document.addEventListener('DOMContentLoaded', () => {
                         window.location.href = 'login.html';
                     }, 2000);
                 } else {
-                    const error = await response.json();
-                    // معالجة أخطاء محددة من API
-                    if (error.includes("Email is not avalible")) {
-                        showError('Email is already in use', 'email');
-                    } else if (error.includes("User with username")) {
-                        showError('Username is already taken', 'username');
-                    } else {
-                        showError(error || 'Signup failed. Please try again.');
-                    }
+                    const error = await response.text();
+                    showError(error);
                 }
             } catch (error) {
-                console.error('Signup error:', error);
-                showError('An error occurred during signup. Please try again.');
+                console.error('Login error:', error);
+                showError('Network error. Please try again.');
             }
         });
+    }
+    function showError(message, fieldId = null) {
+        // إذا كان هناك حقل محدد، عرض الخطأ تحته
+        if (fieldId) {
+            const field = document.getElementById(fieldId);
+            if (field) {
+                field.classList.add('is-invalid');
+                const feedback = field.nextElementSibling;
+                if (feedback && feedback.classList.contains('invalid-feedback')) {
+                    feedback.textContent = message;
+                    feedback.style.display = 'block';
+                }
+            }
+        } else {
+            // عرض الخطأ في Toast كحالة افتراضية
+            const errorToastBody = document.getElementById('errorToastBody');
+            if (errorToastBody) {
+                errorToastBody.textContent = message;
+                errorToast.show();
+            }
+        }
     }
 });

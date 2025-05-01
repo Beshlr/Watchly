@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', function() {
             displayFavoriteMovies(moviesWithFavorites);
             
             // Update localStorage
-            const favoriteIds = movies.map(movie => movie.movieID);
+            const favoriteIds = movies.map(movie => movie.id);
             localStorage.setItem('userFavorites', JSON.stringify(favoriteIds));
         } catch (error) {
             console.error('Error:', error);

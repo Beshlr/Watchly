@@ -67,7 +67,6 @@ namespace MovieRecommendations_BusinessLayer
 
        private bool _AddNewUsers()
        {
-            this.Password = SqlHelper.ComputeHash(AUserInfoDTO.Password);
             this.UserID = clsUsersData.AddNewUsers(AUserInfoDTO);
 
             return (this.UserID != null);
@@ -76,7 +75,6 @@ namespace MovieRecommendations_BusinessLayer
 
        public static bool AddNewUsers(AddUserInfoDTO AUserInfoDTO)
         {
-            AUserInfoDTO.Password = SqlHelper.ComputeHash(AUserInfoDTO.Password);
 
             AUserInfoDTO.ID = clsUsersData.AddNewUsers(AUserInfoDTO);
 
@@ -87,22 +85,11 @@ namespace MovieRecommendations_BusinessLayer
 
        private bool _UpdateUsers()
        {
-            string HashedPassword = SqlHelper.ComputeHash(this.Password);
 
             return clsUsersData.UpdateUsersByID(
-this.UserID, this.Username, HashedPassword, this.IsAcive, this.Permissions, this.Age);
+this.UserID, this.Username, this.Password, this.IsAcive, this.Permissions, this.Age);
        }
 
-
-       public static bool UpdateUsersByID(
-int? UserID,string Username, string Password, bool? IsAcive, byte Permissions, byte Age          )
-        {
-            string HashedPassword = SqlHelper.ComputeHash(Password);
-
-            return clsUsersData.UpdateUsersByID(
-UserID, Username, HashedPassword, IsAcive, Permissions, Age);
-
-        }
 
         public static bool ChangeUserPassword(int UserID, string NewPassword, string OldPassword)
         {
@@ -128,15 +115,6 @@ UserID, Username, HashedPassword, IsAcive, Permissions, Age);
             else
                 return null;
         }
-
-
-        public static List<UserDTO> GetAllUsers()
-       {
-
-        return clsUsersData.GetAllUsers();
-
-       }
-
 
 
         public bool Save()
@@ -169,17 +147,6 @@ UserID, Username, HashedPassword, IsAcive, Permissions, Age);
         return clsUsersData.DeleteUsers(UserID);
 
        }
-
-
-        public enum enUsersColumns
-         {
-            UserID,
-            Username,
-            Password,
-            IsAcive,
-            Permissions,
-            Age
-         }
 
         public static bool IsUserExist(int UserID)
         {

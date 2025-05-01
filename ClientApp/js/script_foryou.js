@@ -339,7 +339,7 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!response.ok) throw new Error('Failed to load favorites');
             
             const favorites = await response.json();
-            const favoriteIds = favorites.map(movie => movie.movieID);
+            const favoriteIds = favorites.map(movie => movie.id);
             localStorage.setItem('userFavorites', JSON.stringify(favoriteIds));
         } catch (error) {
             console.error('Error loading favorites:', error);

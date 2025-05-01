@@ -363,7 +363,7 @@ namespace MovieRecommendationAPI.Controllers
             }
 
             user.Username = UDTO.Username;
-            user.Password = UDTO.Password;
+            user.Password = EncryptionHelper.Encrypt(UDTO.Password);
             user.IsAcive = UDTO.IsAcive == null ? true : false;
             user.Permissions = UDTO.Permissions;
             user.Age = UDTO.Age;
@@ -385,7 +385,7 @@ namespace MovieRecommendationAPI.Controllers
         {
             clsUsers user = new clsUsers();
             user.Username = AUserInfoDTO.Username;
-            user.Password = AUserInfoDTO.Password;
+            user.Password = EncryptionHelper.Encrypt(AUserInfoDTO.Password);
             user.IsAcive = true;
             user.Email = AUserInfoDTO.Email;
             user.Permissions = 2;
@@ -396,7 +396,12 @@ namespace MovieRecommendationAPI.Controllers
                 return BadRequest("Bad Request: Username or Password is empty");
             }
 
-            if(!clsUsers.CheckIfEmailNotUsed(user.Email))
+            if (clsUsers.IsUserExist(user.Username))
+            {
+                return BadRequest($"Bad Request: User with username [ {AUserInfoDTO.Username} ] is already exists");
+            }
+
+            if (!clsUsers.CheckIfEmailNotUsed(user.Email))
             {
                 return BadRequest("Bad Request: Email is not avalible to using");
             }
@@ -406,7 +411,7 @@ namespace MovieRecommendationAPI.Controllers
                 return BadRequest("Bad Request: Username length should be between 3 and 20 characters");
             }
 
-            if (user.Password.Length < 3 || user.Password.Length > 20)
+            if (AUserInfoDTO.Password.Length < 3 || AUserInfoDTO.Password.Length > 20)
             {
                 return BadRequest("Bad Request: Password length should be between 3 and 20 characters");
             }
@@ -416,10 +421,6 @@ namespace MovieRecommendationAPI.Controllers
                 return BadRequest("Bad Request: Age should be between 1 and 120");
             }
 
-            if (clsUsers.IsUserExist(user.Username))
-            {
-                return BadRequest($"Bad Request: User with username {AUserInfoDTO.Username} is already exists");
-            }
 
             if (!user.Save())
             {
@@ -516,8 +517,6 @@ namespace MovieRecommendationAPI.Controllers
             }
             return Ok("Password changed successfully");
         }
-
-       
 
         [HttpPost("AddMovieToFavorate", Name = "AddMovieToFavorate")]
         [ProducesResponseType(StatusCodes.Status200OK)]
