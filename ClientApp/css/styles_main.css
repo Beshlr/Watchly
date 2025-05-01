@@ -25,6 +25,44 @@ body {
     margin-bottom: 50px;
 }
 
+.hero-section .container{
+    position: absolute;
+    top:50%;
+    left :50%;
+    transform: translate(-50% ,-50%);
+}
+
+.hero-section .go-down{
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+  }
+  
+  .hero-section .go-down i{
+    position: absolute;
+    left: 50%;
+    bottom: 30px;
+    transform: translateX(-50%);
+    color: #1787e0;
+    font-size: 28px;
+    transition: 0.3s;
+    animation: go-down 1.5s infinite;
+  }
+  
+  .hero-section .go-down i:hover{
+    color: White;
+  }
+  
+  @keyframes go-down{
+    40%,60%{
+      transform: translateY(15px);
+    }
+    0%,10%,20%,30%,50%,70%,80%,90%,100%{
+      transform: translateY(0);
+      
+    }
+  }
+
 .movie-card {
     transition: all 0.3s ease;
     border-radius: 8px;
