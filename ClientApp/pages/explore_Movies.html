@@ -15,7 +15,7 @@
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
-        <div class="container">
+        <div class="container browse_navbar">
             <a class="navbar-brand" href="main.html">
                 <h4 class="mb-0">Watchly</h4>
             </a>
@@ -59,7 +59,8 @@
     <main class="container-fluid mt-4">
         <div class="row">
             <!-- Filters Sidebar -->
-            <aside class="col-lg-3 col-md-4 mb-4 ">
+            <aside class="col-lg-3 col-md-4 mb-4">
+            <div class="sticky-top filters_sidebar">
                 <div class="card shadow-sm">
                     <div class="card-header bg-primary text-white">
                         <h5 class="mb-0">Filters</h5>
@@ -144,6 +145,7 @@
                         <button class="btn btn-outline-secondary w-100 mt-2" id="resetFilters">Reset</button>
                     </div>
                 </div>
+            </div>
             </aside>
 
             <!-- Movies Grid -->
@@ -190,7 +192,7 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white py-4 mt-4">
+    <footer class="bg-dark text-white py-4 mt-4 footer_position">
         <div class="container">
             <div class="row g-4">
                 <div class="col-md-4">
@@ -208,9 +210,9 @@
                 <div class="col-md-4">
                     <h5 class="mb-3">Connect</h5>
                     <div class="social-links">
-                        <a href="#" class="text-white me-3" aria-label="Facebook"><i class="bi bi-facebook"></i></a>
-                        <a href="#" class="text-white me-3" aria-label="Twitter"><i class="bi bi-twitter"></i></a>
-                        <a href="#" class="text-white me-3" aria-label="Instagram"><i class="bi bi-instagram"></i></a>
+                        <a href="https://www.facebook.com/" target="_blank" class="text-white me-3"><i class="bi bi-facebook"></i></a>
+                        <a href="https://x.com/" target="_blank" class="text-white me-3"><i class="bi bi-twitter"></i></a>
+                        <a href="https://www.instagram.com/" target="_blank" class="text-white me-3"><i class="bi bi-instagram"></i></a>
                     </div>
                 </div>
             </div>

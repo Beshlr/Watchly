@@ -18,11 +18,24 @@ body {
 
 /* Navigation */
 .navbar {
+    z-index: 1000;
     box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
     background-color: var(--dark-color) !important;
 }
 
 /* Filters Sidebar */
+.filters_sidebar {
+    position: fixed;
+    top: 80px;
+    left: 20px;
+    bottom: 100px;
+    height: 530px;
+    overflow-y: auto;
+    width: 310px; /* Adjust as needed */
+    background-color: #fff; /* Optional: to cover underlying content */
+    z-index: 1; /* To stay on top */
+}
+
 .card-header {
     font-weight: 600;
 }
@@ -249,6 +262,10 @@ body {
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     line-clamp: 2;
+}
+
+.footer_position{
+    z-index: 900;
 }
 
 footer .col-md-4{
