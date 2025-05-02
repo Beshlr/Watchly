@@ -882,7 +882,7 @@ namespace MovieRecommendationAPI.Controllers
                 foreach (var movie in allRecommendations)
                 {
                     var movieDTO = clsMoviePasicDetails.GetMovieByName(movie.movie_title);
-                    if (movieDTO != null)
+                    if (movieDTO != null && !movieList.Contains(movieDTO))
                     {
                         movieList.Add(movieDTO);
                     }

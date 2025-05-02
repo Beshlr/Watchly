@@ -275,9 +275,9 @@ document.addEventListener('DOMContentLoaded', function() {
         try {
             const endpoint = isFav ? 'RemoveMovieFromFavorateList' : 'AddMovieToFavorate';
             const method = isFav ? 'DELETE' : 'POST';
-
+    
             var response;
-
+    
             if(method === 'POST') {
                 const body = JSON.stringify({ MovieID: movieId, UserID: user.id });
                  response = await fetch(`http://watchly.runasp.net/api/UsersAPI/${endpoint}`, {
@@ -299,8 +299,12 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             if (!response.ok) {
-                alert(response.statusText);
-                return;
+                if(method === 'DELETE' && response.status === 400) {
+                    alert('Movie not found in favorites or already removed.');
+                }
+                else if(method === 'POST' && response.status === 400) {
+                    alert('Movie already in favorites.');
+                }
                 
             }
             
@@ -313,14 +317,17 @@ document.addEventListener('DOMContentLoaded', function() {
             }
             
             // تحديث localStorage
-            let favorites = JSON.parse(localStorage.getItem('userFavorites') || []);
+            let favorites = JSON.parse(localStorage.getItem('userFavorites') || '[]');
             if (isFav) {
                 favorites = favorites.filter(id => id !== movieId);
             } else {
-                favorites.push(movieId);
+                if (!favorites.includes(movieId)) {
+                    favorites.push(movieId);
+                }
             }
             localStorage.setItem('userFavorites', JSON.stringify(favorites));
-            
+            console.log('✅ Updated userFavorites:', favorites);
+    
         } catch (error) {
             console.error('Error updating favorite:', error);
             alert('Failed to update favorite. Please try again.');
