@@ -2,7 +2,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const baseMovieApiUrl = 'http://watchly.runasp.net/api/MovieRecommenderAPI';
     const baseUsersApiUrl = 'http://watchly.runasp.net/api/UsersAPI';
     const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
-    
+    const FavorateMovies = null;
     // Check authentication and update UI
     if (userJson) {
         const user = JSON.parse(userJson);
@@ -53,16 +53,16 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     }
 
-    async function GetNameOfGenresForUser(userID) {
+    async function GetNameOfMoviesForUser(userID) {
         try {
-            const response = await fetch(`${baseUsersApiUrl}/GetAllGenresThatUserInterstOn/${userID}`);
+            const response = await fetch(`${baseUsersApiUrl}/GetAllFavorateMoviesNameForUser/${userID}`);
             
             if (!response.ok) {
-                throw new Error(`User: ${userID} has no interests`);
+                throw new Error(`User: ${userID} has no Favorate Movies`);
             }
             
-            const genres = await response.json();
-            return genres;
+            const movies = await response.json();
+            return movies;
         }
         catch (error) {
             console.error(error); // أفضل بدل alert في النسخ الرسمية
@@ -73,7 +73,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
     async function loadRecommendedMovies(endpoint, containerId) {
         const container = document.getElementById(containerId);
-        const genres = await GetNameOfGenresForUser(userId); 
+        const moviesNames = await GetNameOfMoviesForUser(userId); 
     
         try {
             const response = await fetch(`${endpoint}`, {
@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ genres: genres || ["Animation"] }) 
+                body: JSON.stringify( {Movies_Name: moviesNames}) 
             });
     
             if (!response.ok) throw new Error('Network response was not ok');
@@ -338,8 +338,8 @@ document.addEventListener('DOMContentLoaded', function() {
             const response = await fetch(`http://watchly.runasp.net/api/UsersAPI/GetAllFavorateMoviesforUser?UserID=${user.id}`);
             if (!response.ok) throw new Error('Failed to load favorites');
             
-            const favorites = await response.json();
-            const favoriteIds = favorites.map(movie => movie.id);
+            FavorateMovies = await response.json();
+            const favoriteIds = FavorateMovies.map(movie => movie.id);
             localStorage.setItem('userFavorites', JSON.stringify(favoriteIds));
         } catch (error) {
             console.error('Error loading favorites:', error);

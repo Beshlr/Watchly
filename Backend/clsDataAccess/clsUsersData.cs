@@ -475,6 +475,29 @@ namespace MovieRecommendations_DataLayer
             return IsAdded;
         }
 
+        public static List<string> GetAllFavorateMoviesNameForUser(int UserID)
+        {
+            List<string> moviesName = new List<string>();
+            using(SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_GetAllFavorateMoviesNameForUser", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    con.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            moviesName.Add((string)reader["movie_title"]);
+                        }
+                    }
+                }
+            }
+
+            return moviesName;
+        }
+
         public static bool AddMovieToWatchingList(int MovieID, int UserID, bool AddToFavorate,ref string message)
         {
             bool IsAdded = false;

@@ -248,6 +248,11 @@ this.UserID, this.Username, this.Password, this.IsAcive, this.Permissions, this.
         {
             return clsUsersData.AddNewReportAboutMovie(UserID, MovieID, ReportMessage, (int)reportType);
         }
+
+        public static List<string> GetAllFavorateMoviesNameForUser(int UserID)
+        {
+            return clsUsersData.GetAllFavorateMoviesNameForUser(UserID);
+        }
     }
 
     

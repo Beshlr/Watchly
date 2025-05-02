@@ -805,6 +805,31 @@ namespace MovieRecommendationAPI.Controllers
 
             return Ok("Report added successfully");
         }
+
+        [HttpGet("GetAllFavorateMoviesNameForUser/{UserID}", Name = "GetAllFavorateMoviesNameForUser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<List<string>> GetAllFavorateMoviesNameForUser(int UserID)
+        {
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            List<string> movies = clsUsers.GetAllFavorateMoviesNameForUser(UserID);
+            if (movies == null || movies.Count == 0)
+            {
+                return NotFound($"Not Found: No movie found for user with ID {UserID}");
+            }
+            return Ok(movies);
+        }
+
+
         // End Users API
     }
 
@@ -822,26 +847,41 @@ namespace MovieRecommendationAPI.Controllers
         }
 
         [HttpPost("GetMovieRecommendation", Name = "GetMovieRecommendation")]
-        public async Task<IActionResult> GetMovieRecommendation([FromBody] clsGenreRequest request)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetMovieRecommendation([FromBody] clsMoviesRequest request)
         {
+            if (request?.Movies_Name == null || request.Movies_Name.Count == 0)
+            {
+                return BadRequest(new { message = "Movies_Name list is empty or null." });
+            }
+
             var client = _httpClientFactory.CreateClient();
+            var allRecommendations = new List<MovieRecommendationResponse>();
 
             try
             {
-                var aiResponse = await client.PostAsJsonAsync(
-                        "https://montaser14-movies.hf.space/recommend/genre",
-                        request
+                foreach (var movieName in request.Movies_Name)
+                {
+                    var aiResponse = await client.PostAsJsonAsync(
+                        "http://62.84.183.216:8089/recommend",
+                        new { movie_name = movieName }
                     );
 
-                aiResponse.EnsureSuccessStatusCode();
+                    aiResponse.EnsureSuccessStatusCode();
 
-                var movies = await aiResponse.Content.ReadFromJsonAsync<List<string>>();
-                
-                List<MovieDTO> movieList = new List<MovieDTO>();
+                    var recommendations = await aiResponse.Content.ReadFromJsonAsync<List<MovieRecommendationResponse>>();
+                    if (recommendations != null)
+                        allRecommendations.AddRange(recommendations);
+                }
 
-                foreach (var movie in movies)
+
+                var movieList = new List<MovieDTO>();
+
+                foreach (var movie in allRecommendations)
                 {
-                    MovieDTO movieDTO = clsMoviePasicDetails.GetMovieByName(movie);
+                    var movieDTO = clsMoviePasicDetails.GetMovieByName(movie.movie_title);
                     if (movieDTO != null)
                     {
                         movieList.Add(movieDTO);
@@ -855,6 +895,8 @@ namespace MovieRecommendationAPI.Controllers
                 return StatusCode(500, new { message = "Error calling AI endpoint", error = ex.Message });
             }
         }
+
+
     }
 
     public class clsMovieValidations
