@@ -877,14 +877,15 @@ namespace MovieRecommendationAPI.Controllers
                 }
 
 
-                var movieList = new List<MovieDTO>();
+                var movieList = new HashSet<MovieDTO>();
 
                 foreach (var movie in allRecommendations)
                 {
                     var movieDTO = clsMoviePasicDetails.GetMovieByName(movie.movie_title);
-                    if (movieDTO != null && !movieList.Contains(movieDTO))
+                    if (movieDTO != null)
                     {
-                        movieList.Add(movieDTO);
+                        if(!movieList.Contains(movieDTO))
+                            movieList.Add(movieDTO);
                     }
                 }
 
@@ -1007,6 +1008,10 @@ namespace MovieRecommendationAPI.Controllers
 
     public class clsUserAndMovieID
     {
+        public clsUserAndMovieID()
+        {
+        }
+
         public clsUserAndMovieID(int movieID, int userID)
         {
             MovieID = movieID;

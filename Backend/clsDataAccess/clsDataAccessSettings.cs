@@ -7,7 +7,7 @@ namespace MovieRecommendations_DataAccess
 {
     static class clsDataAccessSettings
     {
-        public static string ConnectionString = "Server=db18039.public.databaseasp.net; Database=db18039; User Id=db18039; Password=8Bt@!n7FJ9-d; Encrypt=True; TrustServerCertificate=True; MultipleActiveResultSets=True;";
+        public static string ConnectionString = "Server=SQL1003.site4now.net; Database=db_ab8763_watchly; User Id=db_ab8763_watchly_admin; Password=Hassan123; Encrypt=True; TrustServerCertificate=True; MultipleActiveResultSets=True;";
 
     }
 }

@@ -71,6 +71,21 @@ namespace clsDataAccess
         public string Genre { get; set; }
         public string IMDbMovieURL { get; set; }
         public string Keywords { get; set; }
+
+        public override bool Equals(object obj)
+        {
+            if (obj is not MovieDTO other)
+                return false;
+
+            return string.Equals(MovieName, other.MovieName, StringComparison.OrdinalIgnoreCase)
+                   && Year == other.Year;
+        }
+
+        public override int GetHashCode()
+        {
+            return HashCode.Combine(MovieName?.ToLowerInvariant(), Year);
+        }
+
     }
 
     public class clsMovieBasicDetailsData

@@ -16,7 +16,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const sortBy = document.getElementById('sortBy');
     // إعدادات API
     const apiConfig = {
-        baseUrl: 'http://watchly.runasp.net/api/MovieRecommenderAPI',
+        baseUrl: 'http://beshir1-001-site1.ptempurl.com/api/MovieRecommenderAPI',
         endpoints: {
             byGenre: '/GetTop100MovieWithGenre',
             byGenreAndYear: '/GetTop100MovieWithGenreInYear',
@@ -325,7 +325,7 @@ window.toggleFavorite = async function(movieId, buttonElement) {
 
         if(method === 'POST') {
             const body = JSON.stringify({ MovieID: movieId, UserID: user.id });
-             response = await fetch(`http://watchly.runasp.net/api/UsersAPI/${endpoint}`, {
+             response = await fetch(`http://beshir1-001-site1.ptempurl.com/api/UsersAPI/${endpoint}`, {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
@@ -334,7 +334,7 @@ window.toggleFavorite = async function(movieId, buttonElement) {
             });
         }
         else if(method === 'DELETE') {
-             response = await fetch(`http://watchly.runasp.net/api/UsersAPI/${endpoint}?MovieID=${movieId}&UserID=${user.id}`, {
+             response = await fetch(`http://beshir1-001-site1.ptempurl.com/api/UsersAPI/${endpoint}?MovieID=${movieId}&UserID=${user.id}`, {
                 method: method,
                 headers: {
                     'Content-Type': 'application/json',
@@ -395,7 +395,7 @@ async function loadInitialMovies() {
         // تحميل قائمة المفضلة إذا كان المستخدم مسجل الدخول
         if (userJson) {
             const user = JSON.parse(userJson);
-            const favResponse = await fetch(`http://watchly.runasp.net/api/UsersAPI/GetAllFavorateMoviesforUser?UserID=${user.id}`);
+            const favResponse = await fetch(`http://beshir1-001-site1.ptempurl.com/api/UsersAPI/GetAllFavorateMoviesforUser?UserID=${user.id}`);
             if (favResponse.ok) {
                 const favorites = await favResponse.json();
                 const favoriteIds = favorites.map(movie => movie.id);
@@ -464,7 +464,7 @@ async function applyFilters() {
         // تحميل قائمة المفضلة إذا كان المستخدم مسجل الدخول
         if (userJson) {
             const user = JSON.parse(userJson);
-            const favResponse = await fetch(`http://watchly.runasp.net/api/UsersAPI/GetAllFavorateMoviesforUser?UserID=${user.id}`);
+            const favResponse = await fetch(`http://beshir1-001-site1.ptempurl.com/api/UsersAPI/GetAllFavorateMoviesforUser?UserID=${user.id}`);
             if (favResponse.ok) {
                 const favorites = await favResponse.json();
                 const favoriteIds = favorites.map(movie => movie.id);
@@ -482,7 +482,7 @@ async function applyFilters() {
     
 async function checkIfMovieIsFavorite(userId, movieId) {
     try {
-        const response = await fetch(`http://watchly.runasp.net/api/UsersAPI/CheckIfMovieIsFavorate?UserID=${userId}&MovieID=${movieId}`);
+        const response = await fetch(`http://beshir1-001-site1.ptempurl.com/api/UsersAPI/CheckIfMovieIsFavorate?UserID=${userId}&MovieID=${movieId}`);
 
         if (!response.ok) {
             // الفيلم مش موجود في المفضلة
@@ -507,7 +507,7 @@ window.isFavorite = async function(movieId) {
     
     const user = JSON.parse(userJson);
     try {
-        const response = await fetch(`http://watchly.runasp.net/api/UsersAPI/CheckIfMovieIsFavorate?UserID=${user.id}&MovieID=${movieId}`);
+        const response = await fetch(`http://beshir1-001-site1.ptempurl.com/api/UsersAPI/CheckIfMovieIsFavorate?UserID=${user.id}&MovieID=${movieId}`);
         return response.ok;
     } catch (error) {
         console.error('Error checking favorite:', error);
@@ -528,7 +528,7 @@ window.isFavorite = async function(movieId) {
         const icon = buttonElement.querySelector('i');
         
         try {
-            const response = await fetch('http://watchly.runasp.net/api/UsersAPI/AddMovieToFavorate', {
+            const response = await fetch('http://beshir1-001-site1.ptempurl.com/api/UsersAPI/AddMovieToFavorate', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -572,7 +572,7 @@ window.isFavorite = async function(movieId) {
         const user = JSON.parse(userJson);
         
         try {
-            const response = await fetch(`http://watchly.runasp.net/api/UsersAPI/GetAllFavorateMoviesforUser?UserID=${user.id}`);
+            const response = await fetch(`http://beshir1-001-site1.ptempurl.com/api/UsersAPI/GetAllFavorateMoviesforUser?UserID=${user.id}`);
             if (!response.ok) throw new Error('Failed to load favorites');
             
             const favorites = await response.json();

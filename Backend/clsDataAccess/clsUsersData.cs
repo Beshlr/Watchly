@@ -70,9 +70,9 @@ namespace MovieRecommendations_DataLayer
                             {
                             userDTO = new UserDTO(
                                 UserID,
-                             (string)reader["Username"],
-                             (string)reader["Password"],
-                             (string)reader["Email"],
+                             reader["Username"] != DBNull.Value ? (string)reader["Username"] : "",
+                             reader["Password"] != DBNull.Value ? (string)reader["Password"] :"",
+                             reader["Email"] != DBNull.Value ? (string)reader["Email"] : "",
                              reader["IsActive"] != DBNull.Value ? (bool)reader["IsActive"] : false,
                              (byte)reader["Permissions"],
                             (byte)reader["Age"]);
