@@ -96,11 +96,16 @@ namespace clsDataAccess
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                string query = "Select * From vw_MovieBasicInfo Where ID = @ID";
 
-                using (SqlCommand cmd = new SqlCommand(query, connection))
+                using (SqlCommand cmd = new SqlCommand("SP_GetMovieBasicInfo", connection))
                 {
-                    cmd.Parameters.AddWithValue("@ID", ID);
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@MovieID", ID);
+                    var ReturnValue = new SqlParameter("@ReturnValue", SqlDbType.Int)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+
                     connection.Open();
 
                     using (SqlDataReader reader = cmd.ExecuteReader())

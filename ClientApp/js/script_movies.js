@@ -126,9 +126,9 @@ async function searchMovies(query, displayInGrid = true) {
     }
     
     const response = await fetch(`${apiConfig.baseUrl}/NameHasWord/${query}`);
-    
     if (!response.ok) {
-        throw new Error(`API request failed with status ${response.status}`);
+        const error = await response.text();
+        throw new Error(`${error}`);
     }
     
     const movies = await response.json();

@@ -76,7 +76,7 @@ namespace MovieRecommendationAPI.Controllers
 
             if (movies == null || movies.Count == 0)
             {
-                return NotFound($"Not Found: No movie has Name {PieceOfName}");
+                return NotFound($"Not Found: No movie has word {PieceOfName}");
             }
 
             return Ok(movies);
