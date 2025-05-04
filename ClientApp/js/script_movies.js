@@ -170,6 +170,32 @@ searchInput.addEventListener('input', async function(e) {
         searchResults.style.display = 'block';
     }
 });
+
+async function GetUserInfoByID(userId) {
+    try {
+        const response = await fetch(`http://watchly.runasp.net/api/UsersAPI/GetUserInfoByID/${userId}`);
+        if (!response.ok) {
+            throw new Error('Failed to fetch user info');
+        }
+
+        const updatedUser = await response.json();
+
+        // حدد هل البيانات كانت في localStorage أو sessionStorage
+        const isInLocal = localStorage.getItem('loggedInUser') !== null;
+        const storage = isInLocal ? localStorage : sessionStorage;
+
+        // حدث البيانات داخل storage
+        storage.setItem('loggedInUser', JSON.stringify(updatedUser));
+
+        return updatedUser;
+    } catch (error) {
+        console.error('Error fetching user info:', error);
+        return null;
+    }
+}
+
+
+
 // دالة عرض نتائج البحث
 function showSearchResults(movies) {
     if (!movies || movies.length === 0) {
@@ -259,6 +285,8 @@ document.addEventListener('click', function(e) {
     }
 
     // في دالة displayMovies، سأعدل كود عرض الأفلام ليتضمن:
+// ... (الكود السابق يبقى كما هو حتى دالة displayMovies)
+
 function displayMovies(movies) {
     if (!movies || movies.length === 0) {
         moviesGrid.innerHTML = `
@@ -268,10 +296,13 @@ function displayMovies(movies) {
         `;
         return;
     }
-    
+    GetUserInfoByID(loggedInUser.id);
     // جلب قائمة المفضلة من localStorage
-    const favorites = JSON.parse(localStorage.getItem('userFavorites') || []);
-    
+    const favorites = JSON.parse(localStorage.getItem('userFavorites') || '[]');
+    const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+    const user = userJson ? JSON.parse(userJson) : null;
+    const isAdmin = user && user.permissions === 1;
+
     moviesGrid.innerHTML = movies.map(movie => `
     <div class="col-md-4 col-lg-3 mb-4 movie-card-container">
         <a href="${movie.imDbMovieURL || '#'}" 
@@ -289,6 +320,13 @@ function displayMovies(movies) {
                 <i class="bi bi-heart${favorites.includes(movie.id) ? '-fill text-danger' : ''}" style="font-size: 1.2rem;"></i>
                 </button>
 
+                ${isAdmin ? `
+                <button class="btn btn-sm btn-danger position-absolute top-0 start-0 m-2 delete-movie-btn" 
+                    onclick="event.preventDefault(); event.stopPropagation(); confirmDeleteMovie(${movie.id}, '${movie.movieName.replace(/'/g, "\\'")}')"
+                    style="border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                    <i class="bi bi-trash" style="font-size: 1rem;"></i>
+                </button>
+                ` : ''}
             </div>
             <div class="card-body">
                 <h5 class="card-title">${movie.movieName}</h5>
@@ -304,6 +342,37 @@ function displayMovies(movies) {
     </div>
     `).join('');
 }
+
+// إضافة دالة تأكيد الحذف
+window.confirmDeleteMovie = function(movieId, movieName) {
+    if (confirm(`Are you sure you want to delete the movie "${movieName}"?`)) {
+        deleteMovie(movieId);
+    }
+};
+
+// إضافة دالة حذف الفيلم
+async function deleteMovie(movieId) {
+    try {
+        const response = await fetch(`http://watchly.runasp.net/api/MovieRecommenderAPI/DeleteMovie/${movieId}`, {
+            method: 'DELETE',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to delete movie: ${response.status}`);
+        }
+
+        alert('Movie deleted successfully!');
+        applyFilters(); // Refresh the movie list
+    } catch (error) {
+        console.error('Error deleting movie:', error);
+        alert('Failed to delete movie. Please try again.');
+    }
+}
+
+// ... (بقية الكود يبقى كما هو)
 
 // تعديل دالة toggleFavorite لاستخدام API بشكل صحيح
 window.toggleFavorite = async function(movieId, buttonElement) {

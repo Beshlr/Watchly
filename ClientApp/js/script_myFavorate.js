@@ -178,19 +178,19 @@ document.addEventListener('DOMContentLoaded', function() {
         
         container.innerHTML = movies.map(movie => `
             <div class="movie-card">
-                <div class="position-relative">
-                    <img src="${movie.posterImageURL || 'https://via.placeholder.com/300x450'}" 
-                        class="card-img-top" 
-                        alt="${movie.movieName}"
-                        onerror="this.src='https://via.placeholder.com/300x450'">
-                    <button class="btn btn-sm btn-favorite position-absolute top-0 end-0 m-2" 
-                            onclick="event.stopPropagation(); toggleFavorite(${movie.id}, this)">
-                        <i class="bi bi-heart-fill text-danger"></i>
-                    </button>
-                </div>
-                <a href="${movie.imDbMovieURL || '#'}"
-                   class="card-link" 
-                   target="_blank" style="text-decoration: none; color: inherit;">
+                <a href="${movie.imDbMovieURL || '#'}" target="_blank" class="text-decoration-none d-block">
+                    <div class="position-relative">
+                        <img src="${movie.posterImageURL || 'https://via.placeholder.com/300x450'}" 
+                            class="card-img-top" 
+                            alt="${movie.movieName}"
+                            onerror="this.src='https://via.placeholder.com/300x450'">
+                        <button class="btn btn-sm btn-favorite position-absolute top-0 end-0 m-2" 
+                                onclick="event.preventDefault(); toggleFavorite(${movie.id}, this)">
+                            <i class="bi bi-heart${movie.isFavorite ? '-fill text-danger' : ''}"></i>
+                        </button>
+                    </div>
+                    
+                    
                     <div class="card-body p-2">
                         <h6 class="card-title mb-1">${movie.movieName}</h6>
                         <small class="text-muted">${movie.year} • ⭐ ${movie.rate?.toFixed(1) || 'N/A'}</small>

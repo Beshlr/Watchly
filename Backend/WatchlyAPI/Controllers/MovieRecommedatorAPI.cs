@@ -368,6 +368,7 @@ namespace MovieRecommendationAPI.Controllers
             user.Permissions = UDTO.Permissions;
             user.Age = UDTO.Age;
 
+
             if (!user.Save())
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: User not updated");
