@@ -74,10 +74,15 @@ document.addEventListener('DOMContentLoaded', function() {
     
     async function loadRecommendedMovies(endpoint, containerId) {
         const container = document.getElementById(containerId);
-        const moviesNames = await getNameOfMoviesForUser(userId) || [];
+        let moviesNames = await getNameOfMoviesForUser(userId) || [];
+    
+        // ✅ تأكد من صلاحية البيانات
+        moviesNames = moviesNames
+            .filter(name => typeof name === 'string' && name.trim().length > 0)
+            .map(name => name.trim());
     
         if (moviesNames.length === 0) {
-            container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No favorite movies found to generate recommendations.</p></div>';
+            container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No valid favorite movies found to generate recommendations.</p></div>';
             return;
         }
     
@@ -120,6 +125,7 @@ document.addEventListener('DOMContentLoaded', function() {
             container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-danger">Error loading recommendations. Please try again later.</p></div>';
         }
     }
+    
     
     // Search functionality
     const searchBtn = document.getElementById('searchButton');
@@ -339,6 +345,8 @@ document.addEventListener('DOMContentLoaded', function() {
             
             // Update favorites list
             await loadFavorites();
+            location.reload();
+
             
         } catch (error) {
             console.error('Error updating favorite:', error);

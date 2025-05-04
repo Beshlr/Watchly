@@ -29,7 +29,7 @@ body {
     top: 80px;
     left: 20px;
     bottom: 100px;
-    height: 530px;
+    height: fit-content;
     overflow-y: auto;
     width: 310px; /* Adjust as needed */
     background-color: #fff; /* Optional: to cover underlying content */
