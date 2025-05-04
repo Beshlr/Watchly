@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const baseApiUrl = 'http://beshir1-001-site1.ptempurl.com/api/UsersAPI';
+    const baseApiUrl = 'http://watchly.runasp.net/api/UsersAPI';
     const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
     const userJson = localStorage.getItem('loggedInUser');
 

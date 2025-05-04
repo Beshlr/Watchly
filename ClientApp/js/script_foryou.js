@@ -1,8 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const baseMovieApiUrl = 'http://beshir1-001-site1.ptempurl.com/api/MovieRecommenderAPI';
-    const baseUsersApiUrl = 'http://beshir1-001-site1.ptempurl.com/api/UsersAPI';
+    const baseMovieApiUrl = 'http://watchly.runasp.net/api/MovieRecommenderAPI';
+    const baseUsersApiUrl = 'http://watchly.runasp.net/api/UsersAPI';
     const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
-    let favoriteMovies = null; // تصحيح التسمية من Favorate إلى Favorite
+    let favoriteMovies = null; 
 
     // Check authentication and update UI
     if (userJson) {
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
     
     // Load personalized recommendations with actual user ID
     const userId = JSON.parse(userJson).id;
-    loadRecommendedMovies(`http://beshir1-001-site1.ptempurl.com/api/RecommendationAPI/GetMovieRecommendation`, 'personalRecommendations');
+    loadRecommendedMovies(`http://watchly.runasp.net/api/RecommendationAPI/GetMovieRecommendation`, 'personalRecommendations');
     
     // Load similar movies (Sci-Fi as example) - تصحيح اسم الجنس
     loadMovies('GetTop100MovieWithGenre?GenreName=Sci_Fi', 'similarMovies');
@@ -43,7 +43,7 @@ document.addEventListener('DOMContentLoaded', function() {
             const movies = await response.json();
             
             // Check favorites for each movie
-            const moviesWithFavorites = await Promise.all(movies.slice(0, 5).map(async movie => {
+            const moviesWithFavorites = await Promise.all(movies.slice(0,15).map(async movie => {
                 const isFav = await checkIfMovieIsFavorite(userId, movie.id);
                 return { ...movie, isFavorite: isFav };
             }));
@@ -109,7 +109,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 return;
             }
     
-            const moviesWithFavorites = await Promise.all(movies.slice(0, 5).map(async movie => {
+            const moviesWithFavorites = await Promise.all(movies.map(async movie => {
                 const isFav = await checkIfMovieIsFavorite(userId, movie.id);
                 return { ...movie, isFavorite: isFav };
             }));
@@ -192,7 +192,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
     
-        searchResults.innerHTML = movies.slice(0, 5).map(movie => `
+        searchResults.innerHTML = movies.map(movie => `
             <div class="search-result-item p-2 border-bottom" 
                  onclick="selectMovie('${movie.imDbMovieURL}')">
                 <div class="d-flex">
@@ -238,28 +238,39 @@ document.addEventListener('DOMContentLoaded', function() {
         const container = document.getElementById(containerId);
         
         if (!movies || movies.length === 0) {
-            container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No movies found</p></div>';
+            container.innerHTML = '<div class="col-12 text-center py-5" style="min-width: 100%;"><p class="text-muted">No movies found</p></div>';
             return;
         }
         
         container.innerHTML = movies.map(movie => `
         <div class="movie-card">
-            <div class="position-relative">
-                <img src="${movie.posterImageURL || 'https://via.placeholder.com/300x450'}" 
-                    class="card-img-top lazy-load" 
-                    alt="${movie.movieName}"
-                    onerror="this.src='https://via.placeholder.com/300x450'">
-                <button class="btn btn-sm btn-favorite position-absolute top-0 end-0 m-2" 
-                        onclick="event.stopPropagation(); toggleFavorite(${movie.id}, this)">
-                    <i class="bi bi-heart${movie.isFavorite ? '-fill text-danger' : ''}"></i>
-                </button>
-            </div>
-            <div class="card-body p-2">
-                <h6 class="card-title mb-1">${movie.movieName}</h6>
-                <small class="text-muted">${movie.year} • ⭐ ${movie.rate?.toFixed(1) || 'N/A'}</small>
-            </div>
+            <a href="${movie.imDbMovieURL || '#'}" target="_blank" class="text-decoration-none d-block">
+                <div class="position-relative">
+                    <img src="${movie.posterImageURL || 'https://via.placeholder.com/300x450'}" 
+                        class="card-img-top lazy-load" 
+                        alt="${movie.movieName}"
+                        onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450'"
+                        style="height: 270px; width: 100%; object-fit: cover;">
+                    <button class="btn btn-sm btn-favorite position-absolute top-0 end-0 m-2" 
+                            onclick="event.preventDefault(); toggleFavorite(${movie.id}, this)">
+                        <i class="bi bi-heart${movie.isFavorite ? '-fill text-danger' : ''}"></i>
+                    </button>
+                </div>
+                <div class="card-body p-2">
+                    <h6 class="card-title mb-1 text-dark">${movie.movieName}</h6>
+                    <small class="text-muted">${movie.year} • ⭐ ${movie.rate?.toFixed(1) || 'N/A'}</small>
+                </div>
+            </a>
         </div>
         `).join('');
+        
+        setTimeout(() => {
+            document.querySelectorAll('.movie-card img').forEach(img => {
+                if(img.complete && img.naturalHeight === 0) {
+                    img.src = 'https://via.placeholder.com/300x450';
+                }
+            });
+        }, 500);
     }
 
     window.isFavorite = async function(movieId) {
