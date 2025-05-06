@@ -1,4 +1,4 @@
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
     const baseMovieApiUrl = 'https://watchly.runasp.net/api/MovieRecommenderAPI';
     const baseUsersApiUrl = 'https://watchly.runasp.net/api/UsersAPI';
     const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
@@ -11,14 +11,15 @@ document.addEventListener('DOMContentLoaded', function() {
         
         const loginBtn = document.getElementById('log-btn');
         loginBtn.textContent = 'Logout';
-        loginBtn.href = '#';
+        loginBtn.href = '#'; 
         loginBtn.onclick = () => {
             localStorage.removeItem('loggedInUser');
             sessionStorage.removeItem('loggedInUser');
             localStorage.removeItem('userFavorites');
             window.location.href = 'login.html';
         };
-        if (user && user.permissions === 1 || user.permissions === 3) {
+        
+        if (user && (user.permissions === 1 || user.permissions === 3)) {
             document.getElementById('manageUsersNavItem').style.display = 'block';
         }
     } else {
@@ -26,357 +27,488 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = 'login.html';
         return;
     }
+
     // Load personalized recommendations with actual user ID
     const userId = JSON.parse(userJson).id;
     loadRecommendedMovies(`https://watchly.runasp.net/api/RecommendationAPI/GetMovieRecommendation`, 'personalRecommendations');
     
-    // Load similar movies (Sci-Fi as example) - تصحيح اسم الجنس
-    loadMovies('GetTop100MovieWithGenre?GenreName=Sci_Fi', 'similarMovies');
+    // Load favorite genres movies
+    loadFavoriteGenresMovies(userId);
     
-    // Load trending movies - تعديل المسار ليتوافق مع الـ endpoint
+    
+    // Load trending movies
     loadMovies('GetTop100MovieBetweenTwoYears/2023/2025/Animation', 'trendingMovies');
     
-    async function loadMovies(endpoint, containerId) {
-        const container = document.getElementById(containerId);
+    // Initialize lazy loading
+    initLazyLoading();
+
+
+// دالة لجلب الأنواع المفضلة وعرض الأفلام
+async function loadFavoriteGenresMovies(userId) {
+    try {
+        // جلب أفضل 3 أنواع للمستخدم
+        const genresResponse = await fetch(`${baseUsersApiUrl}/GetTop3GenresUserInterstIn/${userId}`);
+        if (!genresResponse.ok) throw new Error('Failed to load favorite genres');
         
-        try {
-            const response = await fetch(`${baseMovieApiUrl}/${endpoint}`);
-            if (!response.ok) throw new Error('Network response was not ok');
-            const movies = await response.json();
+        const genres = await genresResponse.json();
+        if (!genres || genres.length === 0) return;
+        
+        // عرض تبويبات الأنواع
+        const genreTabs = document.getElementById('genreTabs');
+        const genreSectionsContainer = document.getElementById('genreSectionsContainer');
+        
+        genreTabs.innerHTML = '';
+        genreSectionsContainer.innerHTML = '';
+        
+        genres.forEach((genre, index) => {
+            const tab = document.createElement('div');
+            tab.className = `genre-tab ${index === 0 ? 'active' : ''}`;
+            tab.textContent = genre;
+            tab.dataset.genre = genre;
+            tab.onclick = () => switchGenreTab(genre);
+            genreTabs.appendChild(tab);
             
-            // Check favorites for each movie
-            const moviesWithFavorites = await Promise.all(movies.slice(0,15).map(async movie => {
-                const isFav = await checkIfMovieIsFavorite(userId, movie.id);
-                return { ...movie, isFavorite: isFav };
-            }));
+            // إنشاء قسم الأفلام لهذا النوع
+            const section = document.createElement('div');
+            section.className = `genre-section ${index === 0 ? 'active' : ''}`;
+            section.id = `genre-${genre.replace(/\s+/g, '-')}`;
             
-            displayMovies(moviesWithFavorites, containerId);
-        } catch (error) {
-            console.error('Error loading movies:', error);
-            container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-danger">Error loading movies. Please try again later.</p></div>';
+            section.innerHTML = `
+                <div class="movie-container">
+                    <button class="scroll-btn left" onclick="scrollSection('${section.id}-movies', -1)">
+                        <i class="bi bi-chevron-left"></i>
+                    </button>
+                    <div class="movie-grid" id="${section.id}-movies">
+                        <div class="text-center py-5" style="min-width: 100%;">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                        </div>
+                    </div>
+                    <button class="scroll-btn right" onclick="scrollSection('${section.id}-movies', 1)">
+                        <i class="bi bi-chevron-right"></i>
+                    </button>
+                </div>
+            `;
+            
+            genreSectionsContainer.appendChild(section);
+            
+            // جلب الأفلام لهذا النوع
+            loadMoviesForGenre(genre, `${section.id}-movies`);
+        });
+    } catch (error) {
+        console.error('Error loading favorite genres:', error);
+        document.getElementById('genreSectionsContainer').innerHTML = `
+            <div class="col-12 text-center py-5">
+                <p class="text-muted">Could not load your favorite genres. Try again later.</p>
+            </div>
+        `;
+    }
+}
+
+function switchGenreTab(genre) {
+    document.querySelectorAll('.genre-tab').forEach(tab => {
+        tab.classList.toggle('active', tab.dataset.genre === genre);
+    });
+    
+    document.querySelectorAll('.genre-section').forEach(section => {
+        section.classList.toggle('active', section.id === `genre-${genre.replace(/\s+/g, '-')}`);
+    });
+}
+
+async function loadMoviesForGenre(genre, containerId) {
+    try {
+        const response = await fetch(`${baseMovieApiUrl}/GetTop100MovieWithGenre?GenreName=${encodeURIComponent(genre)}`);
+        if (!response.ok) throw new Error(`Failed to load ${genre} movies`);
+        
+        const movies = await response.json();
+        const userId = JSON.parse(localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser')).id;
+        
+        // التحقق من الأفلام المفضلة لكل فيلم
+        const moviesWithFavorites = await Promise.all(movies.slice(0, 15).map(async movie => {
+            const isFav = await checkIfMovieIsFavorite(userId, movie.id);
+            return { ...movie, isFavorite: isFav };
+        }));
+        
+        displayMovies(moviesWithFavorites, containerId);
+    } catch (error) {
+        console.error(`Error loading ${genre} movies:`, error);
+        document.getElementById(containerId).innerHTML = `
+            <div class="col-12 text-center py-5" style="min-width: 100%;">
+                <p class="text-danger">Error loading ${genre} movies. Please try again later.</p>
+            </div>
+        `;
+    }
+}
+
+async function loadMovies(endpoint, containerId) {
+    const container = document.getElementById(containerId);
+    
+    try {
+        const response = await fetch(`${baseMovieApiUrl}/${endpoint}`);
+        if (!response.ok) throw new Error('Network response was not ok');
+        const movies = await response.json();
+        
+        // Check favorites for each movie
+        const userId = JSON.parse(localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser')).id;
+        const moviesWithFavorites = await Promise.all(movies.slice(0,15).map(async movie => {
+            const isFav = await checkIfMovieIsFavorite(userId, movie.id);
+            return { ...movie, isFavorite: isFav };
+        }));
+        
+        displayMovies(moviesWithFavorites, containerId);
+    } catch (error) {
+        console.error('Error loading movies:', error);
+        container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-danger">Error loading movies. Please try again later.</p></div>';
+    }
+}
+
+async function getNameOfMoviesForUser(userID) {
+    try {
+        const response = await fetch(`${baseUsersApiUrl}/GetAllFavorateMoviesNameForUser/${userID}`);
+        
+        if (!response.ok) {
+            return []; // إرجاع قائمة فارغة بدلاً من null
         }
+        
+        const movies = await response.json();
+        return movies || []; // التأكد من عدم إرجاع null
+    }
+    catch (error) {
+        console.error('Error getting favorite movies:', error);
+        return [];
+    }
+}
+
+async function loadRecommendedMovies(endpoint, containerId) {
+    const container = document.getElementById(containerId);
+    let moviesNames = await getNameOfMoviesForUser(userId) || [];
+    
+    moviesNames = moviesNames
+        .filter(name => typeof name === 'string' && name.trim().length > 0)
+        .map(name => name.trim());
+
+    if (moviesNames.length === 0) {
+        container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No valid favorite movies found to generate recommendations.</p></div>';
+        return;
     }
 
-    async function getNameOfMoviesForUser(userID) {
-        try {
-            const response = await fetch(`${baseUsersApiUrl}/GetAllFavorateMoviesNameForUser/${userID}`);
-            
-            if (!response.ok) {
-                return []; // إرجاع قائمة فارغة بدلاً من null
-            }
-            
-            const movies = await response.json();
-            return movies || []; // التأكد من عدم إرجاع null
+    try {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ Movies_Name: moviesNames })
+        });
+
+        if (!response.ok) {
+            const errorText = await response.text();
+            throw new Error(errorText || "Failed to load recommendations");
         }
-        catch (error) {
-            console.error('Error getting favorite movies:', error);
-            return [];
+
+        const movies = await response.json();
+
+        if (!movies || movies.length === 0) {
+            container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No recommendations found.</p></div>';
+            return;
+        }
+
+        const userId = JSON.parse(localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser')).id;
+        const moviesWithFavorites = await Promise.all(movies.map(async movie => {
+            const isFav = await checkIfMovieIsFavorite(userId, movie.id);
+            return { ...movie, isFavorite: isFav };
+        }));
+
+        displayMovies(moviesWithFavorites, containerId);
+    } catch (error) {
+        console.error("Error in loadRecommendedMovies:", error);
+        container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-danger">Error loading recommendations. Please try again later.</p></div>';
+    }
+}
+
+// دالة محسنة للتمرير السلس مع تأثيرات
+function scrollSection(sectionId, direction) {
+    const section = document.getElementById(sectionId);
+    if (!section) return;
+    
+    const scrollAmount = section.clientWidth * 0.8; // تمرير 80% من عرض الشاشة
+    const currentScroll = section.scrollLeft;
+    const targetScroll = currentScroll + (direction * scrollAmount);
+    
+    // تطبيق التمرير السلس مع easing
+    const duration = 500; // مدة التمرير بالمللي ثانية
+    const startTime = performance.now();
+    
+    function animateScroll(currentTime) {
+        const elapsed = currentTime - startTime;
+        const progress = Math.min(elapsed / duration, 1);
+        const easeProgress = easeOutQuad(progress);
+        
+        section.scrollLeft = currentScroll + (easeProgress * (targetScroll - currentScroll));
+        
+        if (progress < 1) {
+            requestAnimationFrame(animateScroll);
         }
     }
     
-    async function loadRecommendedMovies(endpoint, containerId) {
-        const container = document.getElementById(containerId);
-        let moviesNames = await getNameOfMoviesForUser(userId) || [];
+    function easeOutQuad(t) {
+        return t * (2 - t);
+    }
     
-        // ✅ تأكد من صلاحية البيانات
-        moviesNames = moviesNames
-            .filter(name => typeof name === 'string' && name.trim().length > 0)
-            .map(name => name.trim());
+    requestAnimationFrame(animateScroll);
+}
+
+function displayMovies(movies, containerId) {
+    const container = document.getElementById(containerId);
     
-        if (moviesNames.length === 0) {
-            container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No valid favorite movies found to generate recommendations.</p></div>';
-            return;
-        }
+    if (!movies || movies.length === 0) {
+        container.innerHTML = '<div class="col-12 text-center py-5" style="min-width: 100%;"><p class="text-muted">No movies found</p></div>';
+        return;
+    }
     
-        try {
-            console.log("Sending request to endpoint:", endpoint);
-            console.log("Request payload:", { Movies_Name: moviesNames });
+    container.innerHTML = movies.map(movie => `
+    <div class="movie-card">
+        <a href="${movie.imDbMovieURL || '#'}" target="_blank" class="text-decoration-none d-block">
+            <div class="position-relative">
+                <img src="${movie.posterImageURL || 'https://via.placeholder.com/300x450'}" 
+                    class="card-img-top lazy-load" 
+                    alt="${movie.movieName}"
+                    onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450'"
+                    style="height: 270px; width: 100%; object-fit: cover;">
+                <button class="btn btn-sm btn-favorite position-absolute top-0 end-0 m-2" 
+                        onclick="event.preventDefault(); toggleFavorite(${movie.id}, this)">
+                    <i class="bi bi-heart${movie.isFavorite ? '-fill text-danger' : ''}"></i>
+                </button>
+            </div>
+            <div class="card-body p-2">
+                <h6 class="card-title mb-1 text-dark">${movie.movieName}</h6>
+                <small class="text-muted">${movie.year} • ⭐ ${movie.rate?.toFixed(1) || 'N/A'}</small>
+            </div>
+        </a>
+    </div>
+    `).join('');
     
-            const response = await fetch(endpoint, {
-                method: 'POST',
+    // Initialize lazy loading for newly added images
+    initLazyLoading();
+}
+
+async function checkIfMovieIsFavorite(userId, movieId) {
+    try {
+        const response = await fetch(`${baseUsersApiUrl}/CheckIfMovieIsFavorate?UserID=${userId}&MovieID=${movieId}`);
+        return response.ok;
+    } catch (error) {
+        console.error('Error checking favorite:', error);
+        return false;
+    }
+}
+
+window.toggleFavorite = async function(movieId, buttonElement) {
+    const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+    if (!userJson) {
+        window.location.href = 'login.html';
+        return;
+    }
+    
+    const user = JSON.parse(userJson);
+    const icon = buttonElement.querySelector('i');
+    const isFav = icon.classList.contains('bi-heart-fill');
+    
+    try {
+        const endpoint = isFav ? 'RemoveMovieFromFavorateList' : 'AddMovieToFavorate';
+        const method = isFav ? 'DELETE' : 'POST';
+
+        let response;
+
+        if (method === 'POST') {
+            const body = JSON.stringify({ MovieID: movieId, UserID: user.id });
+            response = await fetch(`${baseUsersApiUrl}/${endpoint}`, {
+                method: method,
                 headers: {
                     'Content-Type': 'application/json',
                 },
-                body: JSON.stringify({ Movies_Name: moviesNames })
+                body: body
             });
-    
-            console.log("Response status:", response.status);
-    
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error("Error response:", errorText);
-                throw new Error(errorText || "Failed to load recommendations");
-            }
-    
-            const movies = await response.json();
-            console.log("Received movies:", movies);
-    
-            if (!movies || movies.length === 0) {
-                container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No recommendations found.</p></div>';
-                return;
-            }
-    
-            const moviesWithFavorites = await Promise.all(movies.map(async movie => {
-                const isFav = await checkIfMovieIsFavorite(userId, movie.id);
-                return { ...movie, isFavorite: isFav };
-            }));
-    
-            displayMovies(moviesWithFavorites, containerId);
-        } catch (error) {
-            console.error("Error in loadRecommendedMovies:", error);
-            container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-danger">Error loading recommendations. Please try again later.</p></div>';
         }
-    }
-    
-    
-    // Search functionality
-    const searchBtn = document.getElementById('searchButton');
-    const searchInput = document.getElementById('searchInput');
-    const searchResults = document.getElementById('searchResults');
-    const moviesGrid = document.getElementById('moviesGrid');
-    searchBtn.addEventListener('click', getMoviesBySearch);
-    
-    async function searchMovies(query, displayInGrid = true) {
-        if (query.length < 2) {
-            searchResults.style.display = 'none'; 
-            return [];
+        else if (method === 'DELETE') {
+            response = await fetch(`${baseUsersApiUrl}/${endpoint}?MovieID=${movieId}&UserID=${user.id}`, {
+                method: method,
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+            });
         }
         
-        try {
-            const response = await fetch(`${baseMovieApiUrl}/NameHasWord/${query}`);
-            
-            if (!response.ok) {
-                throw new Error(`API request failed with status ${response.status}`);
-            }
-            
-            const movies = await response.json();
-            
-            if (displayInGrid) {
-                displayMovies(movies, 'moviesGrid');
-            }
-            
-            return movies;
-        } catch (error) {
-            console.error('Search error:', error);
-            return [];
+        if (!response.ok) {
+            const error = await response.text();
+            throw new Error(error);
         }
-    }
+        
+        // Update icon
+        if (isFav) {
+            icon.classList.remove('bi-heart-fill', 'text-danger');
+            icon.classList.add('bi-heart');
+        } else {
+            icon.classList.remove('bi-heart');
+            icon.classList.add('bi-heart-fill', 'text-danger');
+        }
+        
+        // Update favorites list
+        await loadFavorites();
+        location.reload();
 
-    async function getMoviesBySearch(e) {
-        if (e) e.preventDefault();
-        
-        try {
-            showLoadingState();
-            searchResults.style.display = 'none';
-            await searchMovies(searchInput.value.trim(), true);
-        } catch (error) {
-            console.error('Search error:', error);
-            showErrorState(error);
-        }
+    } catch (error) {
+        console.error('Error updating favorite:', error);
+        alert('Failed to update favorite. Please try again.');
     }
+}
 
-    searchInput.addEventListener('input', async function(e) {
-        const query = e.target.value.trim();
+async function loadFavorites() {
+    const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+    if (!userJson) return;
+    
+    const user = JSON.parse(userJson);
+    
+    try {
+        const response = await fetch(`${baseUsersApiUrl}/GetAllFavorateMoviesforUser?UserID=${user.id}`);
+        if (!response.ok) throw new Error('Failed to load favorites');
         
-        if (query.length === 0) {
-            searchResults.style.display = 'none';
-            return;
-        }
-        
-        try {
-            const movies = await searchMovies(query, false);
-            showSearchResults(movies);
-        } catch (error) {
-            console.error('Search error:', error);
-            searchResults.innerHTML = '<div class="p-2 text-danger">Error loading results</div>';
-            searchResults.style.display = 'block';
-        }
+        favoriteMovies = await response.json();
+        const favoriteIds = favoriteMovies?.map(movie => movie.id) || [];
+        localStorage.setItem('userFavorites', JSON.stringify(favoriteIds));
+    } catch (error) {
+        console.error('Error loading favorites:', error);
+    }
+}
+
+function initLazyLoading() {
+    const lazyLoadObserver = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                const img = entry.target;
+                img.src = img.dataset.src || img.src;
+                lazyLoadObserver.unobserve(img);
+            }
+        });
+    }, {
+        rootMargin: '200px' 
     });
 
-    function showSearchResults(movies) {
-        if (!movies || movies.length === 0) {
-            searchResults.innerHTML = '<div class="p-2 text-muted">No results found</div>';
-            searchResults.style.display = 'block';
-            return;
+    document.querySelectorAll('.lazy-load').forEach(img => {
+        if (!img.src) {
+            img.dataset.src = img.getAttribute('src');
+            img.removeAttribute('src');
         }
+        lazyLoadObserver.observe(img);
+    });
+}
+
+// Search functionality
+const searchBtn = document.getElementById('searchButton');
+const searchInput = document.getElementById('searchInput');
+const searchResults = document.getElementById('searchResults');
+
+searchBtn.addEventListener('click', getMoviesBySearch);
+
+async function searchMovies(query, displayInGrid = true) {
+    if (query.length < 2) {
+        searchResults.style.display = 'none'; 
+        return [];
+    }
     
-        searchResults.innerHTML = movies.map(movie => `
-            <div class="search-result-item p-2 border-bottom" 
-                 onclick="selectMovie('${movie.imDbMovieURL}')">
-                <div class="d-flex">
-                    <img src="${movie.posterImageURL || 'https://via.placeholder.com/50x75'}" 
-                         class="me-2" 
-                         width="50" 
-                         height="75"
-                         onerror="this.src='https://via.placeholder.com/50x75'">
-                    <div>
-                        <h6 class="mb-1">${movie.movieName}</h6>
-                        <small class="text-muted">${movie.year} • ⭐ ${movie.rate?.toFixed(1) || 'N/A'}</small>
-                    </div>
-                </div>
-            </div>
-        `).join('');
+    try {
+        const response = await fetch(`${baseMovieApiUrl}/NameHasWord/${query}`);
+        
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+        
+        const movies = await response.json();
+        
+        if (displayInGrid) {
+            displayMovies(movies, 'moviesGrid');
+        }
+        
+        return movies;
+    } catch (error) {
+        console.error('Search error:', error);
+        return [];
+    }
+}
+
+async function getMoviesBySearch(e) {
+    if (e) e.preventDefault();
     
+    try {
+        showLoadingState();
+        searchResults.style.display = 'none';
+        await searchMovies(searchInput.value.trim(), true);
+    } catch (error) {
+        console.error('Search error:', error);
+        showErrorState(error);
+    }
+}
+
+searchInput.addEventListener('input', async function(e) {
+    const query = e.target.value.trim();
+    
+    if (query.length === 0) {
+        searchResults.style.display = 'none';
+        return;
+    }
+    
+    try {
+        const movies = await searchMovies(query, false);
+        showSearchResults(movies);
+    } catch (error) {
+        console.error('Search error:', error);
+        searchResults.innerHTML = '<div class="p-2 text-danger">Error loading results</div>';
         searchResults.style.display = 'block';
     }
-    
-    window.selectMovie = function(url) {
-        if (url) {
-            window.open(url, '_blank');
-        }
-    };
-    
-    document.addEventListener('click', function(e) {
-        if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
-            searchResults.style.display = 'none';
-        }
-    });
-    
-    async function checkIfMovieIsFavorite(userId, movieId) {
-        try {
-            const response = await fetch(`${baseUsersApiUrl}/CheckIfMovieIsFavorate?UserID=${userId}&MovieID=${movieId}`);
-            return response.ok;
-        } catch (error) {
-            console.error('Error checking favorite:', error);
-            return false;
-        }
+});
+
+function showSearchResults(movies) {
+    if (!movies || movies.length === 0) {
+        searchResults.innerHTML = '<div class="p-2 text-muted">No results found</div>';
+        searchResults.style.display = 'block';
+        return;
     }
-    
-    function displayMovies(movies, containerId) {
-        const container = document.getElementById(containerId);
-        
-        if (!movies || movies.length === 0) {
-            container.innerHTML = '<div class="col-12 text-center py-5" style="min-width: 100%;"><p class="text-muted">No movies found</p></div>';
-            return;
-        }
-        
-        container.innerHTML = movies.map(movie => `
-        <div class="movie-card">
-            <a href="${movie.imDbMovieURL || '#'}" target="_blank" class="text-decoration-none d-block">
-                <div class="position-relative">
-                    <img src="${movie.posterImageURL || 'https://via.placeholder.com/300x450'}" 
-                        class="card-img-top lazy-load" 
-                        alt="${movie.movieName}"
-                        onerror="this.onerror=null; this.src='https://via.placeholder.com/300x450'"
-                        style="height: 270px; width: 100%; object-fit: cover;">
-                    <button class="btn btn-sm btn-favorite position-absolute top-0 end-0 m-2" 
-                            onclick="event.preventDefault(); toggleFavorite(${movie.id}, this)">
-                        <i class="bi bi-heart${movie.isFavorite ? '-fill text-danger' : ''}"></i>
-                    </button>
-                </div>
-                <div class="card-body p-2">
-                    <h6 class="card-title mb-1 text-dark">${movie.movieName}</h6>
+
+    searchResults.innerHTML = movies.map(movie => `
+        <div class="search-result-item p-2 border-bottom" 
+             onclick="selectMovie('${movie.imDbMovieURL}')">
+            <div class="d-flex">
+                <img src="${movie.posterImageURL || 'https://via.placeholder.com/50x75'}" 
+                     class="me-2" 
+                     width="50" 
+                     height="75"
+                     onerror="this.src='https://via.placeholder.com/50x75'">
+                <div>
+                    <h6 class="mb-1">${movie.movieName}</h6>
                     <small class="text-muted">${movie.year} • ⭐ ${movie.rate?.toFixed(1) || 'N/A'}</small>
                 </div>
-            </a>
+            </div>
         </div>
-        `).join('');
-        
-        setTimeout(() => {
-            document.querySelectorAll('.movie-card img').forEach(img => {
-                if(img.complete && img.naturalHeight === 0) {
-                    img.src = 'https://via.placeholder.com/300x450';
-                }
-            });
-        }, 500);
+    `).join('');
+
+    searchResults.style.display = 'block';
+}
+
+window.selectMovie = function(url) {
+    if (url) {
+        window.open(url, '_blank');
     }
+};
 
-    window.isFavorite = async function(movieId) {
-        const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
-        if (!userJson) return false;
-        
-        const user = JSON.parse(userJson);
-        try {
-            const response = await fetch(`${baseUsersApiUrl}/CheckIfMovieIsFavorate?UserID=${user.id}&MovieID=${movieId}`);
-            return response.ok;
-        } catch (error) {
-            console.error('Error checking favorite:', error);
-            return false;
-        }
+document.addEventListener('click', function(e) {
+    if (!searchInput.contains(e.target) && !searchResults.contains(e.target)) {
+        searchResults.style.display = 'none';
     }
+});
 
-    window.toggleFavorite = async function(movieId, buttonElement) {
-        const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
-        if (!userJson) {
-            window.location.href = 'login.html';
-            return;
-        }
-        
-        const user = JSON.parse(userJson);
-        const icon = buttonElement.querySelector('i');
-        const isFav = icon.classList.contains('bi-heart-fill');
-        
-        try {
-            const endpoint = isFav ? 'RemoveMovieFromFavorateList' : 'AddMovieToFavorate';
-            const method = isFav ? 'DELETE' : 'POST';
-    
-            let response;
-    
-            if (method === 'POST') {
-                const body = JSON.stringify({ MovieID: movieId, UserID: user.id });
-                response = await fetch(`${baseUsersApiUrl}/${endpoint}`, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: body
-                });
-            }
-            else if (method === 'DELETE') {
-                response = await fetch(`${baseUsersApiUrl}/${endpoint}?MovieID=${movieId}&UserID=${user.id}`, {
-                    method: method,
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                });
-            }
-            
-            if (!response.ok) {
-                const error = await response.text();
-                throw new Error(error);
-            }
-            
-            // Update icon
-            if (isFav) {
-                icon.classList.remove('bi-heart-fill', 'text-danger');
-                icon.classList.add('bi-heart');
-            } else {
-                icon.classList.remove('bi-heart');
-                icon.classList.add('bi-heart-fill', 'text-danger');
-            }
-            
-            // Update favorites list
-            await loadFavorites();
-            location.reload();
-
-            
-        } catch (error) {
-            console.error('Error updating favorite:', error);
-            alert('Failed to update favorite. Please try again.');
-        }
-    }
-
-    async function loadFavorites() {
-        const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
-        if (!userJson) return;
-        
-        const user = JSON.parse(userJson);
-        
-        try {
-            const response = await fetch(`${baseUsersApiUrl}/GetAllFavorateMoviesforUser?UserID=${user.id}`);
-            if (!response.ok) throw new Error('Failed to load favorites');
-            
-            favoriteMovies = await response.json();
-            const favoriteIds = favoriteMovies?.map(movie => movie.id) || [];
-            localStorage.setItem('userFavorites', JSON.stringify(favoriteIds));
-        } catch (error) {
-            console.error('Error loading favorites:', error);
-        }
-    }
-
-    loadFavorites();
-
-    function showLoadingState() {
+function showLoadingState() {
+    const moviesGrid = document.getElementById('moviesGrid');
+    if (moviesGrid) {
         moviesGrid.innerHTML = `
             <div class="col-12 text-center py-5">
                 <div class="spinner-border text-primary" role="status">
@@ -386,27 +518,15 @@ document.addEventListener('DOMContentLoaded', function() {
             </div>
         `;
     }
+}
 
-    function showErrorState(error) {
+function showErrorState(error) {
+    const moviesGrid = document.getElementById('moviesGrid');
+    if (moviesGrid) {
         moviesGrid.innerHTML = `
             <div class="col-12 text-center py-5">
                 <p class="text-danger">Error: ${error.message || 'Failed to load movies'}</p>
             </div>
         `;
     }
-
-    // Initialize lazy loading
-    const lazyLoadObserver = new IntersectionObserver((entries) => {
-        entries.forEach(entry => {
-            if (entry.isIntersecting) {
-                const img = entry.target;
-                img.src = img.dataset.src;
-                lazyLoadObserver.unobserve(img);
-            }
-        });
-    });
-
-    document.querySelectorAll('.lazy-load').forEach(img => {
-        lazyLoadObserver.observe(img);
-    });
-});
+}});

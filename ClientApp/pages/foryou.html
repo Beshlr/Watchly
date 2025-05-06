@@ -100,7 +100,65 @@
         .scroll-btn i {
             font-size: 1.2rem;
         }
-    </style>
+    /* إضافة أنماط جديدة للأنواع المفضلة */
+    .genre-tabs {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+        overflow-x: auto;
+        padding-bottom: 0.5rem;
+    }
+
+    .genre-tab {
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        background-color: #f8f9fa;
+        color: #333;
+        font-weight: 500;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        white-space: nowrap;
+    }
+
+    .genre-tab.active {
+        background-color: var(--primary-color);
+        color: white;
+    }
+
+    .genre-section {
+        display: none;
+    }
+
+    .genre-section.active {
+        display: block;
+    }
+
+    /* تحسين حركة التنقل بين الأفلام */
+    .movie-grid {
+        scroll-snap-type: x mandatory;
+        scroll-padding: 0 1.5rem;
+    }
+
+    .movie-card {
+        scroll-snap-align: start;
+    }
+
+    /* تحسين الظهور عند التمرير */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .movie-card {
+        animation: fadeIn 0.5s ease forwards;
+    }
+
+    .movie-card:nth-child(1) { animation-delay: 0.1s; }
+    .movie-card:nth-child(2) { animation-delay: 0.2s; }
+    .movie-card:nth-child(3) { animation-delay: 0.3s; }
+    .movie-card:nth-child(4) { animation-delay: 0.4s; }
+    .movie-card:nth-child(5) { animation-delay: 0.5s; }
+</style>
 </head>
 <body>
     <!-- Navigation -->
@@ -164,23 +222,7 @@
             </div>
         </div>
 
-        <div class="category-section">
-            <div class="section-header">
-                <h2>Because You Watched Sci-Fi</h2>
-                <a href="explore_Movies.html?genre=Sci_FI" class="see-all">See All</a>
-            </div>
-            <div class="movie-container">
-                <button class="scroll-btn left" onclick="scrollSection('similarMovies', -1)"><i class="bi bi-chevron-left"></i></button>
-                <div class="movie-grid" id="similarMovies">
-                    <div class="text-center py-5" style="min-width: 100%;">
-                        <div class="spinner-border text-primary" role="status">
-                            <span class="visually-hidden">Loading...</span>
-                        </div>
-                    </div>
-                </div>
-                <button class="scroll-btn right" onclick="scrollSection('similarMovies', 1)"><i class="bi bi-chevron-right"></i></button>
-            </div>
-        </div>
+        
 
         <div class="category-section">
             <div class="section-header">
@@ -197,6 +239,20 @@
                     </div>
                 </div>
                 <button class="scroll-btn right" onclick="scrollSection('trendingMovies', 1)"><i class="bi bi-chevron-right"></i></button>
+            </div>
+        </div>
+        <!-- Favorite Genres Section -->
+        <div class="category-section">
+            <div class="section-header">
+                <h2>Based On Your Favorite Genres</h2>
+            </div>
+            
+            <div class="genre-tabs" id="genreTabs">
+                <!-- سيتم ملؤها بالجافاسكريبت -->
+            </div>
+            
+            <div id="genreSectionsContainer">
+                <!-- سيتم ملؤها بالجافاسكريبت -->
             </div>
         </div>
     </main>

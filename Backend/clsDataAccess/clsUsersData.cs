@@ -871,6 +871,41 @@ namespace MovieRecommendations_DataLayer
                 }
             }
         }
+
+        public static List<string> GetTop3GenresUserInterstIn(int UserID)
+        {
+            List<string> genres = new List<string>();
+
+            using(SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_GetTopGenreUserInterstIn", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    
+
+                    con.Open();
+                    try
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                string genreName = reader["genre_name"].ToString();
+                                genres.Add(genreName);
+                            }
+                            return genres;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error ", ex.Message);
+                    }
+                }
+            }
+
+            return genres;
+        }
     
         public static bool AddNewReportAboutMovie(int UserID, int MovieID, string ReportMessage, int ReportType = 1)
         {

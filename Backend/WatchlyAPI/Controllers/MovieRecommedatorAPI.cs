@@ -218,7 +218,7 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<MovieDTO> AddNewMovie(MovieDTO movie)
+        public ActionResult<MovieDTO> AddNewMovie([FromBody]MovieDTO movie)
         {
             if (clsMoviePasicDetails.IsMovieExist(movie.MovieName))
             {
@@ -586,6 +586,30 @@ namespace MovieRecommendationAPI.Controllers
                 return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Movie not added to favorites");
             }
             return Ok("Movie added to favorites successfully");
+        }
+
+        [HttpGet("GetTop3GenresUserInterstIn/{UserID}", Name = "GetTop3GenresUserInterstIn")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<List<string>> GetTop3GenresUserInterstIn(int UserID)
+        {
+            List<string> genres = new List<string>();
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            genres = clsUsers.GetTop3GenresUserInterstIn(UserID);
+            if (genres.Count < 1)
+            {
+                return NotFound($"Not Found: No genres found for user with ID {UserID} Check Favorate movies");
+            }
+            return Ok(genres);
         }
 
         [HttpGet("GetAllGenresThatUserInterstOn/{UserID}", Name = "GetAllGenresThatUserInterstOn")]

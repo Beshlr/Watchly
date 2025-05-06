@@ -263,7 +263,10 @@ body {
     -webkit-box-orient: vertical;
     line-clamp: 2;
 }
-
+.footer{
+    background-color: #343a40; /* Match your footer color */
+    z-index: 10; /* Ensure it stays above other elements */
+}
 .footer_position{
     z-index: 900;
 }
