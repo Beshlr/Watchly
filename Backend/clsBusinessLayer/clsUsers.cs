@@ -16,14 +16,21 @@ namespace MovieRecommendations_BusinessLayer
         public UserDTO UDTO {
             get
             {
-                return new UserDTO(this.UserID, this.Username, this.Password,this.Email, this.IsAcive, this.Permissions, this.Age);
+                return new UserDTO(this.UserID, this.Username, this.Password,this.Email, this.IsAcive, this.Permissions, this.Age, this.DateOfBirth);
             }
         }
 
         public AddUserInfoDTO AUserInfoDTO{
             get
             {
-                return new AddUserInfoDTO(this.Username, this.Password, this.Age, this.Email);
+                return new AddUserInfoDTO(this.Username, this.Password,this.DateOfBirth ,this.Email);
+            }
+        }
+        public UserBasicInfoDTO userBasicInfoDTO
+        {
+            get
+            {
+                return new UserBasicInfoDTO(this.UserID, this.Username, this.Email, this.IsAcive, this.Permissions, this.DateOfBirth);
             }
         }
 
@@ -38,7 +45,7 @@ namespace MovieRecommendations_BusinessLayer
         public bool IsAcive { get; set; }
         public byte Permissions { get; set; }
         public int Age { get; set; }
-
+        public DateTime DateOfBirth { get; set; }
 
         public clsUsers()
         {
@@ -83,14 +90,21 @@ namespace MovieRecommendations_BusinessLayer
        }
 
 
-       private bool _UpdateUsers()
+       private bool _UpdateUser()
        {
 
-            return clsUsersData.UpdateUsersByID(
-this.UserID, this.Username, this.Password, this.IsAcive, this.Permissions, this.Age);
+            return clsUsersData.UpdateUsersByID(this.userBasicInfoDTO);
        }
 
+        public static bool DeleteUser(int UserID, int DeletedByUserID)
+        {
+            return clsUsersData.DeleteUser(UserID, DeletedByUserID);
+        }
 
+        public static List<UserDTO> GetAllUsers()
+        {
+            return clsUsersData.GetAllUsers();
+        }
         public static bool ChangeUserPassword(int UserID, string NewPassword, string OldPassword)
         {
             return clsUsersData.ChangeUserPassword(UserID, NewPassword, OldPassword);
@@ -132,7 +146,7 @@ this.UserID, this.Username, this.Password, this.IsAcive, this.Permissions, this.
                         return false;
                     }
                 case enMode.Update:
-                    return _UpdateUsers();
+                    return _UpdateUser();
 
             }
         

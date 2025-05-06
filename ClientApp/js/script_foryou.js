@@ -18,12 +18,14 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.removeItem('userFavorites');
             window.location.href = 'login.html';
         };
+        if (user && user.permissions === 1 || user.permissions === 3) {
+            document.getElementById('manageUsersNavItem').style.display = 'block';
+        }
     } else {
         alert('You are not logged in. Redirecting to login page...');
         window.location.href = 'login.html';
         return;
     }
-    
     // Load personalized recommendations with actual user ID
     const userId = JSON.parse(userJson).id;
     loadRecommendedMovies(`http://watchly.runasp.net/api/RecommendationAPI/GetMovieRecommendation`, 'personalRecommendations');

@@ -39,11 +39,13 @@ document.addEventListener('DOMContentLoaded', function() {
             sessionStorage.removeItem('loggedInUser');
             window.location.href = 'login.html';
         };
+    if (user && user.permissions === 1 || user.permissions === 3) {
+        document.getElementById('manageUsersNavItem').style.display = 'block';
+    }
     } else {
         window.location.href = 'login.html';
         return;
     }
-
     // تهيئة الصفحة
     initPage();
 

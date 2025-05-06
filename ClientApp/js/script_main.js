@@ -13,7 +13,11 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.removeItem('loggedInUser');
             window.location.href = 'login.html';
         };
+        if (user && user.permissions === 1 || user.permissions === 3) {
+            document.getElementById('manageUsersNavItem').style.display = 'block';
+        }
     }
+    // Show Manage Users link only for admins
 
     // Load popular movies
     loadMovies('GetTop100MovieWithGenre?GenreName=Sci_FI', 'popularMovies');

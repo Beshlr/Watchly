@@ -306,6 +306,20 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(user.UDTO);
         }
 
+        [HttpGet("GetAllUsers", Name="GetAllUsers")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<List<UserDTO>> GetAllUsers()
+        {
+            List<UserDTO> users = clsUsers.GetAllUsers();
+            if (users == null || users.Count == 0)
+            {
+                return NotFound("Not Found: No user found");
+            }
+            return Ok(users);
+        }
+
         [HttpGet("CheckPasswordForUsername", Name = "CheckPasswordForUsername")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -354,7 +368,7 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<UserDTO> UpdateUserInfo(int UserID,[FromBody] UserDTO UDTO)
+        public ActionResult<UserBasicInfoDTO> UpdateUserInfo(int UserID,[FromBody] UserBasicInfoDTO UDTO)
         {
             clsUsers user = clsUsers.Find(UserID);
             if (user == null)
@@ -362,19 +376,18 @@ namespace MovieRecommendationAPI.Controllers
                 return NotFound($"Not Found: User with id {UserID} is not found");
             }
 
+            UDTO.ID = user.UserID;
             user.Username = UDTO.Username;
-            user.Password = EncryptionHelper.Encrypt(UDTO.Password);
             user.IsAcive = UDTO.IsAcive == null ? true : false;
             user.Permissions = UDTO.Permissions;
-            user.Age = UDTO.Age;
-
+            user.DateOfBirth = UDTO.DateOfBirth;
 
             if (!user.Save())
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: User not updated");
             }
 
-            return Ok(user.UDTO);
+            return Ok(user.userBasicInfoDTO);
 
         }
 
@@ -391,6 +404,7 @@ namespace MovieRecommendationAPI.Controllers
             user.Email = AUserInfoDTO.Email;
             user.Permissions = 2;
             user.Age = AUserInfoDTO.Age;
+            user.DateOfBirth = AUserInfoDTO.DateOfBirth;
 
             if (String.IsNullOrEmpty(user.Username) || String.IsNullOrEmpty(user.Password))
             {
@@ -429,6 +443,38 @@ namespace MovieRecommendationAPI.Controllers
             }
 
             return Ok(user.UDTO);
+        }
+
+        [HttpDelete("DeleteUser/{UserID}/{DeletedByUserID}", Name = "DeleteUser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult DeleteUser(int UserID, int DeletedByUserID)
+        {
+            if (UserID < 1 || DeletedByUserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} or DeletedByUserID: {DeletedByUserID} Is Not valid");
+            }
+
+            clsUsers userToDelete = clsUsers.Find(UserID);
+            if (userToDelete == null)
+            {
+                return NotFound($"Not Found: User with id {UserID} is not found");
+            }
+
+            clsUsers deletedByUser = clsUsers.Find(DeletedByUserID);
+            if (deletedByUser == null)
+            {
+                return NotFound($"Not Found: Admin user with id {DeletedByUserID} is not found");
+            }
+
+            if (!clsUsers.DeleteUser(UserID,DeletedByUserID))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: User not deleted");
+            }
+
+            return Ok("User deleted successfully");
         }
 
         [HttpPut("ChangePasswordForUser/", Name = "ChangePasswordForUser")]

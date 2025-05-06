@@ -12,7 +12,7 @@ namespace MovieRecommendations_DataLayer
     public class UserDTO
     {
 
-        public UserDTO(int ID, string Username, string Password,string Email, bool IsAcive, byte Permissions, int Age)
+        public UserDTO(int ID, string Username, string Password,string Email, bool IsAcive, byte Permissions, int Age, DateTime dateOfBirth)
         {
             this.ID = ID;
             this.Username = Username;
@@ -21,6 +21,7 @@ namespace MovieRecommendations_DataLayer
             this.IsAcive = IsAcive;
             this.Permissions = Permissions;
             this.Age = Age;
+            DateOfBirth = dateOfBirth;
         }
 
         public int ID { get; set; }
@@ -30,23 +31,44 @@ namespace MovieRecommendations_DataLayer
         public bool IsAcive { get; set; }
         public byte Permissions { get; set; }
         public int Age { get; set; }
+        public DateTime DateOfBirth { get; set; }
     }
 
     public class AddUserInfoDTO
     {
-        public AddUserInfoDTO(string username, string password, int age, string email)
+        public AddUserInfoDTO(string username, string password, DateTime dateOfBirth, string email)
         {
             Username = username;
             Password = password;
-            Age = age;
+            DateOfBirth = dateOfBirth;
             Email = email;
         }
 
         public int ID { get; set; }
         public string Username { get; set; }
         public string Password { get; set; }
+        public DateTime DateOfBirth { get; set; }
         public int Age { get; set; }
         public string Email { get; set; }
+    }
+
+    public class UserBasicInfoDTO
+    {
+        public UserBasicInfoDTO(int ID, string Username, string Email, bool IsAcive, byte Permissions, DateTime dateOfBirth)
+        {
+            this.ID = ID;
+            this.Username = Username;
+            this.Email = Email;
+            this.IsAcive = IsAcive;
+            this.Permissions = Permissions;
+            DateOfBirth = dateOfBirth;
+        }
+        public int ID { get; set; }
+        public string Username { get; set; }
+        public string Email { get; set; }
+        public bool IsAcive { get; set; }
+        public byte Permissions { get; set; }
+        public DateTime DateOfBirth { get; set; }
     }
 
     public class clsUsersData
@@ -75,7 +97,8 @@ namespace MovieRecommendations_DataLayer
                              reader["Email"] != DBNull.Value ? (string)reader["Email"] : "",
                              reader["IsActive"] != DBNull.Value ? (bool)reader["IsActive"] : false,
                              (byte)reader["Permissions"],
-                            (byte)reader["Age"]);
+                            (int)reader["Age"],
+                             (DateTime)reader["DateOfBirth"]);
 
                             }
                         }
@@ -105,7 +128,8 @@ namespace MovieRecommendations_DataLayer
                                 reader["Email"] != DBNull.Value ? (string)reader["Email"] : null,
                                 reader["IsActive"] != DBNull.Value ? (bool)reader["IsActive"] : false,
                                 (byte)reader["Permissions"],
-                                (byte)reader["Age"]);
+                                (int)reader["Age"],
+                                (DateTime)reader["DateOfBirth"]);
                         }
                     }
                 }
@@ -136,10 +160,11 @@ namespace MovieRecommendations_DataLayer
                                     (int)reader["UserID"],
                                     (string)reader["Username"],
                                     (string)reader["Password"],
-                                    (string)reader["Email"],
+                                    reader["Email"] != DBNull.Value ? (string)reader["Email"] : "",
                                     reader["IsActive"] != DBNull.Value ? (bool)reader["IsActive"] : false,
                                     (byte)reader["Permissions"],
-                                    (byte)reader["Age"]));
+                                    (int)reader["Age"],
+                                    (DateTime)reader["DateOfBirth"]));
                             } while (reader.Read());
                             return users;
                         }
@@ -166,7 +191,7 @@ namespace MovieRecommendations_DataLayer
                     command.Parameters.AddWithValue("@IsActive", true);
                     command.Parameters.AddWithValue("@Email", userInfo.Email);
                     command.Parameters.AddWithValue("@Permissions", 2);
-                    command.Parameters.AddWithValue("@Age", userInfo.Age);
+                    command.Parameters.AddWithValue("@@DateOfBirth", userInfo.DateOfBirth);
 
                     var outputParam = new SqlParameter("@NewUserID", SqlDbType.Int)
                     {
@@ -211,39 +236,83 @@ namespace MovieRecommendations_DataLayer
             return true;
         }
 
-        public static bool UpdateUsersByID(int? UserID, string Username, string Password, bool? IsAcive, byte Permissions, int Age)
+        public static bool UpdateUsersByID(UserBasicInfoDTO userDTO)
         {
-            int rowsAffected = 0;
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                string query = @"Update Users
-                                    set 
-                                         [Username] = @Username,
-                                         [Password] = @Password,
-                                         [IsActive] = @IsActive,
-                                         [Permissions] = @Permissions,
-                                         [Age] = @Age
-                                  where [UserID]= @UserID";
-
-                using (SqlCommand command = new SqlCommand(query, connection))
+                
+                using (SqlCommand command = new SqlCommand("SP_UpdateUserInfo", connection))
                 {
-                    command.Parameters.AddWithValue("@UserID", UserID);
-                    command.Parameters.AddWithValue("@Username", Username);
-                    command.Parameters.AddWithValue("@Password", Password);
-                    command.Parameters.AddWithValue("@IsActive", IsAcive ?? (object)DBNull.Value);
-                    command.Parameters.AddWithValue("@Permissions", Permissions);
-                    command.Parameters.AddWithValue("@Age", Age);
+                    command.CommandType = CommandType.StoredProcedure;
 
+                    command.Parameters.AddWithValue("@UserID", userDTO.ID);
+                    command.Parameters.AddWithValue("@Username", userDTO.Username);
+                    command.Parameters.AddWithValue("@Email",userDTO.Email);
+                    command.Parameters.AddWithValue("@IsActive", userDTO.IsAcive);
+                    command.Parameters.AddWithValue("@Permissions", userDTO.Permissions);
+                    command.Parameters.AddWithValue("@DateOfBirth", userDTO.DateOfBirth);
+
+                    var ReturnValue = new SqlParameter("@ReturnValue", SqlDbType.Int);
+                    ReturnValue.Direction = ParameterDirection.ReturnValue;
+                    command.Parameters.Add(ReturnValue);
 
                     connection.Open();
+                    try
+                    {
+                        command.ExecuteNonQuery();
+                        if ((int)ReturnValue.Value == 1)
+                            return true;
 
-                    rowsAffected = command.ExecuteNonQuery();
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error ", ex.Message);
+                    }
+                    finally
+                    {
+                        connection.Close();
+                    }
                 }
 
             }
 
-            return (rowsAffected > 0);
+            return false;
+        }
+
+        public static bool DeleteUser(int UserIDToDelete, int UserIDWhoDeleteHim)
+        {
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("SP_DeleteUserByID", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    command.Parameters.AddWithValue("@UserIDToDelete", UserIDToDelete);
+                    command.Parameters.AddWithValue("@UserIDWhoDeleteHim", UserIDWhoDeleteHim);
+
+                    var ReturnValue = new SqlParameter("@ReturnValue", SqlDbType.Int);
+                    ReturnValue.Direction = ParameterDirection.ReturnValue;
+                    command.Parameters.Add(ReturnValue);
+
+                    connection.Open();
+                    try
+                    {
+                        command.ExecuteNonQuery();
+                        if ((int)ReturnValue.Value == 1)
+                            return true;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error ", ex.Message);
+                    }
+                    finally
+                    {
+                        connection.Close();
+                    }
+                    
+                }
+            }
+            return false;
         }
 
         public static bool ChangeUserPassword(int UserID, string NewPassword,string OldPassword)

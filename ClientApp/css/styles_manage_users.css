@@ -1,0 +1,112 @@
+/* User Management Page Styles */
+#statusMessage {
+    position: fixed;
+    top: 80px;
+    right: 20px;
+    z-index: 1000;
+    min-width: 250px;
+    opacity: 0.9;
+    transition: all 0.3s ease;
+}
+
+#statusMessage.show {
+    display: block !important;
+}
+
+.table th {
+    font-weight: 600;
+}
+
+.table td, .table th {
+    vertical-align: middle;
+}
+
+.user-status {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.status-active {
+    background-color: #d1e7dd;
+    color: #0f5132;
+}
+
+.status-inactive {
+    background-color: #f8d7da;
+    color: #842029;
+}
+
+.permission-badge {
+    display: inline-block;
+    padding: 0.25rem 0.5rem;
+    border-radius: 0.25rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+}
+
+.permission-admin {
+    background-color: #cfe2ff;
+    color: #084298;
+}
+
+.permission-user {
+    background-color: #e2e3e5;
+    color: #41464b;
+}
+
+.permission-owner {
+    background-color: #D4AF37;
+    color: white;
+    transition: 0.3s;
+    position: relative;
+    overflow: hidden;
+}
+
+.permission-owner:hover {
+    background-color: #B5942D;
+    transform: scale(1.05);
+}
+
+.permission-owner::after {
+    content: "";
+    position: absolute;
+    height: 100%;
+    width: 3px;
+    background-color: rgba(255, 255, 255, 0.6);
+    top: 0;
+    left: 0;
+    animation: moveTheOwnerLine 7s linear infinite;
+}
+
+@keyframes moveTheOwnerLine {
+    0%, 100% {
+        transform: translateX(0%);
+    }
+    50% {
+        transform: translateX(55px);
+    }
+}
+
+
+.action-buttons .btn {
+    margin-right: 0.25rem;
+}
+
+.action-buttons .btn:last-child {
+    margin-right: 0;
+}
+
+.modal-content {
+    border-radius: 0.5rem;
+}
+
+.modal-header {
+    border-bottom: 1px solid #dee2e6;
+}
+
+.modal-footer {
+    border-top: 1px solid #dee2e6;
+}
