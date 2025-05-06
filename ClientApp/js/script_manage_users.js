@@ -12,7 +12,7 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = 'login.html';
         return;
     }
-    const LoggedInUser = JSON.parse(userJson);
+    let LoggedInUser = JSON.parse(userJson);
     const loginLogoutBtn = document.querySelector('.log-btn');
     ReloadLoggedInUser();
     
@@ -135,21 +135,32 @@ function deleteUser(userId) {
         showStatusMessage('Failed to delete user: ' + error.message, 'danger');
     });
 }
-    function ReloadLoggedInUser() {
-        fetch(`${baseApiUrl}/GetUserInfoByID/${LoggedInUser.id}`)
-            .then(response => {
-                if (!response.ok) throw new Error('Network response was not ok');
-                return response.json();
-            })
-            .then(user => { 
-                localStorage.setItem('loggedInUser', JSON.stringify(user));
-                LoggedInUser = user;
-            })
-            .catch(error => {
-                console.error('Error:', error);
-                showStatusMessage('Error loading user data', 'danger');
-            });
+function ReloadLoggedInUser() {
+    if (!LoggedInUser || !LoggedInUser.id) {
+        console.error('LoggedInUser is not defined');
+        showStatusMessage('User is not logged in', 'danger');
+        return;
     }
+
+    fetch(`${baseApiUrl}/GetUserInfoByID/${LoggedInUser.id}`)
+        .then(response => {
+            if (!response.ok) {
+                return response.json().then(err => {
+                    throw new Error(err.title || 'Unknown server error');
+                });
+            }
+            return response.json();
+        })
+        .then(user => {
+            localStorage.setItem('loggedInUser', JSON.stringify(user));
+            LoggedInUser = user;
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showStatusMessage(error.message || 'Error loading user data', 'danger');
+        });
+}
+
     // Function to open edit modal with user data
     // في دالة openEditModal، بعد ملء بيانات المستخدم:
 function openEditModal(userId) {
