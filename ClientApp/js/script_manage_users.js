@@ -12,12 +12,12 @@ document.addEventListener('DOMContentLoaded', function() {
         window.location.href = 'login.html';
         return;
     }
-    
-    const user = JSON.parse(userJson);
+    const LoggedInUser = JSON.parse(userJson);
     const loginLogoutBtn = document.querySelector('.log-btn');
+    ReloadLoggedInUser();
     
     // Update UI based on login state
-    if (user) {
+    if (LoggedInUser) {
         loginLogoutBtn.textContent = 'Logout';
         loginLogoutBtn.href = '#';
         loginLogoutBtn.onclick = () => {
@@ -26,7 +26,7 @@ document.addEventListener('DOMContentLoaded', function() {
         };
         
         // Check if user has admin permissions (1 = admin, 2 = regular user)
-        if (user.permissions !== 1 && user.permissions !== 3) {
+        if (LoggedInUser.permissions !== 1 && LoggedInUser.permissions !== 3) {
             alert('You do not have permission to access this page.');
             window.location.href = 'main.html';
             return;
@@ -135,36 +135,76 @@ function deleteUser(userId) {
         showStatusMessage('Failed to delete user: ' + error.message, 'danger');
     });
 }
-    
-    // Function to open edit modal with user data
-    function openEditModal(userId) {
-        fetch(`${baseApiUrl}/GetUserInfoByID/${userId}`)
+    function ReloadLoggedInUser() {
+        fetch(`${baseApiUrl}/GetUserInfoByID/${LoggedInUser.id}`)
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();
             })
-            .then(user => {
-                // Fill the form with user data
-                document.getElementById('editUserId').value = user.id;
-                document.getElementById('editUsername').value = user.username;
-                document.getElementById('editEmail').value = user.email || '';
-                document.getElementById('editStatus').value = user.isAcive;
-                document.getElementById('editPermissions').value = user.permissions ;
-                
-                // Format date for the date input (YYYY-MM-DD)
-                const dateOfBirth = new Date(user.dateOfBirth);
-                const formattedDate = dateOfBirth.toISOString().split('T')[0];
-                document.getElementById('editDateOfBirth').value = formattedDate;
-                
-                // Show the modal
-                editUserModal.show();
+            .then(user => { 
+                localStorage.setItem('loggedInUser', JSON.stringify(user));
+                LoggedInUser = user;
             })
             .catch(error => {
                 console.error('Error:', error);
                 showStatusMessage('Error loading user data', 'danger');
             });
     }
-    
+    // Function to open edit modal with user data
+    // في دالة openEditModal، بعد ملء بيانات المستخدم:
+function openEditModal(userId) {
+    fetch(`${baseApiUrl}/GetUserInfoByID/${userId}`)
+        .then(response => {
+            if (!response.ok) throw new Error('Network response was not ok');
+            return response.json();
+        })
+        .then(user => {
+            if(user.permissions == 3 && LoggedInUser.permissions != 3){
+                return showStatusMessage('Only Owners can edit themself', 'danger');
+            }
+            
+            // Fill the form with user data
+            document.getElementById('editUserId').value = user.id;
+            document.getElementById('editUsername').value = user.username;
+            document.getElementById('editEmail').value = user.email || '';
+            document.getElementById('editStatus').value = user.isAcive;
+            
+            // Get permissions select element
+            const permissionsSelect = document.getElementById('editPermissions');
+            
+            // Clear existing options
+            permissionsSelect.innerHTML = '';
+            
+            // Add basic options
+            permissionsSelect.innerHTML = `
+                <option value="2">Regular User</option>
+                <option value="1">Admin</option>
+            `;
+            
+            // Add Owner option if current user is Owner
+            if (LoggedInUser.permissions === 3) {
+                const ownerOption = document.createElement('option');
+                ownerOption.value = '3';
+                ownerOption.textContent = 'Owner';
+                permissionsSelect.appendChild(ownerOption);
+            }
+            
+            // Set the current value
+            permissionsSelect.value = user.permissions;
+            
+            // Format date for the date input (YYYY-MM-DD)
+            const dateOfBirth = new Date(user.dateOfBirth);
+            const formattedDate = dateOfBirth.toISOString().split('T')[0];
+            document.getElementById('editDateOfBirth').value = formattedDate;
+            
+            // Show the modal
+            editUserModal.show();
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            showStatusMessage('Error loading user data', 'danger');
+        });
+}
     // Save user changes
     saveUserChangesBtn.addEventListener('click', function() {
         const userId = document.getElementById('editUserId').value;
@@ -186,6 +226,10 @@ function deleteUser(userId) {
     
     // Function to update user
     function updateUser(userId, userData) {
+        if (userData.permissions === 3 && LoggedInUser.permissions !== 3) {
+            showStatusMessage('Only Owners can change owner permissions', 'danger');
+            return;
+        }
         fetch(`${baseApiUrl}/UpdateUser/${userId}`, {
             method: 'PUT',
             headers: {

@@ -495,7 +495,6 @@ namespace MovieRecommendationAPI.Controllers
                 return BadRequest("Bad Request: Old Password or New Password is empty");
             }
 
-            // تحقق من كلمة المرور القديمة (بعد التشفير)
             if (user.Password != EncryptionHelper.Encrypt(UserInfoForChangePassword.OldPassword))
             {
                 return BadRequest("Bad Request: Old Password is incorrect");
@@ -503,13 +502,11 @@ namespace MovieRecommendationAPI.Controllers
 
             string LastChangeForPassword = String.Empty;
 
-            // تحقق إذا كانت كلمة المرور الجديدة مستخدمة سابقاً
             if (clsUsers.CheckIfUserEnterOldPassword(user.UserID,EncryptionHelper.Encrypt(UserInfoForChangePassword.NewPassword), ref LastChangeForPassword))
             {
                 return BadRequest($"Bad Request: New Password is Used before: {LastChangeForPassword}. please enter anoter one");
             }
 
-            // تحقق إذا كانت كلمة المرور الجديدة مطابقة للقديمة
             if (UserInfoForChangePassword.OldPassword == UserInfoForChangePassword.NewPassword)
             {
                 return BadRequest("Bad Request: New Password should be different from Old Password");
@@ -548,7 +545,6 @@ namespace MovieRecommendationAPI.Controllers
 
             string LastChangeForPassword = String.Empty;
 
-            // تحقق إذا كانت كلمة المرور الجديدة مستخدمة سابقاً
             if (clsUsers.CheckIfUserEnterOldPassword(user.UserID,EncryptionHelper.Encrypt(UserLoginInfo.Password), ref LastChangeForPassword))
             {
                 return BadRequest($"New Password is Used before: {LastChangeForPassword}. please enter anoter one");

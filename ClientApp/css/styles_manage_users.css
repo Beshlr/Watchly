@@ -9,11 +9,6 @@
     transition: all 0.3s ease;
 }
 
-body{
-    height: 100vh;
-    position: relative;
-}
-
 #statusMessage.show {
     display: block !important;
 }
@@ -116,11 +111,3 @@ body{
     border-top: 1px solid #dee2e6;
 }
 
-footer {
-    position: absolute;
-    bottom: 0;
-    left: 50%;
-    width: 100%;
-    transform: translateX(-50%);
-    
-}
