@@ -1,6 +1,6 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const baseMovieApiUrl = 'http://watchly.runasp.net/api/MovieRecommenderAPI';
-    const baseUsersApiUrl = 'http://watchly.runasp.net/api/UsersAPI';
+    const baseMovieApiUrl = 'https://watchly.runasp.net/api/MovieRecommenderAPI';
+    const baseUsersApiUrl = 'https://watchly.runasp.net/api/UsersAPI';
     const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
     let favoriteMovies = null; 
 
@@ -28,7 +28,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     // Load personalized recommendations with actual user ID
     const userId = JSON.parse(userJson).id;
-    loadRecommendedMovies(`http://watchly.runasp.net/api/RecommendationAPI/GetMovieRecommendation`, 'personalRecommendations');
+    loadRecommendedMovies(`https://watchly.runasp.net/api/RecommendationAPI/GetMovieRecommendation`, 'personalRecommendations');
     
     // Load similar movies (Sci-Fi as example) - تصحيح اسم الجنس
     loadMovies('GetTop100MovieWithGenre?GenreName=Sci_Fi', 'similarMovies');

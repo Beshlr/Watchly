@@ -48,7 +48,6 @@ namespace MovieRecommendations_DataLayer
         public string Username { get; set; }
         public string Password { get; set; }
         public DateTime DateOfBirth { get; set; }
-        public int Age { get; set; }
         public string Email { get; set; }
     }
 
@@ -191,7 +190,7 @@ namespace MovieRecommendations_DataLayer
                     command.Parameters.AddWithValue("@IsActive", true);
                     command.Parameters.AddWithValue("@Email", userInfo.Email);
                     command.Parameters.AddWithValue("@Permissions", 2);
-                    command.Parameters.AddWithValue("@@DateOfBirth", userInfo.DateOfBirth);
+                    command.Parameters.AddWithValue("@DateOfBirth", userInfo.DateOfBirth);
 
                     var outputParam = new SqlParameter("@NewUserID", SqlDbType.Int)
                     {
@@ -425,7 +424,7 @@ namespace MovieRecommendations_DataLayer
             return IsFound;
         }
 
-        public static bool CheckUsernameAndPassword(string username, string password)
+        public static bool Login(string username, string password)
         {
             if (string.IsNullOrWhiteSpace(username) || string.IsNullOrWhiteSpace(password))
                 return false;

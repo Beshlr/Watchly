@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const baseApiUrl = 'http://watchly.runasp.net/api/UsersAPI';
+    const baseApiUrl = 'https://watchly.runasp.net/api/UsersAPI';
     const userJson = localStorage.getItem('loggedInUser');
     const usersTableBody = document.getElementById('usersTableBody');
     const statusMessage = document.getElementById('statusMessage');
@@ -27,6 +27,7 @@ document.addEventListener('DOMContentLoaded', function() {
         
         // Check if user has admin permissions (1 = admin, 2 = regular user)
         if (user.permissions !== 1 && user.permissions !== 3) {
+            alert('You do not have permission to access this page.');
             window.location.href = 'main.html';
             return;
         }
@@ -148,7 +149,7 @@ function deleteUser(userId) {
                 document.getElementById('editUsername').value = user.username;
                 document.getElementById('editEmail').value = user.email || '';
                 document.getElementById('editStatus').value = user.isAcive;
-                document.getElementById('editPermissions').value = user.permissions;
+                document.getElementById('editPermissions').value = user.permissions ;
                 
                 // Format date for the date input (YYYY-MM-DD)
                 const dateOfBirth = new Date(user.dateOfBirth);
@@ -234,7 +235,7 @@ function deleteUser(userId) {
             return;
         }
         
-        fetch(`http://watchly.runasp.net/api/MovieRecommenderAPI/NameHasWord/${query}`)
+        fetch(`https://watchly.runasp.net/api/MovieRecommenderAPI/NameHasWord/${query}`)
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();

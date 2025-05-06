@@ -320,41 +320,40 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(users);
         }
 
-        [HttpGet("CheckPasswordForUsername", Name = "CheckPasswordForUsername")]
+        [HttpPost("CheckPasswordForUsername", Name = "CheckPasswordForUsername")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<UserDTO> CheckPasswordForUsername(string Username, string Password)
+        public ActionResult<UserBasicInfoDTO> CheckPasswordForUsername([FromBody] clsLoginUserInfo LoginUserInfo)
         {
-            if (String.IsNullOrEmpty(Username) || String.IsNullOrEmpty(Password))
+            if (String.IsNullOrEmpty(LoginUserInfo.Username) || String.IsNullOrEmpty(LoginUserInfo.Password))
             {
                 return BadRequest($"Bad Request: Invaild Username Or Password");
             }
 
-            //string decodedPassword = Uri.UnescapeDataString(Password);
-            //string decodedUsername = Uri.UnescapeDataString(Username);
+            
 
-            if (!clsUsers.IsUserExist(Username))
+            if (!clsUsers.IsUserExist(LoginUserInfo.Username))
             {
-                return BadRequest($"Bad Request: User with username {Username} is not exists");
+                return BadRequest($"Bad Request: User with username {LoginUserInfo.Username} is not exists");
             }
 
-            clsUsers user = clsUsers.Find(Username);
+            clsUsers user = clsUsers.Find(LoginUserInfo.Username);
 
             if(!clsUsers.IsUserActive(user.UserID))
             {
-                return BadRequest($"Bad Request: User with username {Username} is not active");
+                return BadRequest($"Bad Request: User with username {LoginUserInfo.Username} is not active");
             }
             
-            bool CheckPassword = clsUsers.CheckIfUsernameAndPasswordIsTrue(Username,EncryptionHelper.Encrypt(Password));
+            bool CheckPassword = clsUsers.Login(LoginUserInfo.Username,EncryptionHelper.Encrypt(LoginUserInfo.Password));
 
             if (!CheckPassword)
             {
                 return BadRequest("Password Is Uncorrect");
             }
 
-            UserDTO userDTO = user.UDTO ;
+            UserBasicInfoDTO userDTO = user.userBasicInfoDTO ;
 
             if (userDTO == null)
             {
@@ -378,7 +377,7 @@ namespace MovieRecommendationAPI.Controllers
 
             UDTO.ID = user.UserID;
             user.Username = UDTO.Username;
-            user.IsAcive = UDTO.IsAcive == null ? true : false;
+            user.IsAcive = UDTO.IsAcive == null ? false : UDTO.IsAcive;
             user.Permissions = UDTO.Permissions;
             user.DateOfBirth = UDTO.DateOfBirth;
 
@@ -403,8 +402,8 @@ namespace MovieRecommendationAPI.Controllers
             user.IsAcive = true;
             user.Email = AUserInfoDTO.Email;
             user.Permissions = 2;
-            user.Age = AUserInfoDTO.Age;
             user.DateOfBirth = AUserInfoDTO.DateOfBirth;
+            user.Age = (DateTime.Now.Year - AUserInfoDTO.DateOfBirth.Year);
 
             if (String.IsNullOrEmpty(user.Username) || String.IsNullOrEmpty(user.Password))
             {
@@ -482,22 +481,22 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult ChangePasswordForUser(string username, string OldPassword, string NewPassword)
+        public ActionResult ChangePasswordForUser([FromBody] clsChangePasswordForUser UserInfoForChangePassword)
         {
-            clsUsers user = clsUsers.Find(username);
+            clsUsers user = clsUsers.Find(UserInfoForChangePassword.Username);
 
             if (user == null)
             {
-                return NotFound($"Not Found: User with username {username} is not found");
+                return NotFound($"Not Found: User with username {UserInfoForChangePassword.Username} is not found");
             }
 
-            if (String.IsNullOrEmpty(OldPassword) || String.IsNullOrEmpty(NewPassword))
+            if (String.IsNullOrEmpty(UserInfoForChangePassword.OldPassword) || String.IsNullOrEmpty(UserInfoForChangePassword.NewPassword))
             {
                 return BadRequest("Bad Request: Old Password or New Password is empty");
             }
 
             // تحقق من كلمة المرور القديمة (بعد التشفير)
-            if (user.Password != EncryptionHelper.Encrypt(OldPassword))
+            if (user.Password != EncryptionHelper.Encrypt(UserInfoForChangePassword.OldPassword))
             {
                 return BadRequest("Bad Request: Old Password is incorrect");
             }
@@ -505,43 +504,43 @@ namespace MovieRecommendationAPI.Controllers
             string LastChangeForPassword = String.Empty;
 
             // تحقق إذا كانت كلمة المرور الجديدة مستخدمة سابقاً
-            if (clsUsers.CheckIfUserEnterOldPassword(user.UserID,EncryptionHelper.Encrypt(NewPassword), ref LastChangeForPassword))
+            if (clsUsers.CheckIfUserEnterOldPassword(user.UserID,EncryptionHelper.Encrypt(UserInfoForChangePassword.NewPassword), ref LastChangeForPassword))
             {
                 return BadRequest($"Bad Request: New Password is Used before: {LastChangeForPassword}. please enter anoter one");
             }
 
             // تحقق إذا كانت كلمة المرور الجديدة مطابقة للقديمة
-            if (OldPassword == NewPassword)
+            if (UserInfoForChangePassword.OldPassword == UserInfoForChangePassword.NewPassword)
             {
                 return BadRequest("Bad Request: New Password should be different from Old Password");
             }
 
-            string encryptedNewPassword = EncryptionHelper.Encrypt(NewPassword);
+            string encryptedNewPassword = EncryptionHelper.Encrypt(UserInfoForChangePassword.NewPassword);
             user.Password = encryptedNewPassword;
 
-            if (!clsUsers.ChangeUserPassword(user.UserID, encryptedNewPassword,EncryptionHelper.Encrypt(OldPassword)))
+            if (!clsUsers.ChangeUserPassword(user.UserID, encryptedNewPassword,EncryptionHelper.Encrypt(UserInfoForChangePassword.OldPassword)))
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Password not changed");
             }
             return Ok("Password changed successfully");
         }
 
-       [HttpPut("ChangePasswordForUserWhenForgetIt/", Name = "ChangePasswordForUserWhenForgetIt")]
+       [HttpPut("ChangePasswordForUserWhenForgetIt", Name = "ChangePasswordForUserWhenForgetIt")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult ChangePasswordForUser(string username, string NewPassword)
+        public ActionResult ChangePasswordForUser([FromBody]clsLoginUserInfo UserLoginInfo)
         {
-            clsUsers user = clsUsers.Find(username);
+            clsUsers user = clsUsers.Find(UserLoginInfo.Username);
             int userID = user.UserID;
             string OldPassword = user.Password;
             if (user == null)
             {
-                return NotFound($"User with username {username} is not found");
+                return NotFound($"User with username {UserLoginInfo.Username} is not found");
             }
 
-            if (OldPassword == EncryptionHelper.Encrypt(NewPassword))
+            if (OldPassword == EncryptionHelper.Encrypt(UserLoginInfo.Password))
             {
                 return BadRequest($"New Password is The same of last password");
 
@@ -550,12 +549,12 @@ namespace MovieRecommendationAPI.Controllers
             string LastChangeForPassword = String.Empty;
 
             // تحقق إذا كانت كلمة المرور الجديدة مستخدمة سابقاً
-            if (clsUsers.CheckIfUserEnterOldPassword(user.UserID,EncryptionHelper.Encrypt(NewPassword), ref LastChangeForPassword))
+            if (clsUsers.CheckIfUserEnterOldPassword(user.UserID,EncryptionHelper.Encrypt(UserLoginInfo.Password), ref LastChangeForPassword))
             {
                 return BadRequest($"New Password is Used before: {LastChangeForPassword}. please enter anoter one");
             }
 
-            string encryptedNewPassword = EncryptionHelper.Encrypt(NewPassword);
+            string encryptedNewPassword = EncryptionHelper.Encrypt(UserLoginInfo.Password);
             user.Password = encryptedNewPassword;
 
             if (!clsUsers.ChangeUserPassword(user.UserID, encryptedNewPassword,OldPassword))
@@ -1082,5 +1081,16 @@ namespace MovieRecommendationAPI.Controllers
                 return (clsUsers.enReportType)this.ReportType;
             }
         }
+    }
+    public class clsLoginUserInfo
+    {
+        public string Username { get; set; }
+        public string Password { get; set; }
+    }
+    public class clsChangePasswordForUser
+    {
+        public string Username { get; set; }
+        public string OldPassword { get; set; }
+        public string NewPassword { get; set; }
     }
 }

@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const baseApiUrl = 'http://watchly.runasp.net/api/MovieRecommenderAPI';
+    const baseApiUrl = 'https://watchly.runasp.net/api/MovieRecommenderAPI';
     const userJson = localStorage.getItem('loggedInUser');
     
     const user = JSON.parse(userJson);
@@ -113,7 +113,7 @@ document.addEventListener('DOMContentLoaded', function() {
 
             if(method === 'POST') {
                 const body = JSON.stringify({ MovieID: movieId, UserID: user.id });
-                 response = await fetch(`http://watchly.runasp.net/api/UsersAPI/${endpoint}`, {
+                 response = await fetch(`https://watchly.runasp.net/api/UsersAPI/${endpoint}`, {
                     method: method,
                     headers: {
                         'Content-Type': 'application/json',
@@ -122,7 +122,7 @@ document.addEventListener('DOMContentLoaded', function() {
                 });
             }
             else if(method === 'DELETE') {
-                 response = await fetch(`http://watchly.runasp.net/api/UsersAPI/${endpoint}?MovieID=${movieId}&UserID=${user.id}`, {
+                 response = await fetch(`https://watchly.runasp.net/api/UsersAPI/${endpoint}?MovieID=${movieId}&UserID=${user.id}`, {
                     method: method,
                     headers: {
                         'Content-Type': 'application/json',
@@ -168,7 +168,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const user = JSON.parse(userJson);
         
         try {
-            const response = await fetch(`http://watchly.runasp.net/api/UsersAPI/GetAllFavorateMoviesforUser?UserID=${user.id}`);
+            const response = await fetch(`https://watchly.runasp.net/api/UsersAPI/GetAllFavorateMoviesforUser?UserID=${user.id}`);
             if (!response.ok) throw new Error('Failed to load favorites');
             
             const favorites = await response.json();

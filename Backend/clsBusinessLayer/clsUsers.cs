@@ -9,6 +9,7 @@ using MovieRecommendations_DataLayer;
 using SmtpClient = MailKit.Net.Smtp.SmtpClient;
 using System.Configuration;
 using clsBusinessLayer;
+using Microsoft.IdentityModel.Tokens;
 namespace MovieRecommendations_BusinessLayer
 {
     public class clsUsers
@@ -67,7 +68,8 @@ namespace MovieRecommendations_BusinessLayer
             this.Email = userDTO.Email;
             this.IsAcive = userDTO.IsAcive;
             this.Permissions = userDTO.Permissions;
-            this.Age = userDTO.Age;
+            this.DateOfBirth = userDTO.DateOfBirth;
+            this.Age = (DateTime.Now.Year - this.DateOfBirth.Year);
             Mode = enMode.Update;
         }
 
@@ -178,9 +180,9 @@ namespace MovieRecommendations_BusinessLayer
             return clsUsersData.CheckIsUsernameExist(Username);
         }
 
-        public static bool CheckIfUsernameAndPasswordIsTrue(string Username, string Password)
+        public static bool Login(string Username, string Password)
         {
-            return clsUsersData.CheckUsernameAndPassword(Username, Password);
+            return clsUsersData.Login(Username, Password);
         }
 
         public static bool CheckIfUserEnterOldPassword(int UserID, string EnterdPassword, ref string TheDiffBetweenTwoDates)

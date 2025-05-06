@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const baseApiUrl = 'http://watchly.runasp.net/api/UsersAPI';
+    const baseApiUrl = 'https://watchly.runasp.net/api/UsersAPI';
     const errorToast = new bootstrap.Toast(document.getElementById('errorToast'));
     const userJson = localStorage.getItem('loggedInUser');
 
@@ -11,10 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
         loginLogoutBtn.href = '#';
         alert(`Welcome back, ${user.username}, you will be redirected to the main page`);
         window.location.href = 'main.html';
-        
     }
-
-   
 
     // إزالة رسائل الخطأ عند التركيز على الحقل
     function clearError(fieldId) {
@@ -77,17 +74,22 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!isValid) return;
 
+            const userLoginData = {
+                Username: username,
+                Password: password
+            };
+
             try {
-                const response = await fetch(`${baseApiUrl}/CheckPasswordForUsername?Username=${encodeURIComponent(username)}&Password=${encodeURIComponent(password)}`, {
-                    method: 'GET',
+                const response = await fetch(`${baseApiUrl}/CheckPasswordForUsername`, {
+                    method: 'Post',
                     headers: {
                         'Content-Type': 'application/json'
-                    }
+                    },
+                    body: JSON.stringify(userLoginData)
                 });
 
                 if (response.ok) {
                     const userData = await response.json();
-                    // تخزين بيانات المستخدم...
                     localStorage.setItem('loggedInUser', JSON.stringify(userData));
                     window.location.href = '../pages/main.html';
                 } else {
@@ -117,9 +119,18 @@ document.addEventListener('DOMContentLoaded', () => {
             val => val === document.getElementById('password').value,
             'Passwords do not match');
             
-        setupFieldValidation('age',
-            val => !isNaN(val) && val >= 1 && val <= 120,
-            'Please enter a valid age (1-120)');
+        setupFieldValidation('dateOfBirth',
+            val => {
+                if (!val) return false;
+                const dob = new Date(val);
+                const today = new Date();
+                const minDate = new Date();
+                minDate.setFullYear(today.getFullYear() - 120); // 120 سنة كحد أقصى
+                const maxDate = new Date();
+                maxDate.setFullYear(today.getFullYear() - 1); // يجب أن يكون عمره سنة على الأقل
+                return dob >= minDate && dob <= maxDate;
+            },
+            'Please enter a valid date of birth (you must be at least 1 year old)');
             
         setupFieldValidation('email',
             val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
@@ -148,10 +159,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 isValid = false;
             }
 
-            const age = parseInt(document.getElementById('age').value);
-            if (isNaN(age) || age < 1 || age > 120) {
-                showError('Please enter a valid age (1-120)', 'age');
+            const dateOfBirth = document.getElementById('dateOfBirth').value;
+            if (!dateOfBirth) {
+                showError('Please enter your date of birth', 'dateOfBirth');
                 isValid = false;
+            } else {
+                const dob = new Date(dateOfBirth);
+                const today = new Date();
+                let age = today.getFullYear() - dob.getFullYear();
+                const monthDiff = today.getMonth() - dob.getMonth();
+                
+                if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                    age--;
+                }
+                
+                if (age < 1 || age > 120) {
+                    showError('You must be between 1 and 120 years old', 'dateOfBirth');
+                    isValid = false;
+                }
             }
 
             const email = document.getElementById('email').value.trim();
@@ -167,10 +192,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
             if (!isValid) return;
 
+            // حساب العمر من تاريخ الميلاد
+            const dob = new Date(dateOfBirth);
+            const today = new Date();
+            let age = today.getFullYear() - dob.getFullYear();
+            const monthDiff = today.getMonth() - dob.getMonth();
+            
+            if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < dob.getDate())) {
+                age--;
+            }
+
             const userData = {
                 Username: username,
                 Password: password,
                 Age: age,
+                DateOfBirth: dateOfBirth,
                 Email: email,
             };
 
@@ -198,6 +234,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
     function showError(message, fieldId = null) {
         // إذا كان هناك حقل محدد، عرض الخطأ تحته
         if (fieldId) {

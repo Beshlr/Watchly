@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const baseApiUrl = 'http://watchly.runasp.net/api/UsersAPI';
+    const baseApiUrl = 'https://watchly.runasp.net/api/UsersAPI';
     const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
     
     // Check authentication and update UI
@@ -31,7 +31,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
     searchBtn.addEventListener('click', getMoviesBySearch);
-    const baseUrl = 'http://watchly.runasp.net/api/MovieRecommenderAPI'; 
+    const baseUrl = 'https://watchly.runasp.net/api/MovieRecommenderAPI'; 
 
     async function searchMovies(query, displayInGrid = true) {
         if (query.length < 2) {
@@ -214,7 +214,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const icon = buttonElement.querySelector('i');
         
         try {
-            const response = await fetch(`http://watchly.runasp.net/api/UsersAPI/RemoveMovieFromFavorateList?MovieID=${movieId}&UserID=${user.id}`, {
+            const response = await fetch(`https://watchly.runasp.net/api/UsersAPI/RemoveMovieFromFavorateList?MovieID=${movieId}&UserID=${user.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json'
