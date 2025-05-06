@@ -47,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
 async function loadFavoriteGenresMovies(userId) {
     try {
         // جلب أفضل 3 أنواع للمستخدم
-        const genresResponse = await fetch(`${baseUsersApiUrl}/GetTop3GenresUserInterstIn/${userId}`);
+        const genresResponse = await fetch(`${baseUsersApiUrl}/GetTop5GenresUserInterstIn/${userId}`);
         if (!genresResponse.ok) throw new Error('Failed to load favorite genres');
         
         const genres = await genresResponse.json();

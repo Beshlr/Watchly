@@ -215,9 +215,9 @@ namespace MovieRecommendations_BusinessLayer
             return clsUsersData.AddMovieToFavorate(MovieID, UserID);
         }
 
-        public static List<string> GetTop3GenresUserInterstIn(int UserID)
+        public static List<string> GetTop5GenresUserInterstIn(int UserID)
         {
-            return clsUsersData.GetTop3GenresUserInterstIn(UserID);
+            return clsUsersData.GetTop5GenresUserInterstIn(UserID);
         }
 
         public static List<string> GetAllGenresThatUserInterstOn(int UserID)

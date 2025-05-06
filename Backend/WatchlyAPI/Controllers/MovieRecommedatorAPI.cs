@@ -588,12 +588,12 @@ namespace MovieRecommendationAPI.Controllers
             return Ok("Movie added to favorites successfully");
         }
 
-        [HttpGet("GetTop3GenresUserInterstIn/{UserID}", Name = "GetTop3GenresUserInterstIn")]
+        [HttpGet("GetTop5GenresUserInterstIn/{UserID}", Name = "GetTop5GenresUserInterstIn")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<List<string>> GetTop3GenresUserInterstIn(int UserID)
+        public ActionResult<List<string>> GetTop5GenresUserInterstIn(int UserID)
         {
             List<string> genres = new List<string>();
             if (UserID < 1)
@@ -604,7 +604,7 @@ namespace MovieRecommendationAPI.Controllers
             {
                 return NotFound($"Bad Request: User with ID {UserID} is not exists");
             }
-            genres = clsUsers.GetTop3GenresUserInterstIn(UserID);
+            genres = clsUsers.GetTop5GenresUserInterstIn(UserID);
             if (genres.Count < 1)
             {
                 return NotFound($"Not Found: No genres found for user with ID {UserID} Check Favorate movies");

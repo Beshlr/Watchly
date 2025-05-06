@@ -872,13 +872,13 @@ namespace MovieRecommendations_DataLayer
             }
         }
 
-        public static List<string> GetTop3GenresUserInterstIn(int UserID)
+        public static List<string> GetTop5GenresUserInterstIn(int UserID)
         {
             List<string> genres = new List<string>();
 
             using(SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                using (SqlCommand cmd = new SqlCommand("SP_GetTopGenreUserInterstIn", con))
+                using (SqlCommand cmd = new SqlCommand("SP_GetTop5GenresUserInterstIn", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@UserID", UserID);
