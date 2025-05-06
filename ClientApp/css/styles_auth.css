@@ -63,7 +63,7 @@ body {
     position: absolute;
     right: 1rem;
     top: 50%;
-    transform: translateY(50%);
+    transform: translateY(10%);
     cursor: pointer;
     color: var(--secondary-color);
     transition: 0.3s;
