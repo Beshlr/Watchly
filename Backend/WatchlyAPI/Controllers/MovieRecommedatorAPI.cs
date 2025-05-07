@@ -381,10 +381,14 @@ namespace MovieRecommendationAPI.Controllers
             {
                 return NotFound($"Bad Request: User with ID {UserID} is not exists");
             }
+
+            UserDTO userInfo = clsUsers.Find(UserID).UDTO;
+
             genres = clsUsers.GetTop5GenresUserInterstIn(UserID);
+
             if (genres.Count < 1)
             {
-                return NotFound($"Not Found: No genres found for user with ID {UserID} Check Favorate movies");
+                return NotFound($"No genres found for user with Username: {userInfo.Username} Check Favorate movies");
             }
             return Ok(genres);
         }
@@ -570,6 +574,11 @@ namespace MovieRecommendationAPI.Controllers
             }
 
             clsUsers user = clsUsers.Find(LoginUserInfo.Username);
+
+            if (user == null)
+            {
+                return BadRequest("Bad Request: User is not found");
+            }
 
             if(!clsUsers.IsUserActive(user.UserID))
             {

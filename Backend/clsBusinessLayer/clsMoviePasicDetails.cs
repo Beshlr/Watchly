@@ -18,7 +18,7 @@ namespace clsBusinessLayer
         // Set object from data transfer object to return data
         public MovieDTO MDTO { get {
                 return new MovieDTO(this.ID, this.MovieName, this.Year, this.Rate, this.PosterImageURL
-            , this.TrailerURL, this.ContentRating, this.Duration, this.Language, this.Country, this.AspectRatio, this.Genre,this.IMDbMovieURL,this.Keywords);
+            , this.TrailerURL, this.ContentRating, this.Duration, this.Language, this.Country, this.AspectRatio, this.Genre,this.IMDbMovieURL,this.Keywords, this.Popularity);
             } }
 
 
@@ -36,7 +36,7 @@ namespace clsBusinessLayer
         public string Genre { get; set; }
         public string IMDbMovieURL { get; set; }
         public string Keywords { get; set; }
-
+        public int Popularity { get; set; }
         public enum enMode { AddNew = 0, Update = 1 };
         public enMode Mode = enMode.AddNew;
 

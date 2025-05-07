@@ -114,7 +114,7 @@ namespace MovieRecommendations_DataLayer
                 string query = "SELECT * FROM Users WHERE LOWER(Username) COLLATE SQL_Latin1_General_CP1_CS_AS = @Username";
                 using (SqlCommand command = new SqlCommand(query, connection))
                 {
-                    command.Parameters.AddWithValue("@Username", username);
+                    command.Parameters.AddWithValue("@Username", username.ToLower());
                     connection.Open();
                     using (SqlDataReader reader = command.ExecuteReader())
                     {
