@@ -359,11 +359,65 @@ document.addEventListener('DOMContentLoaded', function() {
             </li>
         `;
         
-        // عرض أرقام الصفحات
-        for (let i = 1; i <= totalPages; i++) {
+        // عرض أرقام الصفحات مع إضافة "..." عند الحاجة
+        const maxVisiblePages = 5;
+        let startPage, endPage;
+        
+        if (totalPages <= maxVisiblePages) {
+            startPage = 1;
+            endPage = totalPages;
+        } else {
+            const halfVisible = Math.floor(maxVisiblePages / 2);
+            
+            if (currentPage <= halfVisible + 1) {
+                startPage = 1;
+                endPage = maxVisiblePages;
+            } else if (currentPage >= totalPages - halfVisible) {
+                startPage = totalPages - maxVisiblePages + 1;
+                endPage = totalPages;
+            } else {
+                startPage = currentPage - halfVisible;
+                endPage = currentPage + halfVisible;
+            }
+        }
+        
+        // إضافة الصفحة الأولى إذا لزم الأمر
+        if (startPage > 1) {
+            paginationHTML += `
+                <li class="page-item ${1 === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(1)">1</a>
+                </li>
+            `;
+            if (startPage > 2) {
+                paginationHTML += `
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#">...</a>
+                    </li>
+                `;
+            }
+        }
+        
+        // عرض الصفحات المرئية
+        for (let i = startPage; i <= endPage; i++) {
             paginationHTML += `
                 <li class="page-item ${i === currentPage ? 'active' : ''}">
                     <a class="page-link" href="#" onclick="changePage(${i})">${i}</a>
+                </li>
+            `;
+        }
+        
+        // إضافة الصفحة الأخيرة إذا لزم الأمر
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                paginationHTML += `
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#">...</a>
+                    </li>
+                `;
+            }
+            paginationHTML += `
+                <li class="page-item ${totalPages === currentPage ? 'active' : ''}">
+                    <a class="page-link" href="#" onclick="changePage(${totalPages})">${totalPages}</a>
                 </li>
             `;
         }
@@ -376,7 +430,6 @@ document.addEventListener('DOMContentLoaded', function() {
         
         pagination.innerHTML = paginationHTML;
     }
-
     window.changePage = function(newPage) {
         if (newPage < 1 || newPage > Math.ceil(totalMovies / moviesPerPage)) {
             return;
