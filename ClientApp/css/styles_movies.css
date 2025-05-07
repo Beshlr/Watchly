@@ -23,33 +23,49 @@ body {
     background-color: var(--dark-color) !important;
 }
 
-/* Filters Sidebar */
-.filters_sidebar {
-    position: fixed;
+/* Filters Container */
+.filters-container {
+    position: sticky;
     top: 80px;
-    left: 20px;
-    bottom: 100px;
-    height: 530px;
+    height: calc(100vh - 200px);
+    display: flex;
+    flex-direction: column;
+}
+
+.filters-body {
     overflow-y: auto;
-    width: 310px; /* Adjust as needed */
-    background-color: #fff; /* Optional: to cover underlying content */
-    z-index: 1; /* To stay on top */
+    flex: 1;
+    padding-bottom: 20px;
 }
 
-.card-header {
-    font-weight: 600;
+/* Genre Filter Scrollable */
+.genres-scrollable {
+    max-height: 200px;
+    overflow-y: auto;
+    padding: 10px;
+    background-color: #f8f9fa;
+    border-radius: 5px;
+    margin-bottom: 15px;
+    scrollbar-width: thin;
+    scrollbar-color: var(--primary-color) #f1f1f1;
 }
 
-.form-range::-webkit-slider-thumb {
+.genres-scrollable::-webkit-scrollbar {
+    width: 6px;
+}
+
+.genres-scrollable::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.genres-scrollable::-webkit-scrollbar-thumb {
     background: var(--primary-color);
+    border-radius: 10px;
 }
 
-.form-range::-moz-range-thumb {
-    background: var(--primary-color);
-}
-
-.form-range::-ms-thumb {
-    background: var(--primary-color);
+.genres-scrollable::-webkit-scrollbar-thumb:hover {
+    background: #0d8bf2;
 }
 
 /* Movie Cards */
@@ -60,15 +76,6 @@ body {
     overflow: hidden;
     box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
     height: 100%;
-}
-
-.movie-card-container .card {
-    transition: transform 0.3s, box-shadow 0.3s;
-}
-
-.movie-card-container .card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
 
 .movie-card:hover {
@@ -96,122 +103,58 @@ body {
     overflow: hidden;
     text-overflow: ellipsis;
     margin-bottom: 0.5rem;
-    
 }
 
-.movie-card .card-text {
-    color: var(--secondary-color);
-    font-size: 0.9rem;
-    margin-bottom: 1rem;
-}
-
-.movie-card .btn {
-    width: 100%;
-}
-
-/* List View */
-.list-view .movie-card {
-    display: flex;
-    flex-direction: row;
-    height: auto;
-}
-
-.list-view .movie-card .card-img-top {
-    width: 150px;
-    height: 200px;
-    border-radius: 0.5rem 0 0 0.5rem;
-}
-
-.list-view .movie-card .card-body {
-    flex: 1;
-}
-
-/* Rating Stars */
-.rating-stars {
-    color: #ffc107;
-    font-size: 0.9rem;
-}
-
-/* Pagination */
-.pagination .page-item.active .page-link {
-    background-color: var(--primary-color);
-    border-color: var(--primary-color);
-}
-
-.pagination .page-link {
-    color: var(--primary-color);
+/* Footer */
+footer {
+    margin-top: auto;
+    background-color: var(--dark-color);
+    z-index: 100;
+    position: relative;
 }
 
 /* Responsive Adjustments */
 @media (max-width: 992px) {
+    .filters-container {
+        position: static;
+        height: auto;
+        margin-bottom: 20px;
+    }
+    
     .movie-card .card-img-top {
         height: 250px;
     }
 }
 
 @media (max-width: 768px) {
-    .list-view .movie-card {
-        flex-direction: column;
+    .genres-scrollable {
+        max-height: 150px;
     }
     
-    .list-view .movie-card .card-img-top {
-        width: 100%;
-        height: 300px;
-        border-radius: 0.5rem 0.5rem 0 0;
+    .movie-card .card-img-top {
+        height: 200px;
+    }
+    
+    .navbar-collapse {
+        padding-top: 15px;
     }
 }
 
-/* أنماط نتائج البحث */
-#searchResults {
-    max-height: 400px;
-    overflow-y: auto;
-    background: white;
-    border: 1px solid rgba(0,0,0,.15);
-    border-radius: 0.25rem;
-    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.1);
+@media (max-width: 576px) {
+    .movie-card .card-img-top {
+        height: 180px;
+    }
+    
+    .movie-card .card-title {
+        font-size: 0.9rem;
+    }
+    
+    .movie-card .card-text {
+        font-size: 0.8rem;
+    }
 }
 
-.search-result-item {
-    cursor: pointer;
-    transition: background-color 0.2s;
-}
-
-.search-result-item:hover {
-    background-color: #f8f9fa;
-}
-
-.search-result-item img {
-    object-fit: cover;
-}
-/* أنماط جديدة ومعدلة */
-.genres-scrollable {
-    max-height: 200px;
-    overflow-y: auto;
-    padding-right: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #dee2e6;
-    border-radius: 0.25rem;
-    padding: 10px;
-}
-
-.genres-scrollable::-webkit-scrollbar {
-    width: 6px;
-}
-
-.genres-scrollable::-webkit-scrollbar-track {
-    background: #f1f1f1;
-    border-radius: 10px;
-}
-
-.genres-scrollable::-webkit-scrollbar-thumb {
-    background: #888;
-    border-radius: 10px;
-}
-
-.genres-scrollable::-webkit-scrollbar-thumb:hover {
-    background: #555;
-}
-
+/* Form Elements */
 .form-check {
     margin-bottom: 8px;
     padding-left: 1.8em;
@@ -234,70 +177,43 @@ body {
     font-weight: 500;
 }
 
-.card-header {
-    padding: 0.75rem 1.25rem;
+/* Range Sliders */
+.form-range {
+    width: 100%;
+    margin-bottom: 15px;
 }
 
-.card-body {
-    padding: 1.25rem;
+.form-range::-webkit-slider-thumb {
+    background: var(--primary-color);
 }
 
-/* تحسينات أخرى للتصميم */
-.movie-card .card-img-top {
-    height: 300px;
+.form-range::-moz-range-thumb {
+    background: var(--primary-color);
+}
+
+.form-range::-ms-thumb {
+    background: var(--primary-color);
+}
+
+/* Search Results */
+#searchResults {
+    max-height: 400px;
+    overflow-y: auto;
+    background: white;
+    border: 1px solid rgba(0,0,0,.15);
+    border-radius: 0.25rem;
+    box-shadow: 0 0.5rem 1rem rgba(0,0,0,.1);
+}
+
+.search-result-item {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.search-result-item:hover {
+    background-color: #f8f9fa;
+}
+
+.search-result-item img {
     object-fit: cover;
-    border-bottom: 1px solid rgba(0,0,0,.125);
-}
-
-.movie-card .card-body {
-    padding: 1rem;
-}
-
-.movie-card .card-title {
-    font-size: 1rem;
-    margin-bottom: 0.5rem;
-    height: 2.4em;
-    overflow: hidden;
-    display: -webkit-box;
-    -webkit-line-clamp: 2;
-    -webkit-box-orient: vertical;
-    line-clamp: 2;
-}
-.footer{
-    background-color: #343a40; /* Match your footer color */
-    z-index: 10; /* Ensure it stays above other elements */
-}
-.footer_position{
-    z-index: 900;
-}
-
-footer .col-md-4{
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-}
-
-footer .mb-3 a i{
-    
-    transition: 0.3s;
-}
-footer .mb-3 a i:hover{
-    color:#2196f3;
-}
-
-footer .mb-4:last-child {
-    text-align: center;
-    display: block;
-    position: relative;
-}
-
-/* تحسينات للعرض على الأجهزة المحمولة */
-@media (max-width: 768px) {
-    .genres-scrollable {
-        max-height: 150px;
-    }
-    
-    .movie-card .card-img-top {
-        height: 250px;
-    }
 }

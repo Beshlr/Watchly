@@ -320,6 +320,215 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(users);
         }
 
+        [HttpGet("GetAllGenresThatUserInterstOn/{UserID}", Name = "GetAllGenresThatUserInterstOn")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<List<string>> GetAllGenresThatUserInterstOn(int UserID)
+        {
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            List<string> genres = clsUsers.GetAllGenresThatUserInterstOn(UserID);
+
+            if (genres == null || genres.Count == 0)
+            {
+                return NotFound($"Not Found: No genres found for user with ID {UserID} Check Favorate movies");
+            }
+
+            return Ok(genres);
+        }
+
+        [HttpGet("GetTop5GenresUserInterstIn/{UserID}", Name = "GetTop5GenresUserInterstIn")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<List<string>> GetTop5GenresUserInterstIn(int UserID)
+        {
+            List<string> genres = new List<string>();
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            genres = clsUsers.GetTop5GenresUserInterstIn(UserID);
+            if (genres.Count < 1)
+            {
+                return NotFound($"Not Found: No genres found for user with ID {UserID} Check Favorate movies");
+            }
+            return Ok(genres);
+        }
+
+        [HttpGet("CheckIfMovieIsWatched", Name = "CheckIfMovieIsWatched")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult CheckIfMovieIsWatchedByUser([FromQuery] clsUserAndMovieID userAndMovieID)
+        {
+            string errorMessage = string.Empty;
+            if (!clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
+            {
+                return BadRequest(errorMessage);
+            }
+            int MovieID = userAndMovieID.MovieID;
+            int UserID = userAndMovieID.UserID;
+            if (clsUsers.CheckIfMovieInWatchedList(MovieID, UserID))
+            {
+                return BadRequest($"This Movie With ID {MovieID} Is already Watched");
+            }
+            return Ok();
+        }
+
+        [HttpGet("GetAllFavorateMoviesforUser", Name = "GetAllFavorateMoviesforUser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+
+        public ActionResult<List<MovieDTO>> GetAllFavorateMoviesforUser(int UserID)
+        {
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            List<MovieDTO> movies = clsUsers.GetAllFavorateMoviesForUser(UserID);
+            if (movies == null || movies.Count == 0)
+            {
+                return NotFound($"Not Found: No movie found for user with ID {UserID}");
+            }
+            return Ok(movies);
+        }
+
+        [HttpGet("CheckIfMovieIsFavorate", Name = "CheckIfMovieIsFavorate")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult CheckIfMovieIsFavorateForUser([FromQuery] clsUserAndMovieID userAndMovieID)
+        {
+            string errorMessage = string.Empty;
+            if (!clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
+            {
+                return BadRequest(errorMessage);
+            }
+            int MovieID = userAndMovieID.MovieID;
+            int UserID = userAndMovieID.UserID;
+
+            if (!clsUsersData.CheckIfMovieIsFavorateForUser(MovieID, UserID))
+            {
+                return BadRequest($"This Movie With ID {MovieID} Is Not Favorate");
+            }
+
+            return Ok("Movie is in the favorate list");
+        }
+
+        [HttpGet("SendCodeToUserEmail/{Username}", Name = "SendCodeToUserEmail")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<ActionResult<string>> SendCodeToUserEmail(string Username)
+        {
+            if (String.IsNullOrEmpty(Username))
+            {
+                return BadRequest("Bad Request: Username is empty");
+            }
+            if (!clsUsers.IsUserExist(Username))
+            {
+                return NotFound($"Not Found: User with username {Username} is not exists");
+            }
+
+            clsUsers user = clsUsers.Find(Username);
+            if (user == null)
+            {
+                return NotFound($"Not Found: User with username {Username} is not found");
+            }
+            if (!clsUsers.IsUserActive(user.UserID))
+            {
+                return BadRequest($"Bad Request: User with username {Username} is not active");
+            }
+            if (String.IsNullOrEmpty(user.Email))
+            {
+                return BadRequest($"Bad Request: User with username {Username} has no email. Please call your admin");
+            }
+
+            // Generate a random 6-digit code
+            Random random = new Random();
+            string code = random.Next(100000, 999999).ToString();
+
+            if (String.IsNullOrEmpty(code))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Code not sent");
+            }
+
+            // Prepare the email content
+            string subject = "Password Reset Code";
+            string body = $"Your password reset code is: {code}";
+
+            // Send the email
+            await _emailService.SendEmailAsync(user.Email, subject, body);
+
+            return Ok(code);
+        }
+
+        [HttpGet("GetAllFavorateMoviesNameForUser/{UserID}", Name = "GetAllFavorateMoviesNameForUser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<List<string>> GetAllFavorateMoviesNameForUser(int UserID)
+        {
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            List<string> movies = clsUsers.GetAllFavorateMoviesNameForUser(UserID);
+            if (movies == null || movies.Count == 0)
+            {
+                return NotFound($"Not Found: No movie found for user with ID {UserID}");
+            }
+            return Ok(movies);
+        }
+
+        [HttpPost("AddMovieToSearchingList", Name = "AddMovieToSearchingList")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult AddMovieToSearchingList([FromBody] clsUserAndMovieID searchingListRequest)
+        {
+            string errorMessage = string.Empty;
+            if (!clsUserValidations.CheckUserAndMovieInputs(searchingListRequest, ref errorMessage))
+            {
+                return BadRequest(errorMessage);
+            }
+
+            int MovieID = searchingListRequest.MovieID;
+            int UserID = searchingListRequest.UserID;
+
+            if (!clsUsers.AddMovieToSearchingList(MovieID, UserID))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Movie not added to searching list");
+            }
+            return Ok("Movie added to searching list successfully");
+        }
+
         [HttpPost("CheckPasswordForUsername", Name = "CheckPasswordForUsername")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -363,38 +572,11 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(userDTO);
         }
 
-        [HttpPut("UpdateUser/{UserID}", Name = "UpdateUser")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<UserBasicInfoDTO> UpdateUserInfo(int UserID,[FromBody] UserBasicInfoDTO UDTO)
-        {
-            clsUsers user = clsUsers.Find(UserID);
-            if (user == null)
-            {
-                return NotFound($"Not Found: User with id {UserID} is not found");
-            }
-
-            UDTO.ID = user.UserID;
-            user.Username = UDTO.Username;
-            user.IsAcive = UDTO.IsAcive == null ? false : UDTO.IsAcive;
-            user.Permissions = UDTO.Permissions;
-            user.DateOfBirth = UDTO.DateOfBirth;
-
-            if (!user.Save())
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: User not updated");
-            }
-
-            return Ok(user.userBasicInfoDTO);
-
-        }
-
         [HttpPost("AddNewUser", Name = "AddNewUser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<UserDTO> AddNewUser([FromBody]AddUserInfoDTO AUserInfoDTO)
+        public ActionResult<UserDTO> AddNewUser([FromBody] AddUserInfoDTO AUserInfoDTO)
         {
             clsUsers user = new clsUsers();
             user.Username = AUserInfoDTO.Username;
@@ -444,36 +626,114 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(user.UDTO);
         }
 
-        [HttpDelete("DeleteUser/{UserID}/{DeletedByUserID}", Name = "DeleteUser")]
+        [HttpPost("AddMovieToFavorate", Name = "AddMovieToFavorate")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult DeleteUser(int UserID, int DeletedByUserID)
+        public ActionResult AddMovieToFavorate([FromBody] clsUserAndMovieID favorateRequest)
         {
-            if (UserID < 1 || DeletedByUserID < 1)
+            string errorMessage = string.Empty;
+            if (!clsUserValidations.CheckUserAndMovieInputs(favorateRequest, ref errorMessage))
             {
-                return BadRequest($"Bad Request: UserID: {UserID} or DeletedByUserID: {DeletedByUserID} Is Not valid");
+                return BadRequest(errorMessage);
             }
 
-            clsUsers userToDelete = clsUsers.Find(UserID);
-            if (userToDelete == null)
+            int MovieID = favorateRequest.MovieID;
+            int UserID = favorateRequest.UserID;
+
+
+            if (clsUsers.IsMovieInFavorateList(MovieID, UserID))
+            {
+                return BadRequest($"Bad Request: Movie with ID {MovieID} is already in the favorites list");
+            }
+            if (!clsUsers.AddMovieToFavorate(MovieID, UserID))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Movie not added to favorites");
+            }
+            return Ok("Movie added to favorites successfully");
+        }
+
+
+        [HttpPost("AddMovieToWatchingList", Name = "AddMovieToWatchingList")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult AddMovieToWatchingList([FromBody] clsUserAndMovieID watchingListRequest, bool AddedToFavorate = false)
+        {
+            string errorMessage = string.Empty;
+            if (!clsUserValidations.CheckUserAndMovieInputs(watchingListRequest, ref errorMessage))
+            {
+                return BadRequest(errorMessage);
+            }
+
+            int MovieID = watchingListRequest.MovieID;
+            int UserID = watchingListRequest.UserID;
+            string message = string.Empty;
+
+            if (!clsUsers.AddMovieToWatchingList(MovieID, UserID, AddedToFavorate, ref message))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, message);
+            }
+            return Ok("Movie added to watching list successfully");
+        }
+
+        [HttpPost("AddReportAboutMovie", Name = "AddReportAboutMovie")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult AddReportAboutMovie([FromBody] clsReportAboutMovie reportAboutMovie)
+        {
+            if (reportAboutMovie == null)
+            {
+                return BadRequest("Bad Request: Report about movie is null");
+            }
+            string message = string.Empty;
+            if (!clsUserValidations.CheckUserAndMovieInputs(reportAboutMovie.UserAndMovieID, ref message))
+            {
+                return BadRequest(message);
+            }
+
+            int MovieID = reportAboutMovie.UserAndMovieID.MovieID;
+            int UserID = reportAboutMovie.UserAndMovieID.UserID;
+            string ReportMessage = reportAboutMovie.ReportMessage;
+            clsUsers.enReportType ReportType = reportAboutMovie.ReportTypeEnum;
+
+            if (!clsUsers.AddNewReport(UserID, MovieID, ReportMessage, ReportType))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Report not added");
+            }
+
+            return Ok("Report added successfully");
+        }
+
+        [HttpPut("UpdateUser/{UserID}", Name = "UpdateUser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<UserBasicInfoDTO> UpdateUserInfo(int UserID,[FromBody] UserBasicInfoDTO UDTO)
+        {
+            clsUsers user = clsUsers.Find(UserID);
+            if (user == null)
             {
                 return NotFound($"Not Found: User with id {UserID} is not found");
             }
 
-            clsUsers deletedByUser = clsUsers.Find(DeletedByUserID);
-            if (deletedByUser == null)
+            UDTO.ID = user.UserID;
+            user.Username = UDTO.Username;
+            user.IsAcive = UDTO.IsAcive == null ? false : UDTO.IsAcive;
+            user.Permissions = UDTO.Permissions;
+            user.DateOfBirth = UDTO.DateOfBirth;
+
+            if (!user.Save())
             {
-                return NotFound($"Not Found: Admin user with id {DeletedByUserID} is not found");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: User not updated");
             }
 
-            if (!clsUsers.DeleteUser(UserID,DeletedByUserID))
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: User not deleted");
-            }
+            return Ok(user.userBasicInfoDTO);
 
-            return Ok("User deleted successfully");
         }
 
         [HttpPut("ChangePasswordForUser/", Name = "ChangePasswordForUser")]
@@ -560,149 +820,38 @@ namespace MovieRecommendationAPI.Controllers
             return Ok("Password changed successfully");
         }
 
-        [HttpPost("AddMovieToFavorate", Name = "AddMovieToFavorate")]
+        [HttpDelete("DeleteUser/{UserID}/{DeletedByUserID}", Name = "DeleteUser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult AddMovieToFavorate([FromBody] clsUserAndMovieID favorateRequest)
+        public ActionResult DeleteUser(int UserID, int DeletedByUserID)
         {
-            string errorMessage = string.Empty;
-            if (!clsUserValidations.CheckUserAndMovieInputs(favorateRequest, ref errorMessage))
+            if (UserID < 1 || DeletedByUserID < 1)
             {
-                return BadRequest(errorMessage);
+                return BadRequest($"Bad Request: UserID: {UserID} or DeletedByUserID: {DeletedByUserID} Is Not valid");
             }
 
-            int MovieID = favorateRequest.MovieID;
-            int UserID = favorateRequest.UserID;
-
-
-            if (clsUsers.IsMovieInFavorateList(MovieID, UserID))
+            clsUsers userToDelete = clsUsers.Find(UserID);
+            if (userToDelete == null)
             {
-                return BadRequest($"Bad Request: Movie with ID {MovieID} is already in the favorites list");
+                return NotFound($"Not Found: User with id {UserID} is not found");
             }
-            if (!clsUsers.AddMovieToFavorate(MovieID, UserID))
+
+            clsUsers deletedByUser = clsUsers.Find(DeletedByUserID);
+            if (deletedByUser == null)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Movie not added to favorites");
+                return NotFound($"Not Found: Admin user with id {DeletedByUserID} is not found");
             }
-            return Ok("Movie added to favorites successfully");
+
+            if (!clsUsers.DeleteUser(UserID,DeletedByUserID))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: User not deleted");
+            }
+
+            return Ok("User deleted successfully");
         }
-
-        [HttpGet("GetTop5GenresUserInterstIn/{UserID}", Name = "GetTop5GenresUserInterstIn")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<List<string>> GetTop5GenresUserInterstIn(int UserID)
-        {
-            List<string> genres = new List<string>();
-            if (UserID < 1)
-            {
-                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
-            }
-            if (!clsUsers.IsUserExist(UserID))
-            {
-                return NotFound($"Bad Request: User with ID {UserID} is not exists");
-            }
-            genres = clsUsers.GetTop5GenresUserInterstIn(UserID);
-            if (genres.Count < 1)
-            {
-                return NotFound($"Not Found: No genres found for user with ID {UserID} Check Favorate movies");
-            }
-            return Ok(genres);
-        }
-
-        [HttpGet("GetAllGenresThatUserInterstOn/{UserID}", Name = "GetAllGenresThatUserInterstOn")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<List<string>> GetAllGenresThatUserInterstOn(int UserID)
-        {
-            if(UserID < 1)
-            {
-                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
-            }
-            if (!clsUsers.IsUserExist(UserID))
-            {
-                return NotFound($"Bad Request: User with ID {UserID} is not exists");
-            }
-            List<string> genres = clsUsers.GetAllGenresThatUserInterstOn(UserID);
-
-            if (genres == null || genres.Count == 0)
-            {
-                return NotFound($"Not Found: No genres found for user with ID {UserID} Check Favorate movies");
-            }
-
-            return Ok(genres);
-        }
-
-        [HttpPost("AddMovieToSearchingList", Name = "AddMovieToSearchingList")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult AddMovieToSearchingList([FromBody] clsUserAndMovieID searchingListRequest)
-        {
-            string errorMessage = string.Empty;
-            if (!clsUserValidations.CheckUserAndMovieInputs(searchingListRequest, ref errorMessage))
-            {
-                return BadRequest(errorMessage);
-            }
-
-            int MovieID = searchingListRequest.MovieID;
-            int UserID = searchingListRequest.UserID;
-            
-            if (!clsUsers.AddMovieToSearchingList(MovieID, UserID))
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Movie not added to searching list");
-            }
-            return Ok("Movie added to searching list successfully");
-        }
-
-        [HttpPost("AddMovieToWatchingList", Name = "AddMovieToWatchingList")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult AddMovieToWatchingList([FromBody] clsUserAndMovieID watchingListRequest, bool AddedToFavorate = false)
-        {
-            string errorMessage = string.Empty;
-            if(!clsUserValidations.CheckUserAndMovieInputs(watchingListRequest, ref errorMessage))
-            {
-                return BadRequest(errorMessage);
-            }
-
-            int MovieID = watchingListRequest.MovieID;
-            int UserID = watchingListRequest.UserID;
-            string message = string.Empty;
-
-            if (!clsUsers.AddMovieToWatchingList(MovieID, UserID, AddedToFavorate, ref message))
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, message);
-            }
-            return Ok("Movie added to watching list successfully");
-        }
-
-        [HttpGet("CheckIfMovieIsWatched", Name = "CheckIfMovieIsWatched")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult CheckIfMovieIsWatchedByUser([FromQuery] clsUserAndMovieID userAndMovieID)
-        {
-            string errorMessage = string.Empty;
-            if (!clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
-            {
-                return BadRequest(errorMessage);
-            }
-            int MovieID = userAndMovieID.MovieID;
-            int UserID = userAndMovieID.UserID;
-            if (clsUsers.CheckIfMovieInWatchedList(MovieID, UserID))
-            {
-                return BadRequest($"This Movie With ID {MovieID} Is already Watched");
-            }
-            return Ok();
-        }
-
+        
         [HttpDelete("RemoveMovieFromWatchedList", Name = "RemoveMovieFromWatchedList")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -725,52 +874,6 @@ namespace MovieRecommendationAPI.Controllers
             return Ok("Movie removed from watched list successfully");
         }
 
-        [HttpGet("GetAllFavorateMoviesforUser", Name = "GetAllFavorateMoviesforUser")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-
-        public ActionResult<List<MovieDTO>> GetAllFavorateMoviesforUser(int UserID)
-        {
-            if (UserID < 1)
-            {
-                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
-            }
-            if (!clsUsers.IsUserExist(UserID))
-            {
-                return NotFound($"Bad Request: User with ID {UserID} is not exists");
-            }
-            List<MovieDTO> movies = clsUsers.GetAllFavorateMoviesForUser(UserID);
-            if (movies == null || movies.Count == 0)
-            {
-                return NotFound($"Not Found: No movie found for user with ID {UserID}");
-            }
-            return Ok(movies);
-        }
-
-        [HttpGet("CheckIfMovieIsFavorate", Name = "CheckIfMovieIsFavorate")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult CheckIfMovieIsFavorateForUser([FromQuery] clsUserAndMovieID userAndMovieID)
-        {
-            string errorMessage = string.Empty;
-            if (!clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
-            {
-                return BadRequest(errorMessage);
-            }
-            int MovieID = userAndMovieID.MovieID;
-            int UserID = userAndMovieID.UserID;
-
-            if(!clsUsersData.CheckIfMovieIsFavorateForUser(MovieID, UserID))
-            {
-                return BadRequest($"This Movie With ID {MovieID} Is Not Favorate");
-            }
-
-            return Ok("Movie is in the favorate list");
-        }
-        
         [HttpDelete("RemoveMovieFromFavorateList", Name = "RemoveMovieFromFavorateList")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -793,108 +896,8 @@ namespace MovieRecommendationAPI.Controllers
             return Ok("Movie removed from favorate list successfully");
         }
 
-        [HttpGet("SendCodeToUserEmail/{Username}", Name = "SendCodeToUserEmail")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<string>> SendCodeToUserEmail(string Username)
-        {
-            if (String.IsNullOrEmpty(Username))
-            {
-                return BadRequest("Bad Request: Username is empty");
-            }
-            if (!clsUsers.IsUserExist(Username))
-            {
-                return NotFound($"Not Found: User with username {Username} is not exists");
-            }
-
-            clsUsers user = clsUsers.Find(Username);
-            if (user == null)
-            {
-                return NotFound($"Not Found: User with username {Username} is not found");
-            }
-            if (!clsUsers.IsUserActive(user.UserID))
-            {
-                return BadRequest($"Bad Request: User with username {Username} is not active");
-            }
-            if (String.IsNullOrEmpty(user.Email))
-            {
-                return BadRequest($"Bad Request: User with username {Username} has no email. Please call your admin");
-            }
-
-            // Generate a random 6-digit code
-            Random random = new Random();
-            string code = random.Next(100000, 999999).ToString();
-
-            if (String.IsNullOrEmpty(code))
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Code not sent");
-            }
-
-            // Prepare the email content
-            string subject = "Password Reset Code";
-            string body = $"Your password reset code is: {code}";
-
-            // Send the email
-            await _emailService.SendEmailAsync(user.Email, subject, body);
-
-            return Ok(code);
-        }
-
-        [HttpPost("AddReportAboutMovie", Name = "AddReportAboutMovie")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult AddReportAboutMovie([FromBody]clsReportAboutMovie reportAboutMovie)
-        {
-            if (reportAboutMovie == null)
-            {
-                return BadRequest("Bad Request: Report about movie is null");
-            }
-            string message = string.Empty;
-            if (!clsUserValidations.CheckUserAndMovieInputs(reportAboutMovie.UserAndMovieID, ref message))
-            {
-                return BadRequest(message);
-            }
-
-            int MovieID = reportAboutMovie.UserAndMovieID.MovieID;
-            int UserID = reportAboutMovie.UserAndMovieID.UserID;
-            string ReportMessage = reportAboutMovie.ReportMessage;
-            clsUsers.enReportType ReportType = reportAboutMovie.ReportTypeEnum;
-
-            if (!clsUsers.AddNewReport(UserID,MovieID,ReportMessage,ReportType))
-            {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Report not added");
-            }
-
-            return Ok("Report added successfully");
-        }
-
-        [HttpGet("GetAllFavorateMoviesNameForUser/{UserID}", Name = "GetAllFavorateMoviesNameForUser")]
-        [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<List<string>> GetAllFavorateMoviesNameForUser(int UserID)
-        {
-            if (UserID < 1)
-            {
-                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
-            }
-            if (!clsUsers.IsUserExist(UserID))
-            {
-                return NotFound($"Bad Request: User with ID {UserID} is not exists");
-            }
-            List<string> movies = clsUsers.GetAllFavorateMoviesNameForUser(UserID);
-            if (movies == null || movies.Count == 0)
-            {
-                return NotFound($"Not Found: No movie found for user with ID {UserID}");
-            }
-            return Ok(movies);
-        }
-
+        
+        
 
         // End Users API
     }

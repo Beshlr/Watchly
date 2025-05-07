@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Browse Movies | Movie Recommender</title>
+    <title>Browse Movies | Watchly</title>
     <meta name="description" content="Browse movies by genre, year, rating and more">
     <!-- CSS -->
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
@@ -63,92 +63,92 @@
         <div class="row">
             <!-- Filters Sidebar -->
             <aside class="col-lg-3 col-md-4 mb-4">
-            <div class="sticky-top filters_sidebar">
-                <div class="card shadow-sm">
-                    <div class="card-header bg-primary text-white">
-                        <h5 class="mb-0">Filters</h5>
-                    </div>
-                    <div class="card-body">
-                        <!-- Genre Filter -->
-                        <div class="mb-4">
-                            <h6 class="mb-3">Genres</h6>
-                            <div class="genres-scrollable">
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="action" checked>
-                                    <label class="form-check-label" for="action">Action</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="comedy" checked>
-                                    <label class="form-check-label" for="comedy">Comedy</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="drama" checked>
-                                    <label class="form-check-label" for="drama">Drama</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="sci-fi" checked>
-                                    <label class="form-check-label" for="sci-fi">Sci-Fi</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="horror">
-                                    <label class="form-check-label" for="horror">Horror</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="romance">
-                                    <label class="form-check-label" for="romance">Romance</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="thriller">
-                                    <label class="form-check-label" for="thriller">Thriller</label>
-                                </div>
-                                <div class="form-check">
-                                    <input class="form-check-input" type="checkbox" id="animation">
-                                    <label class="form-check-label" for="animation">Animation</label>
+                <div class="filters-container">
+                    <div class="card shadow-sm">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">Filters</h5>
+                        </div>
+                        <div class="card-body filters-body">
+                            <!-- Genre Filter -->
+                            <div class="mb-4">
+                                <h6 class="mb-3">Genres</h6>
+                                <div class="genres-scrollable">
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="action" checked>
+                                        <label class="form-check-label" for="action">Action</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="comedy" checked>
+                                        <label class="form-check-label" for="comedy">Comedy</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="drama" checked>
+                                        <label class="form-check-label" for="drama">Drama</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="sci-fi" checked>
+                                        <label class="form-check-label" for="sci-fi">Sci-Fi</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="horror">
+                                        <label class="form-check-label" for="horror">Horror</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="romance">
+                                        <label class="form-check-label" for="romance">Romance</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="thriller">
+                                        <label class="form-check-label" for="thriller">Thriller</label>
+                                    </div>
+                                    <div class="form-check">
+                                        <input class="form-check-input" type="checkbox" id="animation">
+                                        <label class="form-check-label" for="animation">Animation</label>
+                                    </div>
                                 </div>
                             </div>
-                        </div>
 
-                        <!-- Year Range Filter -->
-                        <div class="mb-4">
-                            <h6 class="mb-3">Start Year</h6>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span id="yearMinValue">1980</span>
-                                <span id="startYearMaxValue">2021</span>
+                            <!-- Year Range Filter -->
+                            <div class="mb-4">
+                                <h6 class="mb-3">Start Year</h6>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span id="yearMinValue">1980</span>
+                                    <span id="startYearMaxValue">2021</span>
+                                </div>
+                                <input type="range" class="form-range" min="1980" max="2025" step="1" id="startYear" value="2021">
+                                
+                                <h6 class="mb-3">End Year</h6>
+                                <div class="d-flex justify-content-between mb-2">
+                                    <span id="yearMinValue">1980</span>
+                                    <span id="endYearMaxValue">2025</span>
+                                </div>
+                                <input type="range" class="form-range" min="1980" max="2025" step="1" id="endYear" value="2025">
                             </div>
-                            <input type="range" class="form-range" min="1980" max="2025" step="1" id="startYear" value="2021">
-                            
-                            <h6 class="mb-3">End Year</h6>
-                            <div class="d-flex justify-content-between mb-2">
-                                <span id="yearMinValue">1980</span>
-                                <span id="endYearMaxValue">2025</span>
+
+                            <!-- Rating Filter -->
+                            <div class="mb-4">
+                                <h6 class="mb-3">Minimum Rating</h6>
+                                <div class="d-flex align-items-center">
+                                    <input type="range" class="form-range me-3" min="0" max="10" step="0.1" id="ratingRange" value="6">
+                                    <span id="ratingValue">6.0</span>
+                                </div>
                             </div>
-                            <input type="range" class="form-range" min="1980" max="2025" step="1" id="endYear" value="2025">
-                        </div>
 
-                        <!-- Rating Filter -->
-                        <div class="mb-4">
-                            <h6 class="mb-3">Minimum Rating</h6>
-                            <div class="d-flex align-items-center">
-                                <input type="range" class="form-range me-3" min="0" max="10" step="0.1" id="ratingRange" value="6">
-                                <span id="ratingValue">6.0</span>
+                            <!-- Sort Options -->
+                            <div class="mb-3">
+                                <h6 class="mb-3">Sort By</h6>
+                                <select class="form-select" id="sortBy">
+                                    <option value="rating">Rating</option>
+                                    <option value="newest">Newest First</option>
+                                    <option value="oldest">Oldest First</option>
+                                </select>
                             </div>
-                        </div>
 
-                        <!-- Sort Options -->
-                        <div class="mb-3">
-                            <h6 class="mb-3">Sort By</h6>
-                            <select class="form-select" id="sortBy">
-                                <option value="rating">Rating</option>
-                                <option value="newest">Newest First</option>
-                                <option value="oldest">Oldest First</option>
-                            </select>
+                            <button class="btn btn-primary w-100" id="applyFilters">Apply Filters</button>
+                            <button class="btn btn-outline-secondary w-100 mt-2" id="resetFilters">Reset</button>
                         </div>
-
-                        <button class="btn btn-primary w-100" id="applyFilters">Apply Filters</button>
-                        <button class="btn btn-outline-secondary w-100 mt-2" id="resetFilters">Reset</button>
                     </div>
                 </div>
-            </div>
             </aside>
 
             <!-- Movies Grid -->
@@ -195,11 +195,11 @@
     </main>
 
     <!-- Footer -->
-    <footer class="bg-dark text-white py-4 mt-4 footer_position">
+    <footer class="bg-dark text-white py-4">
         <div class="container">
             <div class="row g-4">
                 <div class="col-md-4">
-                    <h5 class="mb-3">MovieRecommender</h5>
+                    <h5 class="mb-3">Watchly</h5>
                     <p class="mb-0">Discover movies you'll love</p>
                 </div>
                 <div class="col-md-4">
@@ -221,7 +221,7 @@
             </div>
             <hr class="my-4">
             <div class="text-center">
-                <p class="mb-0">&copy; 2025 MovieRecommender. All rights reserved.</p>
+                <p class="mb-0">&copy; 2025 Watchly. All rights reserved.</p>
             </div>
         </div>
     </footer>
@@ -229,6 +229,32 @@
     <!-- JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/slider-range@1.0.0/dist/slider-range.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // تحديث قيم الـ Range في الوقت الحقيقي
+            const startYearSlider = document.getElementById('startYear');
+            const endYearSlider = document.getElementById('endYear');
+            const ratingSlider = document.getElementById('ratingRange');
+            
+            if (startYearSlider) {
+                startYearSlider.addEventListener('input', function() {
+                    document.getElementById('startYearMaxValue').textContent = this.value;
+                });
+            }
+            
+            if (endYearSlider) {
+                endYearSlider.addEventListener('input', function() {
+                    document.getElementById('endYearMaxValue').textContent = this.value;
+                });
+            }
+            
+            if (ratingSlider) {
+                ratingSlider.addEventListener('input', function() {
+                    document.getElementById('ratingValue').textContent = this.value;
+                });
+            }
+        });
+    </script>
     <script src="../js/script_movies.js"></script>
 </body>
 </html>
