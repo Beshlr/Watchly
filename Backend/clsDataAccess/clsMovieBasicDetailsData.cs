@@ -19,7 +19,7 @@ namespace clsDataAccess
 
         public MovieDTO(int iD, string movieName, int year, float rate, string posterImageURL,
             string trailerURL, string contentRating, string duration, string language,
-            string country, float aspectRatio, string genre, string iMDbMovieURL, string keywords="")
+            string country, float aspectRatio, string genre, string iMDbMovieURL, string keywords="", int popularity = -1)
         {
 
             ID = iD;
@@ -36,6 +36,7 @@ namespace clsDataAccess
             Genre = genre;
             IMDbMovieURL = iMDbMovieURL;
             Keywords = keywords;
+            Popularity = popularity;
         }
 
         public int ID { get; set; }
@@ -71,7 +72,7 @@ namespace clsDataAccess
         public string Genre { get; set; }
         public string IMDbMovieURL { get; set; }
         public string Keywords { get; set; }
-
+        public int Popularity { get; set; }
         public override bool Equals(object obj)
         {
             if (obj is not MovieDTO other)
@@ -177,22 +178,39 @@ namespace clsDataAccess
             return MDTO;
         }
 
-        public static bool IsMovieExist(string MovieName)
+        public static bool IsMovieExist(string MovieName,int Year, ref int MovieID)
         {
             bool IsExist = false;
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                string query = "Select Found=1 From vw_MovieBasicInfo Where movie_title = @MovieName";
-                using (SqlCommand cmd = new SqlCommand(query, connection))
+                using (SqlCommand cmd = new SqlCommand("SP_CheckIfMovieExists", connection))
                 {
+                    cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@MovieName", MovieName);
-                    connection.Open();
-                    object result = cmd.ExecuteScalar();
-                    if (result != null && result != DBNull.Value)
+                    cmd.Parameters.AddWithValue("@Year", Year);
+                    var MovieIDParam = new SqlParameter("@MovieID", SqlDbType.Int)
                     {
-                        IsExist = true;
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(MovieIDParam);
+                    var ReturnValue = new SqlParameter("@ReturnValue", SqlDbType.Int)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(ReturnValue);
+
+                    connection.Open();
+                    cmd.ExecuteNonQuery();
+                    IsExist = (int)ReturnValue.Value == 1;
+                    if (IsExist)
+                    {
+                        MovieID = (int)MovieIDParam.Value;
                     }
-                   
+                    else
+                    {
+                        MovieID = -1;
+                    }
+
                 }
             }
             return IsExist;

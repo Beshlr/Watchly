@@ -150,9 +150,9 @@ namespace clsBusinessLayer
             return clsMovieBasicDetailsData.GetTop100MovieBetweenTwoYearsWithGenreAndOrderRating(OrderValue, StartYear, EndYear, GenresList, MinRatingValue,SortBy);
         }
 
-        public static bool IsMovieExist(string MovieName)
+        public static bool IsMovieExist(string MovieName,int Year, ref int MovieID)
         {
-            return clsMovieBasicDetailsData.IsMovieExist(MovieName);
+            return clsMovieBasicDetailsData.IsMovieExist(MovieName, Year, ref MovieID);
         }
 
         public static bool IsMovieExist(int MovieID)

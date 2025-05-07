@@ -214,13 +214,34 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(movies);
         }
 
+        [HttpPost("CheckIfMovieExist", Name = "CheckIfMovieExist")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<MovieDTO> CheckIfMovieExist([FromBody]clsFindMovie findMovieDetails)
+        {
+            if(String.IsNullOrEmpty(findMovieDetails.MovieName) || findMovieDetails.Year < 1900 || findMovieDetails.Year > DateTime.Now.Year)
+            {
+                return BadRequest("Bad Request: Movie name or year is not valid");
+            }
+            int MovieID = -1;
+            if (clsMoviePasicDetails.IsMovieExist(findMovieDetails.MovieName, findMovieDetails.Year, ref MovieID))
+            {
+                MovieDTO movie = clsMoviePasicDetails.GetMovieByID(MovieID);
+                return Ok(movie);
+            }
+
+            return NotFound($"Not Found: This Movie is not exists");
+        }
+
         [HttpPost("AddNewMovie", Name = "AddNewMovie")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult<MovieDTO> AddNewMovie([FromBody]MovieDTO movie)
         {
-            if (clsMoviePasicDetails.IsMovieExist(movie.MovieName))
+            int MovieID = -1;
+            if (clsMoviePasicDetails.IsMovieExist(movie.MovieName,movie.Year, ref MovieID))
             {
                 return BadRequest($"Bad Request: Movie with name {movie.MovieName} is already exists");
             }
@@ -1115,5 +1136,12 @@ namespace MovieRecommendationAPI.Controllers
         public string Username { get; set; }
         public string OldPassword { get; set; }
         public string NewPassword { get; set; }
+    }
+
+    public class clsFindMovie
+    {
+        public string MovieName { get; set; }
+        public int Year { get; set; }
+
     }
 }
