@@ -60,42 +60,46 @@ async function loadFavoriteGenresMovies(userId) {
         genreTabs.innerHTML = '';
         genreSectionsContainer.innerHTML = '';
         
-        genres.forEach((genre, index) => {
+        genres.forEach((genreDisplay, index) => {
+            let genreId = genreDisplay === 'Science Fiction' ? 'Sci_Fi' : `genre-${genreDisplay.replace(/\s+/g, '-').toLowerCase()}`;
+        
             const tab = document.createElement('div');
             tab.className = `genre-tab ${index === 0 ? 'active' : ''}`;
-            tab.textContent = genre;
-            tab.dataset.genre = genre;
-            tab.onclick = () => switchGenreTab(genre);
+            tab.textContent = genreDisplay;
+            tab.dataset.genre = genreDisplay;
+            tab.dataset.genreId = genreId;
+            tab.style.cursor = 'pointer';
+            tab.style.transition = '0.3s';
+            tab.onclick = () => switchGenreTab(genreDisplay);
             genreTabs.appendChild(tab);
-            
-            // إنشاء قسم الأفلام لهذا النوع
+        
             const section = document.createElement('div');
             section.className = `genre-section ${index === 0 ? 'active' : ''}`;
-            section.id = `genre-${genre.replace(/\s+/g, '-')}`;
-            
+            section.id = genreId;
+        
             section.innerHTML = `
                 <div class="movie-container">
-                    <button class="scroll-btn left" onclick="scrollSection('${section.id}-movies', -1)">
+                    <button class="scroll-btn left" onclick="scrollSection('${genreId}-movies', -1)">
                         <i class="bi bi-chevron-left"></i>
                     </button>
-                    <div class="movie-grid" id="${section.id}-movies">
+                    <div class="movie-grid" id="${genreId}-movies">
                         <div class="text-center py-5" style="min-width: 100%;">
                             <div class="spinner-border text-primary" role="status">
                                 <span class="visually-hidden">Loading...</span>
                             </div>
                         </div>
                     </div>
-                    <button class="scroll-btn right" onclick="scrollSection('${section.id}-movies', 1)">
+                    <button class="scroll-btn right" onclick="scrollSection('${genreId}-movies', 1)">
                         <i class="bi bi-chevron-right"></i>
                     </button>
                 </div>
             `;
-            
+        
             genreSectionsContainer.appendChild(section);
-            
-            // جلب الأفلام لهذا النوع
-            loadMoviesForGenre(genre, `${section.id}-movies`);
-        });
+        
+            // تحميل الأفلام
+            loadMoviesForGenre(genreDisplay === 'Science Fiction' ? 'Sci_Fi' : genreDisplay, `${genreId}-movies`);
+        });        
     } catch (error) {
         console.error('Error loading favorite genres:', error);
         document.getElementById('genreSectionsContainer').innerHTML = `
@@ -107,14 +111,17 @@ async function loadFavoriteGenresMovies(userId) {
 }
 
 function switchGenreTab(genre) {
+    const genreId = genre === 'Science Fiction' ? 'Sci_Fi' : `genre-${genre.replace(/\s+/g, '-').toLowerCase()}`;
+    
     document.querySelectorAll('.genre-tab').forEach(tab => {
         tab.classList.toggle('active', tab.dataset.genre === genre);
     });
-    
+
     document.querySelectorAll('.genre-section').forEach(section => {
-        section.classList.toggle('active', section.id === `genre-${genre.replace(/\s+/g, '-')}`);
+        section.classList.toggle('active', section.id === genreId);
     });
 }
+
 
 async function loadMoviesForGenre(genre, containerId) {
     try {
