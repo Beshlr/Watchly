@@ -12,8 +12,8 @@
 #statusMessage.show {
     display: block !important;
 }
+
 /* Push footer to the bottom */
-/* Ensure footer stays at the bottom */
 body {
     display: flex;
     flex-direction: column;
@@ -72,39 +72,47 @@ footer {
     color: #41464b;
 }
 
-.permission-owner {
-    background-color: #D4AF37;
-    color: white;
-    transition: 0.3s;
-    position: relative;
-    overflow: hidden;
-}
+
 
 .permission-owner:hover {
     background-color: #B5942D;
     transform: scale(1.05);
 }
 
+.permission-owner {
+    background-color: #D4AF37;
+    color: white;
+    transition: 0.3s;
+    position: relative;
+    overflow: hidden;
+    padding-right: 8px;
+    display: inline-flex;
+    --owner-width: 90px;
+}
+
 .permission-owner::after {
     content: "";
     position: absolute;
     height: 100%;
-    width: 3px;
-    background-color: rgba(255, 255, 255, 0.6);
+    width: 20px; /* زيادة عرض الخط */
+    background: linear-gradient(90deg, 
+        rgba(255,255,255,0) 0%, 
+        rgba(255,255,255,0.8) 50%, 
+        rgba(255,255,255,0) 100%);
     top: 0;
     left: 0;
-    animation: moveTheOwnerLine 7s linear infinite;
+    animation: moveTheOwnerLine 5s forwards infinite;
+    transform: translateX(-100%); 
 }
 
 @keyframes moveTheOwnerLine {
-    0%, 100% {
-        transform: translateX(0%);
+    0%,100% {
+        transform: translateX(-20px);
     }
     50% {
-        transform: translateX(55px);
+        transform: translateX(var(--owner-width));
     }
 }
-
 
 .action-buttons .btn {
     margin-right: 0.25rem;
@@ -127,7 +135,10 @@ footer {
 }
 
 footer {
+    background-color: #343a40;
+    z-index: 10;
+}
 
-    background-color: #343a40; /* Match your footer color */
-    z-index: 10; /* Ensure it stays above other elements */
+.current-user-row {
+    background-color: rgba(13, 110, 253, 0.1) !important;
 }

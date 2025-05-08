@@ -867,11 +867,20 @@ namespace MovieRecommendationAPI.Controllers
             {
                 return NotFound($"Not Found: User with id {UserID} is not found");
             }
-
+            if(userToDelete.Permissions == 3)
+            {
+                return BadRequest($"User with id {UserID} is an Owner and cannot be deleted");
+            }
+            
             clsUsers deletedByUser = clsUsers.Find(DeletedByUserID);
             if (deletedByUser == null)
             {
                 return NotFound($"Not Found: Admin user with id {DeletedByUserID} is not found");
+            }
+
+            if(deletedByUser.Permissions != 3 && userToDelete.Permissions == 2)
+            {
+                return BadRequest($"User with id {DeletedByUserID} is not an Owner and cannot delete Admins");
             }
 
             if (!clsUsers.DeleteUser(UserID,DeletedByUserID))
