@@ -13,9 +13,7 @@ document.addEventListener('DOMContentLoaded', function() {
             localStorage.removeItem('loggedInUser');
             window.location.href = 'login.html';
         };
-        if (user && user.permissions === 1 || user.permissions === 3) {
-            document.getElementById('manageUsersNavItem').style.display = 'block';
-        }
+        
     }
     // Show Manage Users link only for admins
 
@@ -23,7 +21,7 @@ document.addEventListener('DOMContentLoaded', function() {
     loadMovies('GetTop100MovieWithGenre?GenreName=Sci_FI', 'popularMovies');
     
     // Load recommended movies (using user ID 1 for demo)
-    loadMovies('GetRecommandedMovies/1', 'recommendedMovies');
+    loadMovies(`GetRecommandedMovies/${user.id}`, 'recommendedMovies');
     if (user) {
         document.getElementById('welcomeText').innerText = `Welcome, ${user.username}!`;
     }
@@ -205,7 +203,21 @@ document.addEventListener('DOMContentLoaded', function() {
                 resultsContainer.style.display = 'block';
             });
     }
-    
+    function showStatusMessage(message, type) {
+        statusMessage.textContent = message;
+        statusMessage.className = `alert alert-${type} show`;
+        statusMessage.style.display = 'block';
+
+        setTimeout(() => {
+            statusMessage.classList.remove('show');
+            statusMessage.style.opacity = '0';
+            setTimeout(() => {
+                statusMessage.textContent = '';
+                statusMessage.style.display = 'none';
+                statusMessage.style.opacity = '1';
+            }, 300);
+        }, 3000);
+    }
     function showSearchResults(movies) {
         const resultsContainer = document.getElementById('searchResults');
         

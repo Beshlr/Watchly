@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
     let favoriteMovies = null; 
 
+    
+
     // Check authentication and update UI
     if (userJson) {
         const user = JSON.parse(userJson);
@@ -19,9 +21,9 @@ document.addEventListener('DOMContentLoaded', () => {
             window.location.href = 'login.html';
         };
         
-        if (user && (user.permissions === 1 || user.permissions === 3)) {
-            document.getElementById('manageUsersNavItem').style.display = 'block';
-        }
+        
+        
+
     } else {
         alert('You are not logged in. Redirecting to login page...');
         window.location.href = 'login.html';
@@ -512,6 +514,22 @@ document.addEventListener('click', function(e) {
         searchResults.style.display = 'none';
     }
 });
+
+function showStatusMessage(message, type) {
+    statusMessage.textContent = message;
+    statusMessage.className = `alert alert-${type} show`;
+    statusMessage.style.display = 'block';
+
+    setTimeout(() => {
+        statusMessage.classList.remove('show');
+        statusMessage.style.opacity = '0';
+        setTimeout(() => {
+            statusMessage.textContent = '';
+            statusMessage.style.display = 'none';
+            statusMessage.style.opacity = '1';
+        }, 300);
+    }, 3000);
+}
 
 function showLoadingState() {
     const moviesGrid = document.getElementById('moviesGrid');

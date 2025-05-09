@@ -6,6 +6,7 @@ using MovieRecommendations_DataAccess;
 using System.Security.Cryptography;
 using clsDataAccess;
 using System.Reflection.Metadata.Ecma335;
+using Microsoft.Identity.Client;
 namespace MovieRecommendations_DataLayer
 {
 #nullable enable
@@ -69,6 +70,8 @@ namespace MovieRecommendations_DataLayer
         public byte Permissions { get; set; }
         public DateTime DateOfBirth { get; set; }
     }
+
+    
 
     public class clsUsersData
     {
@@ -177,6 +180,27 @@ namespace MovieRecommendations_DataLayer
 
         }
 
+        public static List<string> GetAllUsernames()
+        {
+            List<string> usernames = new List<string>();
+            using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand command = new SqlCommand("SP_GetAllUsersname", connection))
+                {
+                    command.CommandType = CommandType.StoredProcedure;
+                    connection.Open();
+                    using (SqlDataReader reader = command.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            usernames.Add((string)reader["Username"]);
+                        }
+                    }
+                }
+            }
+            return usernames;
+        }
+
         public static int AddNewUsers(AddUserInfoDTO userInfo)
         {
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -235,7 +259,7 @@ namespace MovieRecommendations_DataLayer
             return true;
         }
 
-        public static bool UpdateUsersByID(UserBasicInfoDTO userDTO)
+        public static bool UpdateUsersByID(UserBasicInfoDTO userDTO, int UpdatedByUserID = 22)
         {
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -251,6 +275,7 @@ namespace MovieRecommendations_DataLayer
                     command.Parameters.AddWithValue("@IsActive", userDTO.IsAcive);
                     command.Parameters.AddWithValue("@Permissions", userDTO.Permissions);
                     command.Parameters.AddWithValue("@DateOfBirth", userDTO.DateOfBirth);
+                    command.Parameters.AddWithValue("@UpdatedByUserID", UpdatedByUserID);
 
                     var ReturnValue = new SqlParameter("@ReturnValue", SqlDbType.Int);
                     ReturnValue.Direction = ParameterDirection.ReturnValue;
@@ -487,7 +512,7 @@ namespace MovieRecommendations_DataLayer
             return false;
         }
         public static bool DeleteUsers(int UserID)
-{
+        {
             int rowsAffected = 0;
 
             using (SqlConnection connection = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -511,7 +536,31 @@ namespace MovieRecommendations_DataLayer
     
             return (rowsAffected > 0);
 
-}
+        }
+            
+        public static List<MovieDTO> GetAllSearchedMoviesForUser(int UserID)
+        {
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_GetAllSearchedMoviesForUser", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    con.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        List<MovieDTO> MDTOs = new List<MovieDTO>();
+                        while (reader.Read())
+                        {
+                            MovieDTO MDTO =
+                            clsMovieBasicDetailsData.GetMovieByID(reader.GetInt32(reader.GetOrdinal("MovieID")));
+                            MDTOs.Add(MDTO);
+                        }
+                        return MDTOs;
+                    }
+                }
+            }
+        }
         
         public static bool AddMovieToSearchingList(int MovieID, int UserID)
         {
@@ -528,6 +577,7 @@ namespace MovieRecommendations_DataLayer
                     {
                         Direction = ParameterDirection.Output
                     };
+                    cmd.Parameters.Add(SearchingID);
                     con.Open();
                     try
                     {
@@ -541,6 +591,55 @@ namespace MovieRecommendations_DataLayer
                 }
             }
             return IsAdded;
+        }
+
+        public static bool CheckIfMovieInSearchingList(int MovieID, int UserID)
+        {
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_CheckIfMovieInSearchingList", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    cmd.Parameters.AddWithValue("@MovieID", MovieID);
+                    var ReturnParam = new SqlParameter("@ReturnValue", SqlDbType.Int)
+                    {
+                        Direction = ParameterDirection.ReturnValue
+                    };
+                    cmd.Parameters.Add(ReturnParam);
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                    return (int)ReturnParam.Value == 1;
+                }
+            }
+        }
+
+        public static bool RemoveMovieFromSearchingList(int MovieID, int UserID)
+        {
+            bool IsDeleted = false;
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_RemoveMovieFromSearchingList", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@MovieID", MovieID);
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    var ReturnValue = new SqlParameter("@ReturnValue", SqlDbType.Int);
+                    ReturnValue.Direction = ParameterDirection.ReturnValue;
+                    cmd.Parameters.Add(ReturnValue);
+                    con.Open();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        IsDeleted = ((int)ReturnValue.Value == 1);
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error ", ex.Message);
+                    }
+                }
+            }
+            return IsDeleted;
         }
 
         public static List<string> GetAllFavorateMoviesNameForUser(int UserID)
@@ -566,6 +665,31 @@ namespace MovieRecommendations_DataLayer
             return moviesName;
         }
 
+        public static List<MovieDTO> GetAllWatchedMoviesForUser(int UserID)
+        {
+            using(SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_GetAllWatchedMoviesForUser", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    con.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        List<MovieDTO> MDTOs = new List<MovieDTO>();
+                        while (reader.Read())
+                        {
+                            MovieDTO MDTO =
+                            clsMovieBasicDetailsData.GetMovieByID(reader.GetInt32(reader.GetOrdinal("MovieID")));
+
+                            MDTOs.Add(MDTO);
+                        }
+                        return MDTOs;
+                    }
+                }
+            }
+        }
+        
         public static bool AddMovieToWatchingList(int MovieID, int UserID, bool AddToFavorate,ref string message)
         {
             bool IsAdded = false;
@@ -918,6 +1042,125 @@ namespace MovieRecommendations_DataLayer
                     cmd.Parameters.AddWithValue("@MovieID", MovieID);
                     cmd.Parameters.AddWithValue("@ReportMessage", ReportMessage);
                     cmd.Parameters.AddWithValue("@ReportType", ReportType);
+                    var ReturnParam = new SqlParameter("@ReturnValue", SqlDbType.Int)
+                    {
+                        Direction = ParameterDirection.ReturnValue
+                    };
+                    cmd.Parameters.Add(ReturnParam);
+                    con.Open();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        return (int)ReturnParam.Value == 1;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error ", ex.Message);
+                        return false;
+                    }
+                }
+            }
+        }
+
+        public static bool AddMovieToUnlikeList(int UserID,int MovieID)
+        {
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_AddMovieToUnlikeList", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    cmd.Parameters.AddWithValue("@MovieID", MovieID);
+                    cmd.Parameters.AddWithValue("@AddedAtDate", DateTime.Now);
+                    var InsertedID = new SqlParameter("@InsertedID", SqlDbType.Int)
+                    {
+                        Direction = ParameterDirection.Output
+                    };
+                    cmd.Parameters.Add(InsertedID);
+                    var ReturnParam = new SqlParameter("@ReturnValue", SqlDbType.Int)
+                    {
+                        Direction = ParameterDirection.ReturnValue
+                    };
+                    cmd.Parameters.Add(ReturnParam);
+                    con.Open();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        return (int)ReturnParam.Value == 1;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error ", ex.Message);
+                        return false;
+                    }
+                }
+            }
+        }
+
+        public static List<MovieDTO> GetAllUnlikedMoviesToUser(int UserID)
+        {
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_GetAllUnlikedMoviesToUser", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    con.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        List<MovieDTO> MDTOs = new List<MovieDTO>();
+                        while (reader.Read())
+                        {
+                            MovieDTO MDTO = 
+                            clsMovieBasicDetailsData.GetMovieByID(reader.GetInt32(reader.GetOrdinal("MovieID")));
+                            
+                            MDTOs.Add(MDTO);
+                        }
+                        return MDTOs;
+                    }
+                }
+            }
+
+        }
+    
+        public static bool CheckIfMovieInUnlikedList (int UserID, int MovieID)
+        {
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_CheckIfMovieInUnlikedList", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    cmd.Parameters.AddWithValue("@MovieID", MovieID);
+                    var ReturnParam = new SqlParameter("@ReturnValue", SqlDbType.Int)
+                    {
+                        Direction = ParameterDirection.ReturnValue
+                    };
+                    cmd.Parameters.Add(ReturnParam);
+                    con.Open();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        return (int)ReturnParam.Value == 1;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error ", ex.Message);
+                        return false;
+                    }
+                }
+            }
+        }
+    
+        public static bool DeleteMovieFromUnlikedList(int MovieID, int UserID)
+        {
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_DeleteMovieFromUnlikedList", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    cmd.Parameters.AddWithValue("@MovieID", MovieID);
                     var ReturnParam = new SqlParameter("@ReturnValue", SqlDbType.Int)
                     {
                         Direction = ParameterDirection.ReturnValue

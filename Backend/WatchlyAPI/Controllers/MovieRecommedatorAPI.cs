@@ -218,7 +218,7 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<MovieDTO> CheckIfMovieExist([FromBody]clsFindMovie findMovieDetails)
+        public ActionResult<MovieDTO> CheckIfMovieExist([FromBody]HelperClasses.clsFindMovie findMovieDetails)
         {
             if(String.IsNullOrEmpty(findMovieDetails.MovieName) || findMovieDetails.Year < 1900 || findMovieDetails.Year > DateTime.Now.Year)
             {
@@ -249,7 +249,7 @@ namespace MovieRecommendationAPI.Controllers
 
             string message = string.Empty;
 
-            if (!clsMovieValidations.CheckMovieInputs(movieDTO, ref message))
+            if (!HelperClasses.clsMovieValidations.CheckMovieInputs(movieDTO, ref message))
             {
                 return BadRequest(movie);
 
@@ -341,6 +341,20 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(users);
         }
 
+        [HttpGet("GetAllUsernames", Name = "GetAllUsernames")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<List<string>> GetAllUsernames()
+        {
+            List<string> usernames = clsUsers.GetAllUsernames();
+            if (usernames == null || usernames.Count == 0)
+            {
+                return NotFound("Not Found: No user found");
+            }
+            return Ok(usernames);
+        }
+
         [HttpGet("GetAllGenresThatUserInterstOn/{UserID}", Name = "GetAllGenresThatUserInterstOn")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -397,10 +411,10 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult CheckIfMovieIsWatchedByUser([FromQuery] clsUserAndMovieID userAndMovieID)
+        public ActionResult CheckIfMovieIsWatchedByUser([FromQuery] HelperClasses.clsUserAndMovieID userAndMovieID)
         {
             string errorMessage = string.Empty;
-            if (!clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
+            if (!HelperClasses.clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
             {
                 return BadRequest(errorMessage);
             }
@@ -418,7 +432,6 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-
         public ActionResult<List<MovieDTO>> GetAllFavorateMoviesforUser(int UserID)
         {
             if (UserID < 1)
@@ -441,10 +454,10 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult CheckIfMovieIsFavorateForUser([FromQuery] clsUserAndMovieID userAndMovieID)
+        public ActionResult CheckIfMovieIsFavorateForUser([FromQuery] HelperClasses.clsUserAndMovieID userAndMovieID)
         {
             string errorMessage = string.Empty;
-            if (!clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
+            if (!HelperClasses.clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
             {
                 return BadRequest(errorMessage);
             }
@@ -531,21 +544,116 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(movies);
         }
 
+        [HttpGet("GetAllSearchedMoviesForUser/{UserID}", Name = "GetAllSearchedMoviesForUser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<List<MovieDTO>> GetAllSearchedMoviesForUser(int UserID)
+        {
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            List<MovieDTO> movies = clsUsers.GetAllSearchedMoviesForUser(UserID);
+            if (movies == null || movies.Count == 0)
+            {
+                return NotFound($"Not Found: No movie found for user with ID {UserID}");
+            }
+            return Ok(movies);
+        }
+
+        [HttpGet("GetAllWatchedMoviesForUser/{UserID}", Name = "GetAllWatchedMoviesForUser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<List<MovieDTO>> GetAllWatchedMoviesForUser(int UserID)
+        {
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            List<MovieDTO> movies = clsUsers.GetAllWatchedMoviesForUser(UserID);
+            if (movies == null || movies.Count == 0)
+            {
+                return NotFound($"Not Found: No movie found for user with ID {UserID}");
+            }
+            return Ok(movies);
+        }
+
+        [HttpGet("GetAllUnlikedMoviesToUser/{UserID}", Name = "GetAllUnlikedMoviesToUser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<List<MovieDTO>> GetAllUnlikedMoviesToUser(int UserID)
+        {
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            List<MovieDTO> movies = clsUsers.GetAllUnlikedMoviesToUser(UserID);
+            if (movies == null || movies.Count == 0)
+            {
+                return NotFound($"Not Found: No movie found for user with ID {UserID}");
+            }
+            return Ok(movies);
+        }
+
+        [HttpGet("CheckIfMovieInUnlikedList", Name = "CheckIfMovieInUnlikedList")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult CheckIfMovieInUnlikedList([FromQuery] HelperClasses.clsUserAndMovieID userAndMovieID)
+        {
+            string errorMessage = string.Empty;
+            if (!HelperClasses.clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
+            {
+                return BadRequest(errorMessage);
+            }
+            int MovieID = userAndMovieID.MovieID;
+            int UserID = userAndMovieID.UserID;
+            if (!clsUsers.CheckIfMovieInUnlikedList(MovieID, UserID))
+            {
+                return BadRequest($"This Movie With ID {MovieID} Is Not Unliked");
+            }
+            return Ok("Movie is in the unlike list");
+        }
+
         [HttpPost("AddMovieToSearchingList", Name = "AddMovieToSearchingList")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult AddMovieToSearchingList([FromBody] clsUserAndMovieID searchingListRequest)
+        public ActionResult AddMovieToSearchingList([FromBody] HelperClasses.clsUserAndMovieID searchingListRequest)
         {
             string errorMessage = string.Empty;
-            if (!clsUserValidations.CheckUserAndMovieInputs(searchingListRequest, ref errorMessage))
+            if (!HelperClasses.clsUserValidations.CheckUserAndMovieInputs(searchingListRequest, ref errorMessage))
             {
                 return BadRequest(errorMessage);
             }
 
             int MovieID = searchingListRequest.MovieID;
             int UserID = searchingListRequest.UserID;
+
+            if(clsUsers.CheckIfMovieInSearchingList(MovieID, UserID))
+            {
+                return BadRequest($"Bad Request: Movie with ID {MovieID} is already in the searching list");
+            }
 
             if (!clsUsers.AddMovieToSearchingList(MovieID, UserID))
             {
@@ -559,7 +667,7 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult<UserBasicInfoDTO> CheckPasswordForUsername([FromBody] clsLoginUserInfo LoginUserInfo)
+        public ActionResult<UserBasicInfoDTO> CheckPasswordForUsername([FromBody] HelperClasses.clsLoginUserInfo LoginUserInfo)
         {
             if (String.IsNullOrEmpty(LoginUserInfo.Username) || String.IsNullOrEmpty(LoginUserInfo.Password))
             {
@@ -661,10 +769,10 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult AddMovieToFavorate([FromBody] clsUserAndMovieID favorateRequest)
+        public ActionResult AddMovieToFavorate([FromBody] HelperClasses.clsUserAndMovieID favorateRequest)
         {
             string errorMessage = string.Empty;
-            if (!clsUserValidations.CheckUserAndMovieInputs(favorateRequest, ref errorMessage))
+            if (!HelperClasses.clsUserValidations.CheckUserAndMovieInputs(favorateRequest, ref errorMessage))
             {
                 return BadRequest(errorMessage);
             }
@@ -684,16 +792,15 @@ namespace MovieRecommendationAPI.Controllers
             return Ok("Movie added to favorites successfully");
         }
 
-
         [HttpPost("AddMovieToWatchingList", Name = "AddMovieToWatchingList")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult AddMovieToWatchingList([FromBody] clsUserAndMovieID watchingListRequest, bool AddedToFavorate = false)
+        public ActionResult AddMovieToWatchingList([FromBody] HelperClasses.clsUserAndMovieID watchingListRequest, bool AddedToFavorate = false)
         {
             string errorMessage = string.Empty;
-            if (!clsUserValidations.CheckUserAndMovieInputs(watchingListRequest, ref errorMessage))
+            if (!HelperClasses.clsUserValidations.CheckUserAndMovieInputs(watchingListRequest, ref errorMessage))
             {
                 return BadRequest(errorMessage);
             }
@@ -714,14 +821,14 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult AddReportAboutMovie([FromBody] clsReportAboutMovie reportAboutMovie)
+        public ActionResult AddReportAboutMovie([FromBody] HelperClasses.clsReportAboutMovie reportAboutMovie)
         {
             if (reportAboutMovie == null)
             {
                 return BadRequest("Bad Request: Report about movie is null");
             }
             string message = string.Empty;
-            if (!clsUserValidations.CheckUserAndMovieInputs(reportAboutMovie.UserAndMovieID, ref message))
+            if (!HelperClasses.clsUserValidations.CheckUserAndMovieInputs(reportAboutMovie.UserAndMovieID, ref message))
             {
                 return BadRequest(message);
             }
@@ -739,16 +846,45 @@ namespace MovieRecommendationAPI.Controllers
             return Ok("Report added successfully");
         }
 
-        [HttpPut("UpdateUser/{UserID}", Name = "UpdateUser")]
+        [HttpPost("AddMovieToUnlikeList", Name = "AddMovieToUnlikeList")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult AddMovieToUnlikeList([FromBody] HelperClasses.clsUserAndMovieID userAndMovie)
+        {
+            string errorMessage = string.Empty;
+            if (!HelperClasses.clsUserValidations.CheckUserAndMovieInputs(userAndMovie, ref errorMessage))
+            {
+                return BadRequest(errorMessage);
+            }
+            if(clsUsers.CheckIfMovieInUnlikedList(userAndMovie.MovieID, userAndMovie.UserID))
+            {
+                return BadRequest($"This Movie With ID {userAndMovie.MovieID} Is Already in UnlikedList");
+            }
+            if(!clsUsers.AddMovieToUnlikeList(userAndMovie.UserID, userAndMovie.MovieID))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Movie not added to unlike list");
+            }
+            return Ok("Movie added to unlike list successfully");
+        }
+
+        [HttpPut("UpdateUser/{UserID}/{UpdatedByUserID}", Name = "UpdateUser")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<UserBasicInfoDTO> UpdateUserInfo(int UserID,[FromBody] UserBasicInfoDTO UDTO)
+        public ActionResult<UserBasicInfoDTO> UpdateUserInfo(int UserID,int UpdatedByUserID, [FromBody] UserBasicInfoDTO UDTO)
         {
             clsUsers user = clsUsers.Find(UserID);
             if (user == null)
             {
                 return NotFound($"Not Found: User with id {UserID} is not found");
+            }
+
+            clsUsers updatedUser = clsUsers.Find(UpdatedByUserID);
+            if (updatedUser == null)
+            {
+                return NotFound($"Not Found: Admin user with id {UpdatedByUserID} is not found");
             }
 
             UDTO.ID = user.UserID;
@@ -757,7 +893,7 @@ namespace MovieRecommendationAPI.Controllers
             user.Permissions = UDTO.Permissions;
             user.DateOfBirth = UDTO.DateOfBirth;
 
-            if (!user.Save())
+            if (!clsUsers.UpdateUser(UDTO, UpdatedByUserID))
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: User not updated");
             }
@@ -771,7 +907,7 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult ChangePasswordForUser([FromBody] clsChangePasswordForUser UserInfoForChangePassword)
+        public ActionResult ChangePasswordForUser([FromBody] HelperClasses.clsChangePasswordForUser UserInfoForChangePassword)
         {
             clsUsers user = clsUsers.Find(UserInfoForChangePassword.Username);
 
@@ -817,7 +953,7 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult ChangePasswordForUser([FromBody]clsLoginUserInfo UserLoginInfo)
+        public ActionResult ChangePasswordForUser([FromBody]HelperClasses.clsLoginUserInfo UserLoginInfo)
         {
             clsUsers user = clsUsers.Find(UserLoginInfo.Username);
             int userID = user.UserID;
@@ -895,10 +1031,10 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult RemoveMovieFromWatchedList([FromQuery] clsUserAndMovieID userAndMovieID)
+        public ActionResult RemoveMovieFromWatchedList([FromQuery] HelperClasses.clsUserAndMovieID userAndMovieID)
         {
             string errorMessage = string.Empty;
-            if (!clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
+            if (!HelperClasses.clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
             {
                 return BadRequest(errorMessage);
             }
@@ -917,10 +1053,10 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult RemoveMovieFromFavorateList([FromQuery] clsUserAndMovieID userAndMovieID)
+        public ActionResult RemoveMovieFromFavorateList([FromQuery] HelperClasses.clsUserAndMovieID userAndMovieID)
         {
             string errorMessage = string.Empty;
-            if (!clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
+            if (!HelperClasses.clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
             {
                 return BadRequest(errorMessage);
             }
@@ -935,10 +1071,131 @@ namespace MovieRecommendationAPI.Controllers
             return Ok("Movie removed from favorate list successfully");
         }
 
-        
-        
+        [HttpDelete("RemoveMovieFromUnlikedList", Name = "RemoveMovieFromUnlikedList")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult RemoveMovieFromUnlikedList([FromQuery] HelperClasses.clsUserAndMovieID userAndMovieID)
+        {
+            string errorMessage = string.Empty;
+            if (!HelperClasses.clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
+            {
+                return BadRequest(errorMessage);
+            }
+            int MovieID = userAndMovieID.MovieID;
+            int UserID = userAndMovieID.UserID;
+            if(!clsUsers.CheckIfMovieInUnlikedList(MovieID, UserID))
+            {
+                return BadRequest($"This Movie With ID {MovieID} Is Not Unliked");
+            }
+            if (!clsUsers.DeleteMovieFromUnlikedList(MovieID, UserID))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Movie not removed from unliked list");
+            }
+
+            return Ok("Movie removed from unliked list successfully");
+        }
+
+        [HttpDelete("RemoveMovieFromSearchList", Name = "RemoveMovieFromSearchingList")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult RemoveMovieFromSearchList([FromQuery] HelperClasses.clsUserAndMovieID userAndMovieID)
+        {
+            string errorMessage = string.Empty;
+            if (!HelperClasses.clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
+            {
+                return BadRequest(errorMessage);
+            }
+            int MovieID = userAndMovieID.MovieID;
+            int UserID = userAndMovieID.UserID;
+
+            if (!clsUsers.CheckIfMovieInSearchingList(MovieID, UserID))
+            {
+                return BadRequest($"This Movie With ID {MovieID} Is Not in the searching list");
+            }
+
+            if (!clsUsers.RemoveMovieFromSearchingList(MovieID, UserID))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Movie not removed from searching list");
+            }
+            return Ok("Movie removed from searching list successfully");
+        }
 
         // End Users API
+    }
+
+    // =======================================
+
+    [Route("api/LogsAPI")]
+    [ApiController]
+    public class LogsController : ControllerBase
+    {
+        // Start Logs API
+
+
+        [HttpGet("GetAllLogs", Name = "GetAllLogs")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<List<clsLogsDTO>> GetAllLogs()
+        {
+            List<clsLogsDTO> logs = clsLogs.GetAllLogs();
+
+            if (logs == null || logs.Count == 0)
+            {
+                return NotFound("Not Found: No logs found");
+            }
+            return Ok(logs);
+        }
+
+        [HttpGet("GetAllLogsForUser/{Username}", Name = "GetAllLogsForUser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public ActionResult<List<clsLogsDTO>> GetAllLogsForUser(string Username)
+        {
+            if (String.IsNullOrEmpty(Username))
+            {
+                return BadRequest("Bad Request: Username is empty");
+            }
+            if (!clsUsers.IsUserExist(Username))
+            {
+                return NotFound($"Not Found: User with username {Username} is not exists");
+            }
+            List<clsLogsDTO> logs = clsLogs.GetAllLogsOfUser(Username);
+            if (logs == null || logs.Count == 0)
+            {
+                return NotFound($"Not Found: No logs found for user with username {Username}");
+            }
+            return Ok(logs);
+        }
+
+        [HttpDelete("DeleteLog/{id}", Name = "DeleteLog")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult DeleteLog(int id)
+        {
+            if (id < 1)
+            {
+                return BadRequest($"Bad Request: ID: {id} Is Not valid");
+            }
+            if (!clsLogs.CheckIfLogExists(id))
+            {
+                return NotFound($"NotFound: Log with ID {id} is not exists");
+            }
+
+            if (!clsLogs.DeleteLog(id))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Log not deleted");
+            }
+
+            return Ok("Log deleted successfully");
+        }
+    
+        // End Logs API
     }
 
     // =======================================
@@ -1008,158 +1265,5 @@ namespace MovieRecommendationAPI.Controllers
 
     }
 
-    public class clsMovieValidations
-    {
-        public static bool CheckMovieInputs(MovieDTO movieDTO, ref string message)
-        { 
-            if (movieDTO == null)
-            {
-                return false;
-                message = "Bad Request: Movie is null";
-            }
-            if (String.IsNullOrEmpty(movieDTO.MovieName) || String.IsNullOrEmpty(movieDTO.PosterImageURL))
-            {
-                return false;
-                message = "Bad Request: Movie name or Poster Image URL is empty";
-            }
-            if (movieDTO.MovieName.Length < 3 || movieDTO.MovieName.Length > 100)
-            {
-                return false;
-                message = "Bad Request: Movie name length should be between 3 and 100 characters";
-            }
-            if (movieDTO.Year < 1900 || movieDTO.Year > DateTime.Now.Year)
-            {
-                return false;
-                message = "Bad Request: Year should be between 1900 and current year";
-            }
-            if (movieDTO.Rate < 0 || movieDTO.Rate > 5)
-            {
-                return false;
-                message = "Bad Request: Rate should be between 0 and 5";
-            }
-            if (movieDTO.Duration == "m")
-            {
-                return false;
-                message = "Bad Request: Duration should be greater than 0";
-            }
-            if (movieDTO.ContentRating.Length < 1 || movieDTO.ContentRating.Length > 10)
-            {
-                return false;
-                message = "Bad Request: Content Rating length should be between 1 and 10 characters";
-            }
-            if (movieDTO.Language.Length < 1 || movieDTO.Language.Length > 20)
-            {
-                return false;
-                message = "Bad Request: Language length should be between 1 and 20 characters";
-            }
-            if (movieDTO.Country.Length < 1 || movieDTO.Country.Length > 20)
-            {
-                return false;
-                message = "Bad Request: Country length should be between 1 and 20 characters";
-            }
-            if (movieDTO.AspectRatio < 0)
-            {
-                return false;
-                message = "Bad Request: Aspect Ratio should be greater than 0";
-            }
-            if (movieDTO.Genre.Length < 1 || movieDTO.Genre.Length > 20)
-            {
-                return false;
-                message = "Bad Request: Genre length should be between 1 and 20 characters";
-            }
-            if (movieDTO.IMDbMovieURL.Length < 1 || movieDTO.IMDbMovieURL.Length > 100)
-            {
-                return false;
-                message = "Bad Request: IMDb Movie URL length should be between 1 and 100 characters";
-            }
-            if (movieDTO.Keywords.Length < 1 || movieDTO.Keywords.Length > 100)
-            {
-                return false;
-                message = "Bad Request: Keywords length should be between 1 and 100 characters";
-            }
-
-            return true;
-        }
-    }
-    public class clsUserValidations
-    {
-        public static bool CheckUserAndMovieInputs(clsUserAndMovieID userAndMovieID, ref string message)
-        {
-            if (userAndMovieID == null)
-            {
-                message = "Bad Request: User and Movie ID is null";
-                return false;
-            }
-            
-            int UserID = userAndMovieID.UserID;
-            int MovieID = userAndMovieID.MovieID;
-
-            if (UserID < 1 || MovieID < 1)
-            {
-                message = "Bad Request: UserID or MovieID is not valid";
-                return false;
-            }
-            if (!clsUsers.IsUserExist(UserID))
-            {
-                message = $"Bad Request: User with ID {UserID} is not exists";
-                return false;
-            }
-            if (!clsMoviePasicDetails.IsMovieExist(MovieID))
-            {
-                message = $"Bad Request: Movie with ID {MovieID} is not exists";
-                return false;
-            }
-            return true;
-        }
-        
-    }
-
-    public class clsUserAndMovieID
-    {
-        public clsUserAndMovieID()
-        {
-        }
-
-        public clsUserAndMovieID(int movieID, int userID)
-        {
-            MovieID = movieID;
-            UserID = userID;
-        }
-
-        public int MovieID { get; set; }
-        public int UserID { get; set; }
-    }
-
-    public class clsReportAboutMovie
-    {
-        public clsUserAndMovieID UserAndMovieID { get; set; } 
-        public string ReportMessage { get; set; }
-        public int ReportType { get; set; }
-
-        public clsUsers.enReportType ReportTypeEnum
-        {
-            get
-            {
-                return (clsUsers.enReportType)this.ReportType;
-            }
-        }
-    }
-    public class clsLoginUserInfo
-    {
-        public string Username { get; set; }
-        public string Password { get; set; }
-    }
-    public class clsChangePasswordForUser
-    {
-        public string Username { get; set; }
-        public string OldPassword { get; set; }
-        public string NewPassword { get; set; }
-    }
-
-    public class clsFindMovie
-    {
-        public string MovieName { get; set; }
-        public int Year { get; set; }
-
-    }
+    
 }

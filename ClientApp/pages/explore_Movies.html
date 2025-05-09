@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +12,10 @@
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.0/font/bootstrap-icons.css">
     <link rel="icon" href="../images/favicon.ico" type="image/ico">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slider-range@1.0.0/dist/slider-range.min.css">
+    <script src="../js/userProfile.js"></script>
+    <link rel="stylesheet" href="../css/userProfile.css">
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
@@ -34,26 +38,41 @@
                         <a class="nav-link" href="foryou.html">For You</a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="myFavorate.html">My Favorate</a>
+                        <a class="nav-link" href="myLists.html">My Lists</a>
                     </li>
-                    <li class="nav-item" id="manageUsersNavItem" style="display: none;">
-                        <a class="nav-link" href="manage_users.html">Manage Users</a>
-                    </li>
+
                 </ul>
-                
+
                 <form class="d-flex position-relative">
-                    <input class="form-control me-2" 
-                           type="search" 
-                           placeholder="Search movies..." 
-                           id="searchInput" 
-                           autocomplete="off"
-                           aria-label="Search movies">
+                    <input class="form-control me-2" type="search" placeholder="Search movies..." id="searchInput"
+                        autocomplete="off" aria-label="Search movies">
                     <button class="btn btn-outline-light" id="searchButton">Search</button>
-                    <div class="dropdown-menu w-100 position-absolute top-100 start-0" 
-                         id="searchResults" 
-                         style="display: none; z-index: 1000;"></div>
+                    <div class="dropdown-menu w-100 position-absolute top-100 start-0" id="searchResults"
+                        style="display: none; z-index: 1000;"></div>
                 </form>
-                <button class="btn log-btn btn-outline-light ms-2" id="log-btn" type="button">Login</button>
+                <div class="user-profile" id="userProfile" style="display: none;">
+                    <div class="user-avatar" id="userAvatar">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a href="#" id="logoutBtn">Logout</a>
+                        <div class="dropdown-divider" id="adminDivider"></div>
+                        <a href="manage_users.html" id="manageUsersBtn" style="display: none;">Manage Users</a>
+                        <a href="logs.html" id="manageLogsBtn" style="display: none;">Manage Logs</a>
+                    </div>
+                </div>
+                <div class="user-profile" id="userProfile" style="display: none;">
+                    <div class="user-avatar" id="userAvatar">
+                        <i class="bi bi-person-fill"></i>
+                    </div>
+                    <div class="user-dropdown" id="userDropdown">
+                        <a href="#" id="logoutBtn">Logout</a>
+                        <div class="dropdown-divider" id="adminDivider"></div>
+                        <a href="manage_users.html" id="manageUsersBtn" style="display: none;">Manage Users</a>
+                        <a href="logs.html" id="manageLogsBtn" style="display: none;">Manage Logs</a>
+                    </div>
+                </div>
+                <a id="log-btn" href="login.html" class="btn log-btn btn-outline-light">Login</a>
             </div>
         </div>
     </nav>
@@ -115,21 +134,24 @@
                                     <span id="yearMinValue">1980</span>
                                     <span id="startYearMaxValue">2021</span>
                                 </div>
-                                <input type="range" class="form-range" min="1980" max="2025" step="1" id="startYear" value="2021">
-                                
+                                <input type="range" class="form-range" min="1980" max="2025" step="1" id="startYear"
+                                    value="2021">
+
                                 <h6 class="mb-3">End Year</h6>
                                 <div class="d-flex justify-content-between mb-2">
                                     <span id="yearMinValue">1980</span>
                                     <span id="endYearMaxValue">2025</span>
                                 </div>
-                                <input type="range" class="form-range" min="1980" max="2025" step="1" id="endYear" value="2025">
+                                <input type="range" class="form-range" min="1980" max="2025" step="1" id="endYear"
+                                    value="2025">
                             </div>
 
                             <!-- Rating Filter -->
                             <div class="mb-4">
                                 <h6 class="mb-3">Minimum Rating</h6>
                                 <div class="d-flex align-items-center">
-                                    <input type="range" class="form-range me-3" min="0" max="10" step="0.1" id="ratingRange" value="6">
+                                    <input type="range" class="form-range me-3" min="0" max="10" step="0.1"
+                                        id="ratingRange" value="6">
                                     <span id="ratingValue">6.0</span>
                                 </div>
                             </div>
@@ -213,9 +235,12 @@
                 <div class="col-md-4">
                     <h5 class="mb-3">Connect</h5>
                     <div class="social-links">
-                        <a href="https://www.facebook.com/" target="_blank" class="text-white me-3"><i class="bi bi-facebook"></i></a>
-                        <a href="https://x.com/" target="_blank" class="text-white me-3"><i class="bi bi-twitter"></i></a>
-                        <a href="https://www.instagram.com/" target="_blank" class="text-white me-3"><i class="bi bi-instagram"></i></a>
+                        <a href="https://www.facebook.com/" target="_blank" class="text-white me-3"><i
+                                class="bi bi-facebook"></i></a>
+                        <a href="https://x.com/" target="_blank" class="text-white me-3"><i
+                                class="bi bi-twitter"></i></a>
+                        <a href="https://www.instagram.com/" target="_blank" class="text-white me-3"><i
+                                class="bi bi-instagram"></i></a>
                     </div>
                 </div>
             </div>
@@ -230,26 +255,26 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/slider-range@1.0.0/dist/slider-range.min.js"></script>
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
+        document.addEventListener('DOMContentLoaded', function () {
             // تحديث قيم الـ Range في الوقت الحقيقي
             const startYearSlider = document.getElementById('startYear');
             const endYearSlider = document.getElementById('endYear');
             const ratingSlider = document.getElementById('ratingRange');
-            
+
             if (startYearSlider) {
-                startYearSlider.addEventListener('input', function() {
+                startYearSlider.addEventListener('input', function () {
                     document.getElementById('startYearMaxValue').textContent = this.value;
                 });
             }
-            
+
             if (endYearSlider) {
-                endYearSlider.addEventListener('input', function() {
+                endYearSlider.addEventListener('input', function () {
                     document.getElementById('endYearMaxValue').textContent = this.value;
                 });
             }
-            
+
             if (ratingSlider) {
-                ratingSlider.addEventListener('input', function() {
+                ratingSlider.addEventListener('input', function () {
                     document.getElementById('ratingValue').textContent = this.value;
                 });
             }
@@ -257,4 +282,5 @@
     </script>
     <script src="../js/script_movies.js"></script>
 </body>
+
 </html>

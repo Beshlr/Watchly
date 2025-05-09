@@ -34,6 +34,7 @@ namespace MovieRecommendations_BusinessLayer
                 return new UserBasicInfoDTO(this.UserID, this.Username, this.Email, this.IsAcive, this.Permissions, this.DateOfBirth);
             }
         }
+        
 
         public enum enMode { AddNew = 0, Update = 1 };
         public enMode Mode = enMode.AddNew;
@@ -98,6 +99,11 @@ namespace MovieRecommendations_BusinessLayer
             return clsUsersData.UpdateUsersByID(this.userBasicInfoDTO);
        }
 
+        public static bool UpdateUser(UserBasicInfoDTO userBasicInfoDTO, int UpdatedByUserID)
+        {
+            return clsUsersData.UpdateUsersByID(userBasicInfoDTO, UpdatedByUserID);
+        }
+
         public static bool DeleteUser(int UserID, int DeletedByUserID)
         {
             return clsUsersData.DeleteUser(UserID, DeletedByUserID);
@@ -106,6 +112,10 @@ namespace MovieRecommendations_BusinessLayer
         public static List<UserDTO> GetAllUsers()
         {
             return clsUsersData.GetAllUsers();
+        }
+        public static List<string> GetAllUsernames()
+        {
+            return clsUsersData.GetAllUsernames();
         }
         public static bool ChangeUserPassword(int UserID, string NewPassword, string OldPassword)
         {
@@ -210,6 +220,8 @@ namespace MovieRecommendations_BusinessLayer
             return clsUsersData.CheckIfEmailNotUsed(Email);
         }
 
+        
+
         public static bool AddMovieToFavorate(int MovieID, int UserID)
         {
             return clsUsersData.AddMovieToFavorate(MovieID, UserID);
@@ -235,9 +247,29 @@ namespace MovieRecommendations_BusinessLayer
             return clsUsersData.RemoveMovieFromFavorate(MovieID, UserID, ref message);
         }
 
+        public static List<MovieDTO> GetAllSearchedMoviesForUser(int UserID)
+        {
+            return clsUsersData.GetAllSearchedMoviesForUser(UserID);
+        }
+
         public static bool AddMovieToSearchingList(int MovieID, int UserID)
         {
             return clsUsersData.AddMovieToSearchingList(MovieID, UserID);
+        }
+
+        public static bool CheckIfMovieInSearchingList(int MovieID, int UserID)
+        {
+            return clsUsersData.CheckIfMovieInSearchingList(MovieID, UserID);
+        }
+
+        public static bool RemoveMovieFromSearchingList(int MovieID, int UserID)
+        {
+            return clsUsersData.RemoveMovieFromSearchingList(MovieID, UserID);
+        }
+
+        public static List<MovieDTO> GetAllWatchedMoviesForUser(int UserID)
+        {
+            return clsUsersData.GetAllWatchedMoviesForUser(UserID);
         }
 
         public static bool AddMovieToWatchingList(int MovieID, int UserID, bool AddToFav, ref string message)
@@ -273,6 +305,26 @@ namespace MovieRecommendations_BusinessLayer
         public static List<string> GetAllFavorateMoviesNameForUser(int UserID)
         {
             return clsUsersData.GetAllFavorateMoviesNameForUser(UserID);
+        }
+
+        public static bool AddMovieToUnlikeList(int UserID, int MovieID)
+        {
+            return clsUsersData.AddMovieToUnlikeList(UserID, MovieID);
+        }
+
+        public static List<MovieDTO> GetAllUnlikedMoviesToUser(int UserID)
+        {
+            return clsUsersData.GetAllUnlikedMoviesToUser(UserID);
+        }
+
+        public static bool CheckIfMovieInUnlikedList(int MovieID, int UserID)
+        {
+            return clsUsersData.CheckIfMovieInUnlikedList(UserID, MovieID);
+        }
+
+        public static bool DeleteMovieFromUnlikedList(int MovieID, int UserID)
+        {
+            return clsUsersData.DeleteMovieFromUnlikedList(MovieID, UserID);
         }
     }
 

@@ -1,0 +1,88 @@
+/* Logs Table Styles */
+#logsTableBody tr td {
+    vertical-align: middle;
+}
+
+.action-cell {
+    white-space: nowrap;
+}
+
+/* Status Message */
+.alert.show {
+    display: block;
+    opacity: 1;
+    transition: opacity 0.3s ease;
+}
+
+
+
+.permission-owner:hover {
+    background-color: #B5942D;
+    transform: scale(1.05);
+}
+
+.permission-owner {
+    background-color: #D4AF37;
+    color: white;
+    transition: 0.3s;
+    position: relative;
+    overflow: hidden;
+    padding-right: 8px;
+    display: inline-flex;
+    --owner-width: 90px;
+}
+
+.permission-owner::after {
+    content: "";
+    position: absolute;
+    height: 100%;
+    width: 20px; /* زيادة عرض الخط */
+    background: linear-gradient(90deg, 
+        rgba(255,255,255,0) 0%, 
+        rgba(255,255,255,0.8) 50%, 
+        rgba(255,255,255,0) 100%);
+    top: 0;
+    left: 0;
+    animation: moveTheOwnerLine 5s forwards infinite;
+    transform: translateX(-100%); 
+}
+
+@keyframes moveTheOwnerLine {
+    0%,100% {
+        transform: translateX(-20px);
+    }
+    50% {
+        transform: translateX(var(--owner-width));
+    }
+}
+
+/* Loading Spinner */
+.spinner-border {
+    width: 3rem;
+    height: 3rem;
+}
+
+/* Delete Button */
+.btn-danger {
+    transition: all 0.2s ease;
+}
+
+.btn-danger:hover {
+    transform: scale(1.05);
+}
+
+/* Current User Row */
+.current-user-row {
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+/* Responsive Table */
+@media (max-width: 768px) {
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    .action-cell {
+        white-space: normal;
+    }
+}

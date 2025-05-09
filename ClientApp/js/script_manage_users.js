@@ -33,22 +33,6 @@ document.addEventListener('DOMContentLoaded', function() {
                 window.location.href = 'login.html';
             };
             
-            // Show current user indicator
-            if (currentUserIndicator) {
-                currentUserIndicator.innerHTML = `
-                    <span class="me-2">Logged in as:</span>
-                    <span class="badge ${getPermissionBadgeClass(LoggedInUser.permissions)}">
-                        ${LoggedInUser.username} (${getPermissionName(LoggedInUser.permissions)})
-                    </span>
-                `;
-            }
-            
-            // Check if user has admin permissions (1 = admin, 3 = owner)
-            if (![1, 3].includes(LoggedInUser.permissions)) {
-                showStatusMessage('You do not have permission to access this page.', 'danger');
-                setTimeout(() => window.location.href = 'main.html', 2000);
-                return;
-            }
         }
     }
     
@@ -290,7 +274,7 @@ document.addEventListener('DOMContentLoaded', function() {
         const updatedUser = {
             username: document.getElementById('editUsername').value,
             email: document.getElementById('editEmail').value,
-            isActive: document.getElementById('editStatus').value === 'true',
+            isAcive: document.getElementById('editStatus').value === 'true',
             permissions: parseInt(document.getElementById('editPermissions').value),
             dateOfBirth: document.getElementById('editDateOfBirth').value,
         };
@@ -310,7 +294,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        fetch(`${baseApiUrl}/UpdateUser/${userId}`, {
+        fetch(`${baseApiUrl}/UpdateUser/${userId}/${LoggedInUser.id}`, {
             method: 'PUT',
             headers: {
                 'Content-Type': 'application/json',
