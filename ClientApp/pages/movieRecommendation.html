@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="/ClientApp/css/movie_recommendation.css">
+</head>
+<body>
+    <div>
+        <div class="container">
+            <h2 class="display-4 fw-bold mb-4">Movie Recommendation</h2>
+            <p class="lead mb-5">Tell us what categories you are interested in:</p>
+            <p>Multiple answers are possible.</p>
+
+        <form class="checkbox-grid">
+        <label><input type="checkbox" name="genre" value="Action"> Action</label>
+        <label><input type="checkbox" name="genre" value="Mystery"> Mystery</label>
+        <label><input type="checkbox" name="genre" value="Comedy"> Comedy</label>
+        <label><input type="checkbox" name="genre" value="Biography"> Biography</label>
+        <label><input type="checkbox" name="genre" value="Drama"> Drama</label>
+        <label><input type="checkbox" name="genre" value="History"> History</label>
+        <label><input type="checkbox" name="genre" value="Adventure"> Adventure</label>
+        <label><input type="checkbox" name="genre" value="Animation"> Animation</label>
+        <label><input type="checkbox" name="genre" value="Thriller"> Thriller</label>
+        <label><input type="checkbox" name="genre" value="Music"> Music</label>
+        <label><input type="checkbox" name="genre" value="Crime"> Crime</label>
+        <label><input type="checkbox" name="genre" value="Sport"> Sport</label>
+        <label><input type="checkbox" name="genre" value="Romance"> Romance</label>
+        <label><input type="checkbox" name="genre" value="Disaster"> Disaster</label>
+        <label><input type="checkbox" name="genre" value="Science Fiction"> Science Fiction</label>
+        <label><input type="checkbox" name="genre" value="Western"> Western</label>
+        <label><input type="checkbox" name="genre" value="Fantasy"> Fantasy</label>
+        <label><input type="checkbox" name="genre" value="War"> War</label>
+
+        <button type="submit">Submit</button>
+        </form>
+        </div>
+
+        <div id="resultBox">
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+          const form = document.querySelector("form.checkbox-grid");
+          const resultBox = document.getElementById("resultBox");
+      
+          form.addEventListener("submit", function (e) {
+            e.preventDefault();
+      
+            const selectedGenres = [];
+            const checkboxes = form.querySelectorAll('input[name="genre"]:checked');
+            checkboxes.forEach((checkbox) => {
+              selectedGenres.push(checkbox.value);
+            });
+      
+            if (selectedGenres.length === 0) {
+              resultBox.innerHTML = "<strong>Please select at least one genre.</strong>";
+              resultBox.style.color = "#f00";
+              resultBox.style.display = "block";
+              return;
+            }
+      
+            // Prepare data
+            const data = { genres: selectedGenres };
+      
+            // Send to backend (optional)
+            fetch("/submit-genres", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(data)
+            })
+              .then((response) => {
+                if (!response.ok) throw new Error("Request failed");
+                return response.json(); // Assuming backend responds with JSON
+              })
+              .then(() => {
+                resultBox.style.color = "#0f0";
+                resultBox.innerHTML = `
+                  <strong>Thank you! You selected:</strong>
+                  <ul>${selectedGenres.map((g) => `<li>${g}</li>`).join('')}</ul>
+                `;
+                resultBox.style.display = "block";
+              })
+              .catch((error) => {
+                resultBox.style.color = "#f00";
+                resultBox.innerHTML = "<strong>There was an error. Please try again later.</strong>";
+                resultBox.style.display = "block";
+                console.error(error);
+              });
+          });
+        });
+      </script>
+      
+      
+</body>
+</html>

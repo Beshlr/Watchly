@@ -1,0 +1,96 @@
+
+body {
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  background: url('/ClientApp/images/background.jpg') center center fixed;
+  background-size: cover;
+  color: #fff;
+  text-align: center;
+  margin: 0;
+  /* padding: 0; */
+}
+
+.container {
+  max-width: 800px;
+  margin: 50px auto;
+  padding: 30px;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-radius: 12px;
+  box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
+h2.display-4 {
+  font-size: 32px;
+  color: #00bcd4;
+  text-align: center;
+}
+
+p.lead,
+p {
+  text-align: center;
+  color: #ccc;
+}
+
+.checkbox-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: 15px;
+  margin-top: 30px;
+}
+
+.checkbox-grid label {
+  display: block;
+  background-color: rgba(255, 255, 255, 0.08);
+  padding: 10px 15px;
+  border-radius: 8px;
+  border: 1px solid #555;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.checkbox-grid label:hover {
+  background-color: rgba(0, 188, 212, 0.2);
+  border-color: #00bcd4;
+}
+
+.checkbox-grid input[type="checkbox"] {
+  margin-right: 10px;
+  transform: scale(1.2);
+  vertical-align: middle;
+}
+
+button[type="submit"] {
+  background-color: #00bcd4;
+  border: none;
+  color: black;
+  font-weight: bold;
+  padding: 10px 25px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 16px;
+  display: block;
+  margin: 30px auto 0 auto;
+  transition: background-color 0.3s ease;
+
+button[type="submit"] :hover {
+  background-color: #0097a7;
+}
+
+#resultBox {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #222;
+  color: #0f0;
+  padding: 20px;
+  border: 2px solid #00bcd4;
+  border-radius: 10px;
+  width: 400px;
+  max-width: 90%;
+  text-align: center;
+  display: none; /* Hidden by default */
+  z-index: 9999;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+}
+  animation: fadeIn 0.5s;
+}
