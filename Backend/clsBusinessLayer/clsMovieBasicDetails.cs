@@ -8,17 +8,18 @@ using clsDataAccess;
 using System.Text.Json.Serialization;
 using MovieRecommendations_DataLayer;
 using System.Xml.Linq;
+using MovieRecommendations_BusinessLayer;
 
 namespace clsBusinessLayer
 {
-    public class clsMoviePasicDetails
+    public class clsMovieBasicDetails
     {
         
 
         // Set object from data transfer object to return data
         public MovieDTO MDTO { get {
                 return new MovieDTO(this.ID, this.MovieName, this.Year, this.Rate, this.PosterImageURL
-            , this.TrailerURL, this.ContentRating, this.Duration, this.Language, this.Country, this.AspectRatio, this.Genre,this.IMDbMovieURL,this.Keywords, this.Popularity);
+            , this.TrailerURL,  this.Duration, this.Language, this.Country, this.AspectRatio, this.Genre,this.IMDbMovieURL,this.Keywords, this.Popularity);
             } }
 
 
@@ -28,7 +29,7 @@ namespace clsBusinessLayer
         public float Rate { get; set; }
         public string PosterImageURL { get; set; }
         public string TrailerURL { get; set; }
-        public string ContentRating { get; set; }
+        //public string ContentRating { get; set; }
         public string Duration { get; set; }
         public string Language { get; set; }
         public string Country { get; set; }
@@ -70,7 +71,7 @@ namespace clsBusinessLayer
             Western
         };
 
-        public clsMoviePasicDetails(MovieDTO MDTO, enMode mode= enMode.AddNew)
+        public clsMovieBasicDetails(MovieDTO MDTO, enMode mode= enMode.AddNew)
         {
             this.ID = MDTO.ID;
             this.MovieName = MDTO.MovieName;
@@ -78,7 +79,7 @@ namespace clsBusinessLayer
             this.Rate = MDTO.Rate;
             this.PosterImageURL = MDTO.PosterImageURL;
             this.TrailerURL = MDTO.TrailerURL;
-            this.ContentRating = MDTO.ContentRating;
+            
             this.Duration = MDTO.Duration;
             this.Language = MDTO.Language;
             this.Country = MDTO.Country;
@@ -111,9 +112,9 @@ namespace clsBusinessLayer
         /// </summary>
         /// <param name="MovieName"></param>
         /// <returns></returns>
-        public static List<MovieDTO> GetMoviesStartWithName(string MovieName)
+        public static List<MovieDTO> GetMoviesStartWithName(string MovieName, clsUsers LoggedInUser)
         {
-            return clsMovieBasicDetailsData.GetMoviesStartWithName(MovieName);
+            return clsFilters.GetMoviesAfterFilterItToUser(clsMovieBasicDetailsData.GetMoviesStartWithName(MovieName), LoggedInUser);
         }
 
 
@@ -122,13 +123,13 @@ namespace clsBusinessLayer
         /// </summary>
         /// <param name="PieceOfName"></param>
         /// <returns></returns>
-        public static List<MovieDTO> GetMoviesWithNameHasWord(string PieceOfName)
+        public static List<MovieDTO> GetMoviesWithNameHasWord(string PieceOfName, clsUsers LoggedInUser)
         {
-            return clsMovieBasicDetailsData.GetMoviesWithNameHasWord(PieceOfName);
+            return clsFilters.GetMoviesAfterFilterItToUser(clsMovieBasicDetailsData.GetMoviesWithNameHasWord(PieceOfName), LoggedInUser);
         }
 
         public static List<MovieDTO> GetTop100MovieBetweenTwoYearsWithGenreAndOrderRating(string OrderValue, int StartYear,
-                                                                                         int EndYear, string GenresList,float MinRatingValue, string SortBy="Year")
+                                                                                         int EndYear, string GenresList,float MinRatingValue, clsUsers LoggedInUser, string SortBy="Year")
         {
             //Check if the user has selected the rating order value or not.
             if (SortBy.ToLower() == "oldest first" || SortBy.ToLower() == "newest first" || SortBy.ToLower() == "year")
@@ -147,7 +148,9 @@ namespace clsBusinessLayer
             {
                 SortBy = "title_year";
             }
-            return clsMovieBasicDetailsData.GetTop100MovieBetweenTwoYearsWithGenreAndOrderRating(OrderValue, StartYear, EndYear, GenresList, MinRatingValue,SortBy);
+            return clsFilters.GetMoviesAfterFilterItToUser(
+                clsMovieBasicDetailsData.GetTop100MovieBetweenTwoYearsWithGenreAndOrderRating(
+                    OrderValue, StartYear, EndYear, GenresList, MinRatingValue, SortBy), LoggedInUser);
         }
 
         public static bool IsMovieExist(string MovieName,int Year, ref int MovieID)
@@ -188,13 +191,14 @@ namespace clsBusinessLayer
         /// </summary>
         /// <param name="genreName"></param>
         /// <returns></returns>
-        public static List<MovieDTO> GetTop100MovieWithGenreAndOrderThemByRatingDESC(enGenres genre)
+        public static List<MovieDTO> GetTop100MovieWithGenreAndOrderThemByRatingDESC(enGenres genre, clsUsers LoggedInUser)
         {
             //Get the genre name from enum when we need to use it.
 
             string genreName= GetGenreName(genre);
 
-            return clsMovieBasicDetailsData.GetTop100MovieWithGenreAndOrderThemByRatingDESC(genreName);
+            return clsFilters.GetMoviesAfterFilterItToUser(
+                clsMovieBasicDetailsData.GetTop100MovieWithGenreAndOrderThemByRatingDESC(genreName), LoggedInUser);
         }
 
         /// <summary>
@@ -227,11 +231,12 @@ namespace clsBusinessLayer
         /// <param name="genreName"> </param>
         /// <param name="Year"></param>
         /// <returns></returns>
-        public static List<MovieDTO> GetTop100MovieWithGenreInYearAndOrderThemByRatingDESC(enGenres genreName, int Year)
+        public static List<MovieDTO> GetTop100MovieWithGenreInYearAndOrderThemByRatingDESC(enGenres genreName, int Year, clsUsers LoggedInUser)
         {
             //Get the genre name from enum when we need to use it.
             string genre = GetGenreName(genreName);
-            return clsMovieBasicDetailsData.GetTop100MovieWithGenreInYearAndOrderThemByRating(genre, Year);
+            return clsFilters.GetMoviesAfterFilterItToUser(
+                clsMovieBasicDetailsData.GetTop100MovieWithGenreInYearAndOrderThemByRating(genre, Year), LoggedInUser);
         }
 
         /// <summary>
@@ -241,7 +246,9 @@ namespace clsBusinessLayer
         /// <returns></returns>
         public static List<MovieDTO> GetTop10MoviesRecommendedForUserWithID(int UserID)
         {
-            return clsMovieBasicDetailsData.GetTop10MoviesRecommendedForUserWithID(UserID);
+            clsUsers LoggedInUser = clsUsers.Find(UserID);
+
+            return clsFilters.GetMoviesAfterFilterItToUser(clsMovieBasicDetailsData.GetTop10MoviesRecommendedForUserWithID(UserID), LoggedInUser);
         }
 
         /// <summary>
@@ -250,14 +257,19 @@ namespace clsBusinessLayer
         /// <param name="Year1"></param>
         /// <param name="Year2"></param>
         /// <returns></returns>
-        public static List<MovieDTO> GetTop100MovieBetweenTwoYears(int Year1, int Year2, string Genre="Action")
+        public static List<MovieDTO> GetTop100MovieBetweenTwoYears(int Year1, int Year2, clsUsers LoggedInUser, string Genre="Action")
         {
-            return clsMovieBasicDetailsData.GetTop100MoviesBetweenTwoYears(Year1, Year2, Genre);
+            return clsFilters.GetMoviesAfterFilterItToUser(clsMovieBasicDetailsData.GetTop100MoviesBetweenTwoYears(Year1, Year2, Genre), LoggedInUser);
         }
 
         public static List<MovieDTO> GetTop10MoviesWithKeyword(string Keyword)
         {
             return clsMovieBasicDetailsData.GetTop10MoviesWithKeyword(Keyword);
+        }
+
+        public static List<MovieDTO> GetTop15TrendingMovies(clsUsers LoggedInUser )
+        {
+            return clsFilters.GetMoviesAfterFilterItToUser(clsMovieBasicDetailsData.GetTop15TrendingMovies(), LoggedInUser);
         }
 
         private bool _AddNewMovie()

@@ -18,7 +18,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show Manage Users link only for admins
 
     // Load popular movies
-    loadMovies('GetTop100MovieWithGenre?GenreName=Sci_FI', 'popularMovies');
+    loadMovies(`GetTop100MovieWithGenre/${user.id}?GenreName=Sci_FI`, 'popularMovies');
     
     // Load recommended movies (using user ID 1 for demo)
     loadMovies(`GetRecommandedMovies/${user.id}`, 'recommendedMovies');
@@ -189,7 +189,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        fetch(`${baseApiUrl}/NameHasWord/${query}`)
+        fetch(`${baseApiUrl}/NameHasWord/${query}/${user.id}`)
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();

@@ -363,7 +363,7 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
-        fetch(`https://watchly.runasp.net/api/MovieRecommenderAPI/NameHasWord/${query}`)
+        fetch(`https://watchly.runasp.net/api/MovieRecommenderAPI/NameHasWord/${query}/${LoggedInUser.id}`)
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');
                 return response.json();

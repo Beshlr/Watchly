@@ -28,7 +28,7 @@ namespace MovieRecommendationAPI.Controllers
                 return BadRequest($"Bad Request: ID: {ID} Is Not valid");
             }
 
-            MovieDTO movie = clsMoviePasicDetails.GetMovieByID(ID);
+            MovieDTO movie = clsMovieBasicDetails.GetMovieByID(ID);
 
             if (movie == null)
             {
@@ -38,19 +38,28 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(movie);
         }
 
-        [HttpGet("StartName/{startName}", Name = "GetByStartName")]
+        [HttpGet("StartName/{startName}/{UserID}", Name = "GetByStartName")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<IEnumerable<MovieDTO>> GetMoviesByStartingName(string startName)
+        public ActionResult<IEnumerable<MovieDTO>> GetMoviesByStartingName(string startName, int UserID)
         {
 
             if (String.IsNullOrEmpty(startName))
             {
                 return BadRequest("Movie name can't be empty.");
             }
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            clsUsers LoggedInUser = clsUsers.Find(UserID);
 
-            List<MovieDTO> movies = clsMoviePasicDetails.GetMoviesStartWithName(startName);
+            List<MovieDTO> movies = clsMovieBasicDetails.GetMoviesStartWithName(startName, LoggedInUser);
 
             if (movies == null || movies.Count == 0)
             {
@@ -60,19 +69,28 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(movies);
         }
 
-        [HttpGet("NameHasWord/{PieceOfName}", Name = "GetByNameHasWord")]
+        [HttpGet("NameHasWord/{PieceOfName}/{UserID}", Name = "GetByNameHasWord")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<IEnumerable<MovieDTO>> GetMoviesWithNameHasWord(string PieceOfName)
+        public ActionResult<IEnumerable<MovieDTO>> GetMoviesWithNameHasWord(string PieceOfName, int UserID)
         {
 
             if (String.IsNullOrEmpty(PieceOfName))
             {
                 return BadRequest("Movie name can't be empty.");
             }
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            clsUsers LoggedInUser = clsUsers.Find(UserID);
 
-            List<MovieDTO> movies = clsMoviePasicDetails.GetMoviesWithNameHasWord(PieceOfName);
+            List<MovieDTO> movies = clsMovieBasicDetails.GetMoviesWithNameHasWord(PieceOfName, LoggedInUser);
 
             if (movies == null || movies.Count == 0)
             {
@@ -83,15 +101,24 @@ namespace MovieRecommendationAPI.Controllers
         }
 
 
-        [HttpGet("GetTop100MovieWithGenre", Name = "GetTop100MovieWithGenreAndOrderThemByRatingDESC")]
+        [HttpGet("GetTop100MovieWithGenre/{UserID}", Name = "GetTop100MovieWithGenreAndOrderThemByRatingDESC")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<IEnumerable<MovieDTO>> GetTop100MovieWithGenreAndOrderThemByRatingDESC(
-            [FromQuery] clsMoviePasicDetails.enGenres GenreName = clsMoviePasicDetails.enGenres.Comedy)
+            int UserID,[FromQuery] clsMovieBasicDetails.enGenres GenreName = clsMovieBasicDetails.enGenres.Comedy)
         {
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            clsUsers LoggedInUser = clsUsers.Find(UserID);
 
-            List<MovieDTO> movies = clsMoviePasicDetails.GetTop100MovieWithGenreAndOrderThemByRatingDESC(GenreName);
+            List<MovieDTO> movies = clsMovieBasicDetails.GetTop100MovieWithGenreAndOrderThemByRatingDESC(GenreName, LoggedInUser);
 
             if (movies == null || movies.Count == 0)
             {
@@ -101,12 +128,12 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(movies);
         }
 
-        [HttpGet("GetTop100MovieWithGenreInYear/{Year}", Name = "GetTop100MovieWithGenreInYearAndOrderThemByRatingDESC")]
+        [HttpGet("GetTop100MovieWithGenreInYear/{Year}/{UserID}", Name = "GetTop100MovieWithGenreInYearAndOrderThemByRatingDESC")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<IEnumerable<MovieDTO>> GetTop100MovieWithGenreInYearAndOrderThemByRatingDESC(
-            [FromQuery] clsMoviePasicDetails.enGenres GenreName, int Year)
+            [FromQuery] clsMovieBasicDetails.enGenres GenreName, int Year, int UserID)
         {
 
             if (Year < 1900 || Year > DateTime.Now.Year)
@@ -114,9 +141,19 @@ namespace MovieRecommendationAPI.Controllers
                 return BadRequest($"Bad Request: Year: {Year} Is Not valid");
             }
 
-            string GenreNameString = clsMoviePasicDetails.GetGenreName(GenreName);
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            clsUsers LoggedInUser = clsUsers.Find(UserID);
 
-            List<MovieDTO> movies = clsMoviePasicDetails.GetTop100MovieWithGenreInYearAndOrderThemByRatingDESC(GenreName, Year);
+            string GenreNameString = clsMovieBasicDetails.GetGenreName(GenreName);
+
+            List<MovieDTO> movies = clsMovieBasicDetails.GetTop100MovieWithGenreInYearAndOrderThemByRatingDESC(GenreName, Year, LoggedInUser);
 
             if (movies == null || movies.Count == 0)
             {
@@ -131,7 +168,7 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<IEnumerable<MovieDTO>> GetTop10MoviesRecommendedForUserWithID(int UserID)
         {
-            List<MovieDTO> movies = clsMoviePasicDetails.GetTop10MoviesRecommendedForUserWithID(UserID);
+            List<MovieDTO> movies = clsMovieBasicDetails.GetTop10MoviesRecommendedForUserWithID(UserID);
 
             if (movies == null || movies.Count == 0)
             {
@@ -141,18 +178,27 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(movies);
         }
 
-        [HttpGet("GetTop100MovieBetweenTwoYears/{Year1}/{Year2}/{Genre}", Name = "GetTop100MovieBetweenTwoYears")]
+        [HttpGet("GetTop100MovieBetweenTwoYears/{Year1}/{Year2}/{Genre}/{UserID}", Name = "GetTop100MovieBetweenTwoYears")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
 
-        public ActionResult<IEnumerable<MovieDTO>> GetTop100MovieBetweenTwoYears(int Year1, int Year2, string Genre="Action")
+        public ActionResult<IEnumerable<MovieDTO>> GetTop100MovieBetweenTwoYears(int Year1, int Year2,int UserID, string Genre="Action")
         {
             if (Year1 < 1900 || Year1 > DateTime.Now.Year || Year2 < 1900 || Year2 > DateTime.Now.Year || Year1 > Year2)
             {
                 return BadRequest($"Bad Request: Year: {Year1} or {Year2} Is Not valid");
             }
-            List<MovieDTO> movies = clsMoviePasicDetails.GetTop100MovieBetweenTwoYears(Year1, Year2);
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            clsUsers LoggedInUser = clsUsers.Find(UserID);
+            List<MovieDTO> movies = clsMovieBasicDetails.GetTop100MovieBetweenTwoYears(Year1, Year2, LoggedInUser);
             if (movies == null || movies.Count == 0)
             {
                 return NotFound($"Not Found: No movie found between {Year1} and {Year2}");
@@ -170,7 +216,7 @@ namespace MovieRecommendationAPI.Controllers
             {
                 return BadRequest("Movie keyword can't be empty to search for it.");
             }
-            List<MovieDTO> movies = clsMoviePasicDetails.GetTop10MoviesWithKeyword(Keyword);
+            List<MovieDTO> movies = clsMovieBasicDetails.GetTop10MoviesWithKeyword(Keyword);
             if (movies == null || movies.Count == 0)
             {
                 return NotFound($"Not Found: No movie has Keyword {Keyword}");
@@ -178,14 +224,14 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(movies);
         }
 
-        [HttpGet("GetTop100MovieWithFiltersAndSorting/{StartYear}/{EndYear}/{GenresList}/{MinRatingValue}/{OrderBy}/{OrderValue}",
+        [HttpGet("GetTop100MovieWithFiltersAndSorting/{StartYear}/{EndYear}/{GenresList}/{MinRatingValue}/{OrderBy}/{OrderValue}/{UserID}",
             Name = "GetTop100MovieWithFiltersAndSorting")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         public ActionResult<List<MovieDTO>> GetTop100MovieWithFiltersAndSorting(int StartYear,int EndYear,
-                                                    string GenresList,float MinRatingValue,string OrderBy="Year", string OrderValue="DESC")
+                                                    string GenresList,float MinRatingValue,int UserID,string OrderBy="Year", string OrderValue="DESC")
         {
             if(OrderValue.ToUpper() != "ASC" && OrderValue.ToUpper() != "DESC")
             {
@@ -199,8 +245,19 @@ namespace MovieRecommendationAPI.Controllers
             {
                 return BadRequest("Bad Request: Genres List is empty");
             }
-            List<MovieDTO> movies = clsMoviePasicDetails.GetTop100MovieBetweenTwoYearsWithGenreAndOrderRating(
-                                                                OrderValue, StartYear, EndYear, GenresList, MinRatingValue,OrderBy);
+
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            clsUsers LoggedInUser = clsUsers.Find(UserID);
+
+            List<MovieDTO> movies = clsMovieBasicDetails.GetTop100MovieBetweenTwoYearsWithGenreAndOrderRating(
+                                                                OrderValue, StartYear, EndYear, GenresList, MinRatingValue,LoggedInUser,OrderBy);
             if (movies == null || movies.Count == 0)
             {
                 return NotFound($"Not Found: No movie found between {StartYear} and {EndYear} with Genre: {GenresList}");
@@ -225,9 +282,9 @@ namespace MovieRecommendationAPI.Controllers
                 return BadRequest("Bad Request: Movie name or year is not valid");
             }
             int MovieID = -1;
-            if (clsMoviePasicDetails.IsMovieExist(findMovieDetails.MovieName, findMovieDetails.Year, ref MovieID))
+            if (clsMovieBasicDetails.IsMovieExist(findMovieDetails.MovieName, findMovieDetails.Year, ref MovieID))
             {
-                MovieDTO movie = clsMoviePasicDetails.GetMovieByID(MovieID);
+                MovieDTO movie = clsMovieBasicDetails.GetMovieByID(MovieID);
                 return Ok(movie);
             }
 
@@ -241,7 +298,7 @@ namespace MovieRecommendationAPI.Controllers
         public ActionResult<MovieDTO> AddNewMovie([FromBody]MovieDTO movie)
         {
             int MovieID = -1;
-            if (clsMoviePasicDetails.IsMovieExist(movie.MovieName,movie.Year, ref MovieID))
+            if (clsMovieBasicDetails.IsMovieExist(movie.MovieName,movie.Year, ref MovieID))
             {
                 return BadRequest($"Bad Request: Movie with name {movie.MovieName} is already exists");
             }
@@ -255,7 +312,7 @@ namespace MovieRecommendationAPI.Controllers
 
             }
 
-            clsMoviePasicDetails movieBasicDetails = new clsMoviePasicDetails(movie);
+            clsMovieBasicDetails movieBasicDetails = new clsMovieBasicDetails(movie);
             if (movieBasicDetails.Save())
             {
                 return Ok(movieBasicDetails.MDTO);
@@ -278,12 +335,12 @@ namespace MovieRecommendationAPI.Controllers
             {
                 return BadRequest($"Bad Request: ID: {ID} Is Not valid");
             }
-            MovieDTO movie = clsMoviePasicDetails.GetMovieByID(ID);
+            MovieDTO movie = clsMovieBasicDetails.GetMovieByID(ID);
             if (movie == null)
             {
                 return NotFound($"Not Found: Movie with id {ID} is not found");
             }
-            if (!clsMoviePasicDetails.DeleteMovieByID(ID))
+            if (!clsMovieBasicDetails.DeleteMovieByID(ID))
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Movie not deleted");
             }
@@ -632,6 +689,31 @@ namespace MovieRecommendationAPI.Controllers
                 return BadRequest($"This Movie With ID {MovieID} Is Not Unliked");
             }
             return Ok("Movie is in the unlike list");
+        }
+
+        [HttpGet("GetTop15TrendingMovies/{UserID}", Name = "GetTop15TrendingMovies")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<List<MovieDTO>> GetTop15TrendingMovies(int UserID)
+        {
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            clsUsers LoggedInUser = clsUsers.Find(UserID);
+            List<MovieDTO> movies = clsMovieBasicDetails.GetTop15TrendingMovies(LoggedInUser);
+            if (movies == null || movies.Count == 0)
+            {
+                return NotFound("Not Found: No movie found");
+            }
+            return Ok(movies);
+
         }
 
         [HttpPost("AddMovieToSearchingList", Name = "AddMovieToSearchingList")]
@@ -1249,7 +1331,7 @@ namespace MovieRecommendationAPI.Controllers
 
                 foreach (var movie in allRecommendations)
                 {
-                    var movieDTO = clsMoviePasicDetails.GetMovieByName(movie.movie_title);
+                    var movieDTO = clsMovieBasicDetails.GetMovieByName(movie.movie_title);
                     if (movieDTO != null)
                     {
                         if(!movieList.Contains(movieDTO))

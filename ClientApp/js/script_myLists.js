@@ -1,7 +1,8 @@
 document.addEventListener('DOMContentLoaded', function() {
     const baseApiUrl = 'https://watchly.runasp.net/api/UsersAPI';
     const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
-    
+    const user = JSON.parse(userJson);
+
     function showStatusMessage(message, type) {
         let statusElement = document.getElementById('statusMessage');
         
@@ -34,7 +35,6 @@ document.addEventListener('DOMContentLoaded', function() {
 
     // Check authentication and update UI
     if (userJson) {
-        const user = JSON.parse(userJson);
         document.getElementById('welcomeText').textContent = `Welcome, ${user.username}!`;
         
         const loginBtn = document.getElementById('log-btn');
@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', function() {
             throw new Error('Please enter at least 2 characters to search.');
         }
         
-        const response = await fetch(`${baseUrl}/NameHasWord/${query}`);
+        const response = await fetch(`${baseUrl}/NameHasWord/${query}/${user.id}`);
         
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);

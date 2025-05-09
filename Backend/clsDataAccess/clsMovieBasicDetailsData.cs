@@ -18,8 +18,8 @@ namespace clsDataAccess
         #nullable disable
 
         public MovieDTO(int iD, string movieName, int year, float rate, string posterImageURL,
-            string trailerURL, string contentRating, string duration, string language,
-            string country, float aspectRatio, string genre, string iMDbMovieURL, string keywords="", int popularity = -1)
+            string trailerURL, string duration, string language,
+            string country, float aspectRatio, string genre, string iMDbMovieURL, string keywords="", double popularity = -1)
         {
 
             ID = iD;
@@ -28,7 +28,6 @@ namespace clsDataAccess
             Rate = rate;
             PosterImageURL = posterImageURL;
             TrailerURL = trailerURL;
-            ContentRating = contentRating;
             Duration = duration;
             Language = language;
             Country = country;
@@ -45,7 +44,6 @@ namespace clsDataAccess
         public float Rate { get; set; }
         public string PosterImageURL { get; set; }
         public string TrailerURL { get; set; }
-        public string ContentRating { get; set; }
         public string Duration { get; set; }
         public int DurationInMinutes
         {
@@ -72,7 +70,7 @@ namespace clsDataAccess
         public string Genre { get; set; }
         public string IMDbMovieURL { get; set; }
         public string Keywords { get; set; }
-        public int Popularity { get; set; }
+        public double Popularity { get; set; }
         public override bool Equals(object obj)
         {
             if (obj is not MovieDTO other)
@@ -122,7 +120,6 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("poster_url")) ? @"https://www.movienewz.com/img/films/poster-holder.jpg"
                                 : reader.GetString(reader.GetOrdinal("poster_url")),
                                 reader.IsDBNull(reader.GetOrdinal("trailer_url")) ? null : reader.GetString(reader.GetOrdinal("trailer_url")),
-                                reader.IsDBNull(reader.GetOrdinal("content_rating")) ? null : reader.GetString(reader.GetOrdinal("content_rating")),
                                 reader.IsDBNull(reader.GetOrdinal("Duration")) ? null : reader.GetString(reader.GetOrdinal("duration")),
                                 reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
@@ -163,7 +160,6 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("poster_url")) ? @"https://www.movienewz.com/img/films/poster-holder.jpg"
                                 : reader.GetString(reader.GetOrdinal("poster_url")),
                                 reader.IsDBNull(reader.GetOrdinal("trailer_url")) ? null : reader.GetString(reader.GetOrdinal("trailer_url")),
-                                reader.IsDBNull(reader.GetOrdinal("content_rating")) ? null : reader.GetString(reader.GetOrdinal("content_rating")),
                                 reader.IsDBNull(reader.GetOrdinal("Duration")) ? null : reader.GetString(reader.GetOrdinal("duration")),
                                 reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
@@ -264,7 +260,6 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("poster_url")) ? @"https://www.movienewz.com/img/films/poster-holder.jpg"
                                 : reader.GetString(reader.GetOrdinal("poster_url")),
                                 reader.IsDBNull(reader.GetOrdinal("trailer_url")) ? null : reader.GetString(reader.GetOrdinal("trailer_url")),
-                                reader.IsDBNull(reader.GetOrdinal("content_rating")) ? null : reader.GetString(reader.GetOrdinal("content_rating")),
                                 reader.IsDBNull(reader.GetOrdinal("Duration")) ? null : reader.GetString(reader.GetOrdinal("duration")),
                                 reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
@@ -309,7 +304,6 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("poster_url")) ? @"https://www.movienewz.com/img/films/poster-holder.jpg"
                                                                                     : reader.GetString(reader.GetOrdinal("poster_url")),
                                 reader.IsDBNull(reader.GetOrdinal("trailer_url")) ? null : reader.GetString(reader.GetOrdinal("trailer_url")),
-                                reader.IsDBNull(reader.GetOrdinal("content_rating")) ? null : reader.GetString(reader.GetOrdinal("content_rating")),
                                 reader.IsDBNull(reader.GetOrdinal("Duration")) ? null : reader.GetString(reader.GetOrdinal("duration")),
                                 reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
@@ -355,7 +349,6 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("poster_url")) ? @"https://www.movienewz.com/img/films/poster-holder.jpg"
                                                                                  : reader.GetString(reader.GetOrdinal("poster_url")),
                                 reader.IsDBNull(reader.GetOrdinal("trailer_url")) ? null : reader.GetString(reader.GetOrdinal("trailer_url")),
-                                reader.IsDBNull(reader.GetOrdinal("content_rating")) ? null : reader.GetString(reader.GetOrdinal("content_rating")),
                                 reader.IsDBNull(reader.GetOrdinal("Duration")) ? null : reader.GetString(reader.GetOrdinal("duration")),
                                 reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
@@ -404,7 +397,6 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("poster_url")) ? @"https://www.movienewz.com/img/films/poster-holder.jpg"
                                                                                  : reader.GetString(reader.GetOrdinal("poster_url")),
                                 reader.IsDBNull(reader.GetOrdinal("trailer_url")) ? null : reader.GetString(reader.GetOrdinal("trailer_url")),
-                                reader.IsDBNull(reader.GetOrdinal("content_rating")) ? null : reader.GetString(reader.GetOrdinal("content_rating")),
                                 reader.IsDBNull(reader.GetOrdinal("Duration")) ? null : reader.GetString(reader.GetOrdinal("duration")),
                                 reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
@@ -450,7 +442,6 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("poster_url")) ? @"https://www.movienewz.com/img/films/poster-holder.jpg"
                                                                                  : reader.GetString(reader.GetOrdinal("poster_url")),
                                 reader.IsDBNull(reader.GetOrdinal("trailer_url")) ? null : reader.GetString(reader.GetOrdinal("trailer_url")),
-                                reader.IsDBNull(reader.GetOrdinal("content_rating")) ? null : reader.GetString(reader.GetOrdinal("content_rating")),
                                 reader.IsDBNull(reader.GetOrdinal("Duration")) ? null : reader.GetString(reader.GetOrdinal("duration")),
                                 reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
@@ -498,7 +489,6 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("poster_url")) ? @"https://www.movienewz.com/img/films/poster-holder.jpg"
                                                                                  : reader.GetString(reader.GetOrdinal("poster_url")),
                                 reader.IsDBNull(reader.GetOrdinal("trailer_url")) ? null : reader.GetString(reader.GetOrdinal("trailer_url")),
-                                reader.IsDBNull(reader.GetOrdinal("content_rating")) ? null : reader.GetString(reader.GetOrdinal("content_rating")),
                                 reader.IsDBNull(reader.GetOrdinal("Duration")) ? null : reader.GetString(reader.GetOrdinal("duration")),
                                 reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
@@ -542,7 +532,6 @@ namespace clsDataAccess
                             reader.IsDBNull(reader.GetOrdinal("poster_url")) ? @"https://www.movienewz.com/img/films/poster-holder.jpg"
                                                                                  : reader.GetString(reader.GetOrdinal("poster_url")),
                             reader.IsDBNull(reader.GetOrdinal("trailer_url")) ? null : reader.GetString(reader.GetOrdinal("trailer_url")),
-                            reader.IsDBNull(reader.GetOrdinal("content_rating")) ? null : reader.GetString(reader.GetOrdinal("content_rating")),
                             reader.IsDBNull(reader.GetOrdinal("Duration")) ? null : reader.GetString(reader.GetOrdinal("duration")),
                             reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
                             reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
@@ -573,7 +562,6 @@ namespace clsDataAccess
                     cmd.Parameters.AddWithValue("@Rate", MDTO.Rate);
                     cmd.Parameters.AddWithValue("@PosterImageURL", MDTO.PosterImageURL);
                     cmd.Parameters.AddWithValue("@TrailerURL", MDTO.TrailerURL);
-                    cmd.Parameters.AddWithValue("@ContentRating", MDTO.ContentRating);
                     cmd.Parameters.AddWithValue("@Duration", MDTO.DurationInMinutes);
                     cmd.Parameters.AddWithValue("@Language", MDTO.Language);
                     cmd.Parameters.AddWithValue("@Country", MDTO.Country);
@@ -628,7 +616,6 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("poster_url")) ? @"https://www.movienewz.com/img/films/poster-holder.jpg"
                                                                                  : reader.GetString(reader.GetOrdinal("poster_url")),
                                 reader.IsDBNull(reader.GetOrdinal("trailer_url")) ? null : reader.GetString(reader.GetOrdinal("trailer_url")),
-                                reader.IsDBNull(reader.GetOrdinal("content_rating")) ? null : reader.GetString(reader.GetOrdinal("content_rating")),
                                 reader.IsDBNull(reader.GetOrdinal("Duration")) ? null : reader.GetString(reader.GetOrdinal("duration")),
                                 reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
@@ -671,7 +658,46 @@ namespace clsDataAccess
             return false;
         }
 
-       
+        public static List<MovieDTO> GetTop15TrendingMovies()
+        {
+            List<MovieDTO> MDTOs = new List<MovieDTO>();
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_GetTop15TrendingMovies", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    con.Open();
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        while (reader.Read())
+                        {
+                            MovieDTO MDTO = null;
+                            MDTO = new
+                            (
+                                reader.IsDBNull(reader.GetOrdinal("ID")) ? 0 : reader.GetInt32(reader.GetOrdinal("ID")),
+                                reader.IsDBNull(reader.GetOrdinal("movie_title")) ? null : reader.GetString(reader.GetOrdinal("movie_title")),
+                                reader.IsDBNull(reader.GetOrdinal("title_year")) ? 0 : reader.GetInt32(reader.GetOrdinal("title_year")),
+                                reader.IsDBNull(reader.GetOrdinal("imdb_score")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("imdb_score")),
+                                reader.IsDBNull(reader.GetOrdinal("poster_url")) ? @"https://www.movienewz.com/img/films/poster-holder.jpg"
+                                                                                 : reader.GetString(reader.GetOrdinal("poster_url")),
+                                reader.IsDBNull(reader.GetOrdinal("trailer_url")) ? null : reader.GetString(reader.GetOrdinal("trailer_url")),
+                                reader.IsDBNull(reader.GetOrdinal("Duration")) ? null : reader.GetString(reader.GetOrdinal("duration")),
+                                reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
+                                reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
+                                reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
+                                reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link")),"",
+                                reader.IsDBNull(reader.GetOrdinal("popularity")) ? 0 : reader.GetDouble(reader.GetOrdinal("popularity"))
+                                
+                                );
+                            MDTOs.Add(MDTO);
+                        }
+                    }
+                    con.Close();
+                }
+            }
+            return MDTOs;
+        }
     }
 
     

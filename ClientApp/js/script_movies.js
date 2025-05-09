@@ -126,7 +126,7 @@ document.addEventListener('DOMContentLoaded', function() {
             throw new Error('Please enter at least 2 characters to search.');
         }
         
-        const response = await fetch(`${apiConfig.baseUrl}/NameHasWord/${query}`);
+        const response = await fetch(`${apiConfig.baseUrl}/NameHasWord/${query}/${loggedInUser.id}`);
         if (!response.ok) {
             const error = await response.text();
             throw new Error(`${error}`);
@@ -818,7 +818,7 @@ moviesGrid.innerHTML = moviesToDisplay.map(movie => `
             currentPage = 1; // إعادة تعيين إلى الصفحة الأولى عند التحميل الأولي
             
             // تحميل الأفلام
-            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.byGenre}?GenreName=Sci_Fi`);
+            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.byGenre}/${loggedInUser.id}?GenreName=Sci_Fi`);
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
@@ -890,10 +890,10 @@ moviesGrid.innerHTML = moviesToDisplay.map(movie => `
                 const minRating = parseFloat(ratingRange.value);
                 var SortByValue = sortBy.value;
                 var OrderValue = SortByValue === 'rating' ? 'DESC' : SortByValue === 'newest' ? 'DESC' : 'ASC';
-                let apiUrl = `${apiConfig.baseUrl}${apiConfig.endpoints.byGenre}?GenreName=Sci_Fi`;
+                let apiUrl = `${apiConfig.baseUrl}${apiConfig.endpoints.byGenre}?GenreName=Sci_Fi/${loggedInUser.id}`;
 
                 if(selectedGenres.length != 0) {
-                    apiUrl = `${apiConfig.baseUrl}${apiConfig.endpoints.byYearsRangeAndGenreSorted}/${startYear}/${endYear}/${selectedGenresString}/${minRating}/${SortByValue}/${OrderValue}`;
+                    apiUrl = `${apiConfig.baseUrl}${apiConfig.endpoints.byYearsRangeAndGenreSorted}/${startYear}/${endYear}/${selectedGenresString}/${minRating}/${SortByValue}/${OrderValue}/${loggedInUser.id}`;
                 }
                 
                 console.log("Request URL:", apiUrl);

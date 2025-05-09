@@ -40,11 +40,7 @@ namespace WatchlyAPI.Settings
                     return false;
                     message = "Bad Request: Duration should be greater than 0";
                 }
-                if (movieDTO.ContentRating.Length < 1 || movieDTO.ContentRating.Length > 10)
-                {
-                    return false;
-                    message = "Bad Request: Content Rating length should be between 1 and 10 characters";
-                }
+                
                 if (movieDTO.Language.Length < 1 || movieDTO.Language.Length > 20)
                 {
                     return false;
@@ -103,7 +99,7 @@ namespace WatchlyAPI.Settings
                     message = $"Bad Request: User with ID {UserID} is not exists";
                     return false;
                 }
-                if (!clsMoviePasicDetails.IsMovieExist(MovieID))
+                if (!clsMovieBasicDetails.IsMovieExist(MovieID))
                 {
                     message = $"Bad Request: Movie with ID {MovieID} is not exists";
                     return false;

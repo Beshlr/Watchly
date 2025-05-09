@@ -4,11 +4,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
     let favoriteMovies = null; 
 
+    const user = JSON.parse(userJson);
     
 
     // Check authentication and update UI
     if (userJson) {
-        const user = JSON.parse(userJson);
         document.getElementById('welcomeText').textContent = `Welcome, ${user.username}!`;
         
         const loginBtn = document.getElementById('log-btn');
@@ -39,7 +39,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     
     // Load trending movies
-    loadMovies('GetTop100MovieBetweenTwoYears/2023/2025/Animation', 'trendingMovies');
+    loadMovies(`GetTop15TrendingMovies/${user.id}`, 'trendingMovies');
     
     // Initialize lazy loading
     initLazyLoading();
@@ -127,7 +127,7 @@ function switchGenreTab(genre) {
 
 async function loadMoviesForGenre(genre, containerId) {
     try {
-        const response = await fetch(`${baseMovieApiUrl}/GetTop100MovieWithGenre?GenreName=${encodeURIComponent(genre)}`);
+        const response = await fetch(`${baseMovieApiUrl}/GetTop100MovieWithGenre/${user.id}?GenreName=${encodeURIComponent(genre)}`);
         if (!response.ok) throw new Error(`Failed to load ${genre} movies`);
         
         const movies = await response.json();
@@ -154,7 +154,15 @@ async function loadMovies(endpoint, containerId) {
     const container = document.getElementById(containerId);
     
     try {
-        const response = await fetch(`${baseMovieApiUrl}/${endpoint}`);
+        let response = null;
+        if(containerId !== 'trendingMovies') {
+            response = await fetch(`${baseMovieApiUrl}/${endpoint}`);
+        }
+        else
+        {
+            response = await fetch(`${baseUsersApiUrl}/GetTop15TrendingMovies/${user.id}`);
+
+        }
         if (!response.ok) throw new Error('Network response was not ok');
         const movies = await response.json();
         
@@ -426,7 +434,7 @@ async function searchMovies(query, displayInGrid = true) {
     }
     
     try {
-        const response = await fetch(`${baseMovieApiUrl}/NameHasWord/${query}`);
+        const response = await fetch(`${baseMovieApiUrl}/NameHasWord/${query}/${user.id}`);
         
         if (!response.ok) {
             throw new Error(`API request failed with status ${response.status}`);
