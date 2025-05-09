@@ -695,7 +695,7 @@ namespace MovieRecommendations_DataLayer
             bool IsAdded = false;
             using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
-                using (SqlCommand cmd = new SqlCommand("SP_AddMovieToWatchingMovies", con))
+                using (SqlCommand cmd = new SqlCommand("SP_AddMovieToWatchedMovies", con))
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@MovieID", MovieID);
@@ -708,6 +708,7 @@ namespace MovieRecommendations_DataLayer
                     };
                     var ReturnParam = new SqlParameter("@ReturnValue", SqlDbType.Int);
                     ReturnParam.Direction = ParameterDirection.ReturnValue;
+                    cmd.Parameters.Add(ReturnParam);
                     cmd.Parameters.Add(WatchingID);
                     if (AddToFavorate)
                     {
@@ -722,7 +723,12 @@ namespace MovieRecommendations_DataLayer
                         };
                         
                         cmd.Parameters.Add(intersetID);
-                        cmd.Parameters.Add(FavorateID);
+                        
+                    }
+                    else
+                    {
+                        cmd.Parameters.AddWithValue("@FavorateID", DBNull.Value);
+                        cmd.Parameters.AddWithValue("@IntersetID", DBNull.Value);
                     }
                     con.Open();
                     try
@@ -737,7 +743,7 @@ namespace MovieRecommendations_DataLayer
                             message = "Movie is already in your watching list";
                             return false;
                         }
-                        IsAdded = (WatchingID != null);
+                        IsAdded = (WatchingID != null && (int)ReturnParam.Value == 3);
                         if (!IsAdded)
                             message = "Movie did't added to the favorate list";
                     }

@@ -808,7 +808,10 @@ namespace MovieRecommendationAPI.Controllers
             int MovieID = watchingListRequest.MovieID;
             int UserID = watchingListRequest.UserID;
             string message = string.Empty;
-
+            if(clsUsers.CheckIfMovieInWatchedList(MovieID, UserID))
+            {
+                return BadRequest($"Movie with ID {MovieID} Is Already in Watched List");
+            }
             if (!clsUsers.AddMovieToWatchingList(MovieID, UserID, AddedToFavorate, ref message))
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, message);

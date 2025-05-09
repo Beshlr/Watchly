@@ -284,87 +284,105 @@ document.addEventListener('DOMContentLoaded', function() {
             updatePaginationUI();
             return;
         }
-        
-        // حفظ جميع الأفلام وتحديث العدد الكلي
+    
         allMovies = movies;
         totalMovies = movies.length;
-        
-        // حساب الأفلام للصفحة الحالية
+    
         const startIndex = (currentPage - 1) * moviesPerPage;
         const endIndex = Math.min(startIndex + moviesPerPage, totalMovies);
         const moviesToDisplay = allMovies.slice(startIndex, endIndex);
-        
+    
         GetUserInfoByID(loggedInUser.id);
         const favorites = JSON.parse(localStorage.getItem('userFavorites') || '[]');
         const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
         const user = userJson ? JSON.parse(userJson) : null;
         const isAdminOrOwner = user && (user.permissions === 1 || user.permissions === 3);
-
+    
         const unlikedResponse = await fetch(`https://watchly.runasp.net/api/UsersAPI/GetAllUnlikedMoviesToUser/${user.id}`);
-    const unlikedMovies = unlikedResponse.ok ? await unlikedResponse.json() : [];
-    const unlikedIds = unlikedMovies.map(movie => movie.id);
-    localStorage.setItem('userUnliked', JSON.stringify(unlikedIds));
+        const unlikedMovies = unlikedResponse.ok ? await unlikedResponse.json() : [];
+        const unlikedIds = unlikedMovies.map(movie => movie.id);
+        localStorage.setItem('userUnliked', JSON.stringify(unlikedIds));
 
-    moviesGrid.innerHTML = moviesToDisplay.map(movie => `
-        <div class="col-md-4 col-lg-3 mb-4 movie-card-container">
-            <!-- ... باقي الكود ... -->
-            <button class="btn btn-sm btn-warning position-absolute top-0 start-0 m-2 dislike-movie-btn" 
-                onclick="event.preventDefault(); event.stopPropagation(); toggleUnlike(${movie.id}, this)"
-                style="border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                <i class="bi bi-hand-thumbs-down${unlikedIds.includes(movie.id) ? '-fill text-warning' : ''}" style="font-size: 1rem;"></i>
-            </button>
-            <!-- ... باقي الكود ... -->
-        </div>
-    `).join('');
-
-        moviesGrid.innerHTML = moviesToDisplay.map(movie => `
-            <div class="col-md-4 col-lg-3 mb-4 movie-card-container">
-                <a href="#" 
-                    class="card h-100 d-block text-decoration-none" 
-                    onclick="event.preventDefault(); handleMovieClick(${movie.id}, '${movie.imDbMovieURL || '#'}')" 
-                    style="cursor: pointer;">
-                    <div class="position-relative">
-                        <img src="${movie.posterImageURL || 'https://via.placeholder.com/300x450'}" 
-                            class="card-img-top" 
-                            alt="${movie.movieName}"
-                            onerror="this.src='https://via.placeholder.com/300x450?text=Poster+Not+Found'">
-                        <button class="btn btn-sm btn-favorite position-absolute top-0 end-0 m-2" 
-                            onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite(${movie.id}, this)"
-                            style="background-color: rgba(255, 255, 255, 0.9); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                        <i class="bi bi-heart${favorites.includes(movie.id) ? '-fill text-danger' : ''}" style="font-size: 1.2rem;"></i>
-                        </button>
+        const watchedResponse = await fetch(`https://watchly.runasp.net/api/UsersAPI/GetAllWatchedMoviesForUser/${user.id}`);
+        const watchedMovies = watchedResponse.ok ? await watchedResponse.json() : [];
+        const watchedIds = watchedMovies.map(movie => movie.id);
+        localStorage.setItem('userWatched', JSON.stringify(watchedIds));
             
-                        ${isAdminOrOwner ? `
-                        <button class="btn btn-sm btn-danger position-absolute top-0 start-0 m-2 delete-movie-btn" 
-                            onclick="event.preventDefault(); event.stopPropagation(); confirmDeleteMovie(${movie.id}, '${movie.movieName.replace(/'/g, "\\'")}')"
-                            style="border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                            <i class="bi bi-trash" style="font-size: 1rem;"></i>
-                        </button>
-                        ` : `
-                        <button class="btn btn-sm btn-warning position-absolute top-0 start-0 m-2 dislike-movie-btn" 
-                            onclick="event.preventDefault(); event.stopPropagation(); toggleUnlike(${movie.id}, this)"
-                            style="border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                            <i class="bi bi-hand-thumbs-down${unlikedIds.includes(movie.id) ? '-fill text-warning' : ''}" style="font-size: 1rem;"></i>
-                        </button>
-                        `}
-                    </div>
-                    <div class="card-body">
-                        <h5 class="card-title">${movie.movieName}</h5>
-                        <p class="card-text">
-                            <span class="text-muted">${movie.year}</span>
-                            <span class="float-end rating-stars">
-                                ${generateStarRating(movie.rate)}
-                                <small>${movie.rate?.toFixed(1) || 'N/A'}</small>
-                            </span>
-                        </p>
-                    </div>
-                </a>
+        // ✅ هنا الجزء الصحيح فقط
+        // داخل دالة displayMovies
+moviesGrid.innerHTML = moviesToDisplay.map(movie => `
+    <div class="col-md-4 col-lg-3 mb-4 movie-card-container">
+        <a href="#" 
+            class="card h-100 d-block text-decoration-none" 
+            onclick="event.preventDefault(); handleMovieClick(${movie.id}, '${movie.imDbMovieURL || '#'}')" 
+            style="cursor: pointer;">
+            <div class="position-relative">
+                <img src="${movie.posterImageURL || 'https://via.placeholder.com/300x450'}" 
+                    class="card-img-top" 
+                    alt="${movie.movieName}"
+                    onerror="this.src='https://via.placeholder.com/300x450?text=Poster+Not+Found'">
+                
+                ${isAdminOrOwner ? `
+                <div class="position-absolute top-0 end-0 d-flex flex-column m-2">
+                    <button class="btn btn-sm btn-favorite mb-1" 
+                        onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite(${movie.id}, this)"
+                        style="background-color: rgba(255, 255, 255, 0.9); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                        <i class="bi bi-heart${favorites.includes(movie.id) ? '-fill text-danger' : ''}" style="font-size: 1.2rem;"></i>
+                    </button>
+                    
+                    <button class="btn btn-sm btn-watched mb-1" 
+                        onclick="event.preventDefault(); event.stopPropagation(); toggleWatched(${movie.id}, this)"
+                        style="background-color: rgba(255, 255, 255, 0.9); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                        <i class="bi bi-eye${watchedIds.includes(movie.id) ? '-fill text-success' : ''}" style="font-size: 1.2rem;"></i>
+                    </button>
+                </div>
+                ` : `
+                <div class="position-absolute top-0 end-0 d-flex flex-column m-2">
+                    <button class="btn btn-sm btn-favorite mb-1" 
+                        onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite(${movie.id}, this)"
+                        style="background-color: rgba(255, 255, 255, 0.9); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                        <i class="bi bi-heart${favorites.includes(movie.id) ? '-fill text-danger' : ''}" style="font-size: 1.2rem;"></i>
+                    </button>
+                    
+                    <button class="btn btn-sm btn-watched mb-1" 
+                        onclick="event.preventDefault(); event.stopPropagation(); toggleWatched(${movie.id}, this)"
+                        style="background-color: rgba(255, 255, 255, 0.9); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                        <i class="bi bi-eye${watchedIds.includes(movie.id) ? '-fill text-success' : ''}" style="font-size: 1.2rem;"></i>
+                    </button>
+                </div>
+                `}
+                
+                ${isAdminOrOwner ? `
+                <button class="btn btn-sm btn-danger position-absolute top-0 start-0 m-2 delete-movie-btn" 
+                    onclick="event.preventDefault(); event.stopPropagation(); confirmDeleteMovie(${movie.id}, '${movie.movieName.replace(/'/g, "\\'")}')"
+                    style="border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                    <i class="bi bi-trash" style="font-size: 1rem;"></i>
+                </button>
+                ` : ''}
+                
+                <button class="btn btn-sm btn-warning position-absolute ${isAdminOrOwner ? 'start-0 m-2' : 'top-0 start-0 m-2'} dislike-movie-btn" 
+                    onclick="event.preventDefault(); event.stopPropagation(); toggleUnlike(${movie.id}, this)"
+                    style="${isAdminOrOwner ? 'top: 50px;' : ''} border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                    <i class="bi bi-hand-thumbs-down${unlikedIds.includes(movie.id) ? '-fill text-warning' : ''}" style="font-size: 1rem;"></i>
+                </button>
             </div>
-            `).join('');
-        
-        // تحديث واجهة التقسيم إلى الصفحات
+            <div class="card-body">
+                <h5 class="card-title">${movie.movieName}</h5>
+                <p class="card-text">
+                    <span class="text-muted">${movie.year}</span>
+                    <span class="float-end rating-stars">
+                        ${generateStarRating(movie.rate)}
+                        <small>${movie.rate?.toFixed(1) || 'N/A'}</small>
+                    </span>
+                </p>
+            </div>
+        </a>
+    </div>
+`).join('');
+    
         updatePaginationUI();
     }
+    
 
     window.handleMovieClick = function(movieId, imdbUrl) {
         if (imdbUrl) {
@@ -434,6 +452,98 @@ document.addEventListener('DOMContentLoaded', function() {
             alert('There is an error: ' + error);
         }
     }
+
+    window.toggleWatched = async function(movieId, buttonElement) {
+        const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+        if (!userJson) {
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        const user = JSON.parse(userJson);
+        const icon = buttonElement.querySelector('i');
+        const isWatched = icon.classList.contains('bi-eye-fill');
+        
+        try {
+            const endpoint = isWatched ? 'RemoveMovieFromWatchedList' : 'AddMovieToWatchingList';
+            const method = isWatched ? 'DELETE' : 'POST';
+    
+            let response;
+            if (method === 'POST') {
+                response = await fetch(`https://watchly.runasp.net/api/UsersAPI/${endpoint}`, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        UserID: user.id,
+                        MovieID: movieId
+                    })
+                });
+            } else {
+                response = await fetch(`https://watchly.runasp.net/api/UsersAPI/${endpoint}?MovieID=${movieId}&UserID=${user.id}`, {
+                    method: method,
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+            }
+    
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(error);
+            }
+    
+            // تحديث الأيقونة
+            if (isWatched) {
+                icon.classList.remove('bi-eye-fill', 'text-success');
+                icon.classList.add('bi-eye');
+            } else {
+                icon.classList.remove('bi-eye');
+                icon.classList.add('bi-eye-fill', 'text-success');
+            }
+    
+            // تحديث localStorage
+            let watched = JSON.parse(localStorage.getItem('userWatched') || '[]');
+            if (isWatched) {
+                watched = watched.filter(id => id !== movieId);
+            } else {
+                if (!watched.includes(movieId)) {
+                    watched.push(movieId);
+                }
+            }
+            localStorage.setItem('userWatched', JSON.stringify(watched));
+    
+            // رسالة تأكيد
+            alert(`Movie ${isWatched ? 'removed from' : 'added to'} watched list successfully!`);
+        } catch (error) {
+            console.error('Error updating watched list:', error);
+            alert('Failed to update watched list. Please try again.');
+        }
+    }
+    
+    async function loadWatchedMovies() {
+        const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+        if (!userJson) return;
+        
+        const user = JSON.parse(userJson);
+        
+        try {
+            const response = await fetch(`https://watchly.runasp.net/api/UsersAPI/GetAllWatchedMoviesForUser/${user.id}`);
+            if (!response.ok) throw new Error('Failed to load watched movies');
+            
+            const watchedMovies = await response.json();
+            const watchedIds = watchedMovies
+                .filter(movie => movie && movie.id !== undefined)
+                .map(movie => movie.id);
+    
+            localStorage.setItem('userWatched', JSON.stringify(watchedIds));
+        } catch (error) {
+            console.error('Error loading watched movies:', error);
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', loadWatchedMovies);
 
     window.toggleUnlike = async function(movieId, buttonElement) {
         const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
@@ -734,6 +844,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     const unlikedIds = unlikedMovies.map(movie => movie.id);
                     localStorage.setItem('userUnliked', JSON.stringify(unlikedIds));
                 }
+
+                const watchedResponse = await fetch(`https://watchly.runasp.net/api/UsersAPI/GetAllWatchedMoviesForUser/${user.id}`);
+                if (watchedResponse.ok) {
+                    const watchedMovies = await watchedResponse.json();
+                    const watchedIds = watchedMovies.map(movie => movie.id);
+                    localStorage.setItem('userWatched', JSON.stringify(watchedIds));
+                }
             }
             
             displayMovies(movies);
@@ -809,6 +926,13 @@ document.addEventListener('DOMContentLoaded', function() {
                     const unlikedMovies = await unlikedResponse.json();
                     const unlikedIds = unlikedMovies.map(movie => movie.id);
                     localStorage.setItem('userUnliked', JSON.stringify(unlikedIds));
+                }
+
+                const watchedResponse = await fetch(`https://watchly.runasp.net/api/UsersAPI/GetAllWatchedMoviesForUser/${user.id}`);
+                if (watchedResponse.ok) {
+                    const watchedMovies = await watchedResponse.json();
+                    const watchedIds = watchedMovies.map(movie => movie.id);
+                    localStorage.setItem('userWatched', JSON.stringify(watchedIds));
                 }
             }
             
