@@ -393,7 +393,7 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public ActionResult<UserDTO> GetUserInfoByID(int id)
+        public ActionResult<UserBasicInfoDTO> GetUserInfoByID(int id)
         {
             if (id < 1)
             {
@@ -407,7 +407,7 @@ namespace MovieRecommendationAPI.Controllers
                 return NotFound($"Not Found: User with id {id} is not found");
             }
 
-            return Ok(user.UDTO);
+            return Ok(user.userBasicInfoDTO);
         }
 
         [HttpGet("GetAllUsers", Name="GetAllUsers")]
