@@ -94,10 +94,7 @@ document.addEventListener('DOMContentLoaded', function() {
     // تبديل حالة المفضلة
     window.toggleFavorite = async function(movieId, buttonElement) {
         const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
-        if (!userJson) {
-            window.location.href = 'login.html';
-            return;
-        }
+       
         
         const user = JSON.parse(userJson);
         const icon = buttonElement.querySelector('i');

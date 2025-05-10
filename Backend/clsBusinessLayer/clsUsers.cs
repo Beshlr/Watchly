@@ -133,6 +133,11 @@ namespace MovieRecommendations_BusinessLayer
 
         }
 
+        public static List<string> GetUnLikedGenresForUser(int UserID)
+        {
+            return clsUsersData.GetAllUnLikedGenresForUser(UserID);
+        }
+
         public static clsUsers Find(string Username)
         {
             UserDTO uDTO = clsUsersData.GetUsersInfoByUsername(Username);

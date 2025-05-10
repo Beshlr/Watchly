@@ -12,15 +12,7 @@ class UserProfileManager {
     }
 
     // Initialize the user profile
-    init() {
-        if (!this.checkAuth()) return;
-        
-        this.setupDOMReferences();
-        this.updateUI();
-        this.setupEventListeners();
-        this.loadFavorites();
-    }
-
+   
     // Get logged in user from storage
     getLoggedInUser() {
         const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
@@ -30,10 +22,30 @@ class UserProfileManager {
     // Check authentication state
     checkAuth() {
         if (!this.user) {
+            // استثناء الصفحة الرئيسية من إعادة التوجيه
+            if (window.location.pathname.endsWith('main.html')) {
+                return false;
+            }
             this.redirectToLogin();
             return false;
         }
         return true;
+    }
+    
+    // وفي دالة init() سأقوم بالتعديل لتصبح كالتالي:
+    init() {
+        if (!this.checkAuth()) {
+            // إذا كانت الصفحة الرئيسية ولا يوجد مستخدم، لا تقم بأي شيء
+            if (window.location.pathname.endsWith('main.html')) {
+                return;
+            }
+            return;
+        }
+        
+        this.setupDOMReferences();
+        this.updateUI();
+        this.setupEventListeners();
+        this.loadFavorites();
     }
 
     // Redirect to login page

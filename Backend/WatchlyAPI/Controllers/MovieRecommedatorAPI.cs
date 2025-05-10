@@ -271,6 +271,27 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(movies);
         }
 
+        [HttpGet("GetRandomSuggestedMovieByGenres/{GenresList}",Name = "GetRandomSuggestedMovieByGenres")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult<MovieDTO> GetRandomSuggestedMovieByGenres(string GenresList)
+        {
+            if(String.IsNullOrEmpty(GenresList))
+            {
+                return BadRequest("Genres Can't be null or empty");
+            }
+
+            MovieDTO suggestedMovie =  clsMovieBasicDetails.GetRandomSuggestedMovieByGenres(GenresList);
+
+            if(suggestedMovie == null)
+            {
+                return BadRequest("Can't reach for Movie with these genres");
+            }
+
+            return Ok(suggestedMovie);
+        }
+
         [HttpPost("CheckIfMovieExist", Name = "CheckIfMovieExist")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

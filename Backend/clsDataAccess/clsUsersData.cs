@@ -1091,7 +1091,7 @@ namespace MovieRecommendations_DataLayer
                     try
                     {
                         cmd.ExecuteNonQuery();
-                        return (int)ReturnParam.Value == 1;
+                        return (int)ReturnParam.Value >= 1;
                     }
                     catch (Exception ex)
                     {
@@ -1128,6 +1128,37 @@ namespace MovieRecommendations_DataLayer
 
         }
     
+        public static List<string> GetAllUnLikedGenresForUser(int UserID)
+        {
+            List<string> genresCombos = new List<string>();
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_GetUnLikedGenresForUser", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    con.Open();
+                    try
+                    {
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                string GenresCombo = reader["GenresList"].ToString();
+                                genresCombos.Add(GenresCombo);
+                            }
+                            return genresCombos;
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error ", ex.Message);
+                    }
+                }
+            }
+            return genresCombos;
+        }
+
         public static bool CheckIfMovieInUnlikedList (int UserID, int MovieID)
         {
             using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))

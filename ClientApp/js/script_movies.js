@@ -9,8 +9,7 @@ document.addEventListener('DOMContentLoaded', function() {
     const EndYearMaxValue = document.getElementById('endYearMaxValue');
     const ratingRange = document.getElementById('ratingRange');
     const ratingValue = document.getElementById('ratingValue');
-    const genreCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="genre-"], #action, #comedy, #drama, #sci-fi, #horror, #romance, #thriller, #animation');
-    const searchInput = document.getElementById('searchInput');
+    const genreCheckboxes = document.querySelectorAll('input[type="checkbox"][id^="genre-"], #action, #adventure, #comedy, #drama, #sci-fi, #horror, #romance, #thriller, #animation, #fantasy, #family, #mystery, #crime, #history, #music, #war, #western');    const searchInput = document.getElementById('searchInput');
     const searchResults = document.getElementById('searchResults');
     const searchBtn = document.getElementById('searchButton');
     const sortBy = document.getElementById('sortBy');
@@ -817,15 +816,16 @@ moviesGrid.innerHTML = moviesToDisplay.map(movie => `
             showLoadingState();
             currentPage = 1; // إعادة تعيين إلى الصفحة الأولى عند التحميل الأولي
             
-            // تحميل الأفلام
-            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.byGenre}/${loggedInUser.id}?GenreName=Sci_Fi`);
+            // تحميل الأفلام الأولية (على سبيل المثال: الأفلام الأعلى تقييماً)
+            const response = await fetch(`${apiConfig.baseUrl}${apiConfig.endpoints.byYearsRange}/1980/2025/Sci_Fi/${loggedInUser.id}`);
+            
             if (!response.ok) {
                 throw new Error(`HTTP error! status: ${response.status}`);
             }
             
             const movies = await response.json();
             
-            // تحميل قائمة المفضلة إذا كان المستخدم مسجل الدخول
+            // تحميل قوائم المستخدم إذا كان مسجل الدخول
             if (userJson) {
                 const user = JSON.parse(userJson);
                 
@@ -836,7 +836,7 @@ moviesGrid.innerHTML = moviesToDisplay.map(movie => `
                     const favoriteIds = favorites.map(movie => movie.id);
                     localStorage.setItem('userFavorites', JSON.stringify(favoriteIds));
                 }
-    
+                
                 // تحميل Unlike
                 const unlikedResponse = await fetch(`https://watchly.runasp.net/api/UsersAPI/GetAllUnlikedMoviesToUser/${user.id}`);
                 if (unlikedResponse.ok) {
@@ -844,7 +844,8 @@ moviesGrid.innerHTML = moviesToDisplay.map(movie => `
                     const unlikedIds = unlikedMovies.map(movie => movie.id);
                     localStorage.setItem('userUnliked', JSON.stringify(unlikedIds));
                 }
-
+                
+                // تحميل Watched
                 const watchedResponse = await fetch(`https://watchly.runasp.net/api/UsersAPI/GetAllWatchedMoviesForUser/${user.id}`);
                 if (watchedResponse.ok) {
                     const watchedMovies = await watchedResponse.json();
@@ -865,50 +866,63 @@ moviesGrid.innerHTML = moviesToDisplay.map(movie => `
             showLoadingState();
             currentPage = 1; // إعادة تعيين إلى الصفحة الأولى عند تطبيق فلاتر جديدة
             
-                const selectedGenres = Array.from(genreCheckboxes)
-                    .filter(checkbox => checkbox.checked)
-                    .map(checkbox => {
-                        switch(checkbox.id) {
-                            case 'action': return 'Action';
-                            case 'comedy': return 'Comedy';
-                            case 'drama': return 'Drama';
-                            case 'sci-fi': return 'Sci_FI';
-                            case 'horror': return 'Horror';
-                            case 'romance': return 'Romance';
-                            case 'thriller': return 'Thriller';
-                            case 'adventure': return 'Adventure';
-                            case 'animation': return 'Animation';
-
-                            default: return checkbox.id;
-                        }
-                    });
-
-                const selectedGenresString = selectedGenres.join(',');
-                
-                const startYear = StartYear.value;
-                const endYear = EndYear.value;
-                const minRating = parseFloat(ratingRange.value);
-                var SortByValue = sortBy.value;
-                var OrderValue = SortByValue === 'rating' ? 'DESC' : SortByValue === 'newest' ? 'DESC' : 'ASC';
-                let apiUrl = `${apiConfig.baseUrl}${apiConfig.endpoints.byGenre}?GenreName=Sci_Fi/${loggedInUser.id}`;
-
-                if(selectedGenres.length != 0) {
-                    apiUrl = `${apiConfig.baseUrl}${apiConfig.endpoints.byYearsRangeAndGenreSorted}/${startYear}/${endYear}/${selectedGenresString}/${minRating}/${SortByValue}/${OrderValue}/${loggedInUser.id}`;
-                }
-                
-                console.log("Request URL:", apiUrl);
-                
-                const response = await fetch(apiUrl);
-                
-                if (!response.ok) {
-                    if( response.status === 404) 
-                        throw new Error(`No movies found for the selected filters.`);
-                    else
-                        throw new Error(`HTTP error! status: ${response.status}`);
-                }        
-                const movies = await response.json();
+            const selectedGenres = Array.from(genreCheckboxes)
+                .filter(checkbox => checkbox.checked)
+                .map(checkbox => {
+                    switch(checkbox.id) {
+                        case 'action': return 'Action';
+                        case 'adventure': return 'Adventure';
+                        case 'animation': return 'Animation';
+                        case 'comedy': return 'Comedy';
+                        case 'crime': return 'Crime';
+                        case 'documentary': return 'Documentary';
+                        case 'drama': return 'Drama';
+                        case 'family': return 'Family';
+                        case 'fantasy': return 'Fantasy';
+                        case 'history': return 'History';
+                        case 'horror': return 'Horror';
+                        case 'music': return 'Music';
+                        case 'mystery': return 'Mystery';
+                        case 'romance': return 'Romance';
+                        case 'sci-fi': return 'Sci_Fi';
+                        case 'sport': return 'Sport';
+                        case 'thriller': return 'Thriller';
+                        case 'war': return 'War';
+                        case 'western': return 'Western';
+                        default: return checkbox.id;
+                    }
+                });
+    
+            // إذا لم يتم اختيار أي أنواع، قم بتحميل الأفلام الأولية
+            if (selectedGenres.length === 0) {
+                await loadInitialMovies();
+                return;
+            }
             
-            // تحميل قائمة المفضلة إذا كان المستخدم مسجل الدخول
+            const selectedGenresString = selectedGenres.join(',');
+            const startYear = StartYear.value;
+            const endYear = EndYear.value;
+            const minRating = parseFloat(ratingRange.value);
+            const SortByValue = sortBy.value;
+            const OrderValue = SortByValue === 'rating' ? 'DESC' : SortByValue === 'newest' ? 'DESC' : 'ASC';
+            
+            let apiUrl = `${apiConfig.baseUrl}${apiConfig.endpoints.byYearsRangeAndGenreSorted}/${startYear}/${endYear}/${selectedGenresString}/${minRating}/${SortByValue}/${OrderValue}/${loggedInUser.id}`;
+            
+            console.log("Request URL:", apiUrl);
+            
+            const response = await fetch(apiUrl);
+            
+            if (!response.ok) {
+                if (response.status === 404) {
+                    throw new Error(`No movies found for the selected filters. Please check your unlike movies.`);
+                } else {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+            }
+            
+            const movies = await response.json();
+            
+            // تحميل قوائم المستخدم (المفضلة، المشاهدة، غير المرغوبة)
             if (userJson) {
                 const user = JSON.parse(userJson);
                 
@@ -919,7 +933,7 @@ moviesGrid.innerHTML = moviesToDisplay.map(movie => `
                     const favoriteIds = favorites.map(movie => movie.id);
                     localStorage.setItem('userFavorites', JSON.stringify(favoriteIds));
                 }
-    
+                
                 // تحميل Unlike
                 const unlikedResponse = await fetch(`https://watchly.runasp.net/api/UsersAPI/GetAllUnlikedMoviesToUser/${user.id}`);
                 if (unlikedResponse.ok) {
@@ -927,7 +941,8 @@ moviesGrid.innerHTML = moviesToDisplay.map(movie => `
                     const unlikedIds = unlikedMovies.map(movie => movie.id);
                     localStorage.setItem('userUnliked', JSON.stringify(unlikedIds));
                 }
-
+                
+                // تحميل Watched
                 const watchedResponse = await fetch(`https://watchly.runasp.net/api/UsersAPI/GetAllWatchedMoviesForUser/${user.id}`);
                 if (watchedResponse.ok) {
                     const watchedMovies = await watchedResponse.json();

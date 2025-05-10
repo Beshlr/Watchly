@@ -10,6 +10,7 @@ using System.Data;
 using Microsoft.Data.SqlClient;
 using MovieRecommendations_DataAccess;
 using System.Security.Cryptography.Pkcs;
+using MovieRecommendations_DataLayer;
 
 namespace clsDataAccess
 {
@@ -19,7 +20,7 @@ namespace clsDataAccess
 
         public MovieDTO(int iD, string movieName, int year, float rate, string posterImageURL,
             string trailerURL, string duration, string language,
-            string country, float aspectRatio, string genre, string iMDbMovieURL, string keywords="", double popularity = -1)
+            string country, float aspectRatio, string genre, string iMDbMovieURL, string keywords="", double popularity = -1,string ratingCode="")
         {
 
             ID = iD;
@@ -36,6 +37,7 @@ namespace clsDataAccess
             IMDbMovieURL = iMDbMovieURL;
             Keywords = keywords;
             Popularity = popularity;
+            RatingCode = ratingCode;
         }
 
         public int ID { get; set; }
@@ -71,6 +73,7 @@ namespace clsDataAccess
         public string IMDbMovieURL { get; set; }
         public string Keywords { get; set; }
         public double Popularity { get; set; }
+        public string RatingCode { get; set; }
         public override bool Equals(object obj)
         {
             if (obj is not MovieDTO other)
@@ -125,8 +128,10 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
                                 reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
                                 reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
-                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
-
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link")),"",-1,
+                                reader.IsDBNull(reader.GetOrdinal("RatingCode")) || reader.GetString(reader.GetOrdinal("RatingCode")) == "N/A" ? null 
+                                                                                    : reader.GetString(reader.GetOrdinal("RatingCode")) 
+                                
                             );
                         }
                     }
@@ -165,7 +170,9 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
                                 reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
                                 reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
-                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link")),"",-1,
+                                  reader.IsDBNull(reader.GetOrdinal("RatingCode")) || reader.GetString(reader.GetOrdinal("RatingCode")) == "N/A" ? null
+                                                                                    : reader.GetString(reader.GetOrdinal("RatingCode"))
                             );
                         }
                     }
@@ -265,7 +272,9 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
                                 reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
                                 reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
-                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link")), "", -1,
+                                  reader.IsDBNull(reader.GetOrdinal("RatingCode")) || reader.GetString(reader.GetOrdinal("RatingCode")) == "N/A" ? null
+                                                                                    : reader.GetString(reader.GetOrdinal("RatingCode"))
                             );
 
                             MDTOs.Add(MDTO);
@@ -309,8 +318,10 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
                                 reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
                                 reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
-                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
-                                
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link")), "", -1,
+                                  reader.IsDBNull(reader.GetOrdinal("RatingCode")) || reader.GetString(reader.GetOrdinal("RatingCode")) == "N/A" ? null
+                                                                                    : reader.GetString(reader.GetOrdinal("RatingCode"))
+
                                 );
 
                             MDTOs.Add(MDTO);
@@ -354,7 +365,9 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
                                 reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
                                 reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
-                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link")), "", -1,
+                                  reader.IsDBNull(reader.GetOrdinal("RatingCode")) || reader.GetString(reader.GetOrdinal("RatingCode")) == "N/A" ? null
+                                                                                    : reader.GetString(reader.GetOrdinal("RatingCode"))
 
                                 );
 
@@ -402,7 +415,9 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
                                 reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
                                 reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
-                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link")), "", -1,
+                                  reader.IsDBNull(reader.GetOrdinal("RatingCode")) || reader.GetString(reader.GetOrdinal("RatingCode")) == "N/A" ? null
+                                                                                    : reader.GetString(reader.GetOrdinal("RatingCode"))
 
                             );
 
@@ -447,7 +462,9 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
                                 reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
                                 reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
-                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link")), "", -1,
+                                  reader.IsDBNull(reader.GetOrdinal("RatingCode")) || reader.GetString(reader.GetOrdinal("RatingCode")) == "N/A" ? null
+                                                                                    : reader.GetString(reader.GetOrdinal("RatingCode"))
 
                             );
 
@@ -494,7 +511,9 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
                                 reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
                                 reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
-                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link")), "", -1,
+                                  reader.IsDBNull(reader.GetOrdinal("RatingCode")) || reader.GetString(reader.GetOrdinal("RatingCode")) == "N/A" ? null
+                                                                                    : reader.GetString(reader.GetOrdinal("RatingCode"))
                             );
                             MDTOs.Add(MDTO);
                         }
@@ -506,7 +525,77 @@ namespace clsDataAccess
             }
 
         }
-    
+
+        public static List<MovieDTO> GetMoviesWithGenre(string genre)
+        {
+            List<MovieDTO> movies = new List<MovieDTO>();
+
+            if (string.IsNullOrWhiteSpace(genre))
+                return movies;
+
+            try
+            {
+                using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+                {
+                    using (SqlCommand cmd = new SqlCommand("SP_GetMoviesWithGenre", con))
+                    {
+                        cmd.CommandType = CommandType.StoredProcedure;
+                        cmd.Parameters.AddWithValue("@GenreName", genre.Trim());
+
+                        con.Open();
+
+                        using (SqlDataReader reader = cmd.ExecuteReader())
+                        {
+                            while (reader.Read())
+                            {
+                                try
+                                {
+                                    MovieDTO MDTO = null;
+                                    MDTO = new
+                                    (
+                                        reader.IsDBNull(reader.GetOrdinal("ID")) ? 0 : reader.GetInt32(reader.GetOrdinal("ID")),
+                                        reader.IsDBNull(reader.GetOrdinal("movie_title")) ? null : reader.GetString(reader.GetOrdinal("movie_title")),
+                                        reader.IsDBNull(reader.GetOrdinal("title_year")) ? 0 : reader.GetInt32(reader.GetOrdinal("title_year")),
+                                        reader.IsDBNull(reader.GetOrdinal("imdb_score")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("imdb_score")),
+                                        reader.IsDBNull(reader.GetOrdinal("poster_url")) ? @"https://www.movienewz.com/img/films/poster-holder.jpg"
+                                                                                             : reader.GetString(reader.GetOrdinal("poster_url")),
+                                        reader.IsDBNull(reader.GetOrdinal("trailer_url")) ? null : reader.GetString(reader.GetOrdinal("trailer_url")),
+                                        reader.IsDBNull(reader.GetOrdinal("Duration")) ? null : reader.GetString(reader.GetOrdinal("duration")),
+                                        reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
+                                        reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
+                                        reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
+                                        reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
+                                        reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link")),
+                                        reader.IsDBNull(reader.GetOrdinal("Keywords")) ? null : reader.GetString(reader.GetOrdinal("Keywords")), -1,
+                                              reader.IsDBNull(reader.GetOrdinal("RatingCode")) || reader.GetString(reader.GetOrdinal("RatingCode")) == "N/A" ? null
+                                                                                                : reader.GetString(reader.GetOrdinal("RatingCode"))
+                                    );
+                                    movies.Add(MDTO);
+                                }
+                                catch (Exception ex)
+                                {
+                                    // Log specific movie loading error if needed
+                                    // Continue with next movie
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (SqlException sqlEx)
+            {
+                // Log SQL specific error
+                throw new ApplicationException("Database error occurred while fetching movies by genre", sqlEx);
+            }
+            catch (Exception ex)
+            {
+                // Log general error
+                throw new ApplicationException("Error occurred while fetching movies by genre", ex);
+            }
+
+            return movies;
+        }
+
         public static List<MovieDTO> GetTop10MoviesWithKeyword(string Keyword)
         {
             using(SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
@@ -538,7 +627,9 @@ namespace clsDataAccess
                             reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
                             reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
                             reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link")),
-                            reader.IsDBNull(reader.GetOrdinal("Keywords")) ? null : reader.GetString(reader.GetOrdinal("Keywords"))
+                            reader.IsDBNull(reader.GetOrdinal("Keywords")) ? null : reader.GetString(reader.GetOrdinal("Keywords")), -1,
+                                  reader.IsDBNull(reader.GetOrdinal("RatingCode")) || reader.GetString(reader.GetOrdinal("RatingCode")) == "N/A" ? null
+                                                                                    : reader.GetString(reader.GetOrdinal("RatingCode"))
                         );
                         MDTOs.Add(MDTO);
                     }
@@ -621,7 +712,9 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
                                 reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
                                 reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
-                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link")), "", -1,
+                                  reader.IsDBNull(reader.GetOrdinal("RatingCode")) || reader.GetString(reader.GetOrdinal("RatingCode")) == "N/A" ? null
+                                                                                    : reader.GetString(reader.GetOrdinal("RatingCode"))
                             );
                             MDTOs.Add(MDTO);
                         }
@@ -687,8 +780,10 @@ namespace clsDataAccess
                                 reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
                                 reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
                                 reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link")),"",
-                                reader.IsDBNull(reader.GetOrdinal("popularity")) ? 0 : reader.GetDouble(reader.GetOrdinal("popularity"))
-                                
+                                reader.IsDBNull(reader.GetOrdinal("popularity")) ? 0 : reader.GetDouble(reader.GetOrdinal("popularity")),
+                                  reader.IsDBNull(reader.GetOrdinal("RatingCode")) || reader.GetString(reader.GetOrdinal("RatingCode")) == "N/A" ? null
+                                                                                    : reader.GetString(reader.GetOrdinal("RatingCode"))
+
                                 );
                             MDTOs.Add(MDTO);
                         }

@@ -150,7 +150,7 @@ namespace clsBusinessLayer
             }
             return clsFilters.GetMoviesAfterFilterItToUser(
                 clsMovieBasicDetailsData.GetTop100MovieBetweenTwoYearsWithGenreAndOrderRating(
-                    OrderValue, StartYear, EndYear, GenresList, MinRatingValue, SortBy), LoggedInUser);
+                    OrderValue, StartYear, EndYear, GenresList, MinRatingValue, SortBy), LoggedInUser,GenresList);
         }
 
         public static bool IsMovieExist(string MovieName,int Year, ref int MovieID)
@@ -270,6 +270,25 @@ namespace clsBusinessLayer
         public static List<MovieDTO> GetTop15TrendingMovies(clsUsers LoggedInUser )
         {
             return clsFilters.GetMoviesAfterFilterItToUser(clsMovieBasicDetailsData.GetTop15TrendingMovies(), LoggedInUser);
+        }
+
+        public static MovieDTO GetRandomSuggestedMovieByGenres(string selectedGenres)
+        {
+            List<string> selectedGenresList = !string.IsNullOrWhiteSpace(selectedGenres)
+                 ? selectedGenres.Split(',', StringSplitOptions.RemoveEmptyEntries)
+                                .Select(g => g.Trim())
+                                .Distinct()
+                                .OrderBy(g => g)
+                                .ToList()
+                 : new List<string>();
+
+            Random rnd = new Random();
+            int number = rnd.Next(0, selectedGenresList.Count());
+
+
+            List<MovieDTO> movies = clsMovieBasicDetailsData.GetMoviesWithGenre(selectedGenresList[number]);
+
+            return clsFilters.GetSuggestedMovieWithInterstedGenres(movies, selectedGenresList);
         }
 
         private bool _AddNewMovie()
