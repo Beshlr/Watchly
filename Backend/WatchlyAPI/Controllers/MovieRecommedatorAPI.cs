@@ -106,17 +106,22 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public ActionResult<IEnumerable<MovieDTO>> GetTop100MovieWithGenreAndOrderThemByRatingDESC(
-            int UserID,[FromQuery] clsMovieBasicDetails.enGenres GenreName = clsMovieBasicDetails.enGenres.Comedy)
+            int UserID = -1,[FromQuery] clsMovieBasicDetails.enGenres GenreName = clsMovieBasicDetails.enGenres.Comedy)
         {
-            if (UserID < 1)
+            clsUsers LoggedInUser = null;
+            if (UserID > 0)
             {
-                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+
+                if (UserID < 1)
+                {
+                    return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+                }
+                if (!clsUsers.IsUserExist(UserID))
+                {
+                    return NotFound($"Bad Request: User with ID {UserID} is not exists");
+                }
+                LoggedInUser = clsUsers.Find(UserID);
             }
-            if (!clsUsers.IsUserExist(UserID))
-            {
-                return NotFound($"Bad Request: User with ID {UserID} is not exists");
-            }
-            clsUsers LoggedInUser = clsUsers.Find(UserID);
 
             List<MovieDTO> movies = clsMovieBasicDetails.GetTop100MovieWithGenreAndOrderThemByRatingDESC(GenreName, LoggedInUser);
 
@@ -737,6 +742,32 @@ namespace MovieRecommendationAPI.Controllers
 
         }
 
+          [HttpGet("GetAllRecommendedMoviesForUser/{UserID}", Name = "GetAllRecommendedMoviesForUser")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public ActionResult<List<MovieDTO>> GetAllRecommendedMoviesForUser(int UserID)
+        {
+            if (UserID < 1)
+            {
+                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+            }
+            if (!clsUsers.IsUserExist(UserID))
+            {
+                return NotFound($"Bad Request: User with ID {UserID} is not exists");
+            }
+            List<MovieDTO> movies = clsUsers.GetAllRecommendedMoviesForUser(UserID);
+            if (movies == null || movies.Count == 0)
+            {
+                return NotFound("Not Found: No movie found");
+            }
+            return Ok(movies);
+
+        }
+
+
+
         [HttpPost("AddMovieToSearchingList", Name = "AddMovieToSearchingList")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -764,6 +795,35 @@ namespace MovieRecommendationAPI.Controllers
             }
             return Ok("Movie added to searching list successfully");
         }
+         [HttpPost("AddMovieToRecommendedMovies", Name = "AddMovieToRecommendedMovies")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult AddMovieToRecommendedMovies([FromBody] HelperClasses.clsUserAndMovieID searchingListRequest)
+        {
+            string errorMessage = string.Empty;
+            if (!HelperClasses.clsUserValidations.CheckUserAndMovieInputs(searchingListRequest, ref errorMessage))
+            {
+                return BadRequest(errorMessage);
+            }
+
+            int MovieID = searchingListRequest.MovieID;
+            int UserID = searchingListRequest.UserID;
+
+            if (clsUsers.IsMovieInRecommendedList(MovieID, UserID))
+            {
+                return BadRequest($"Movie with ID {MovieID} is already in recommended list");
+            }
+
+            if (!clsUsers.AddMovieToRecommendedMovies(MovieID, UserID))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Movie not added to searching list");
+            }
+            return Ok("Movie added to searching list successfully");
+        }
+
+
 
         [HttpPost("CheckPasswordForUsername", Name = "CheckPasswordForUsername")]
         [ProducesResponseType(StatusCodes.Status200OK)]

@@ -23,7 +23,7 @@ class UserProfileManager {
     checkAuth() {
         if (!this.user) {
             // استثناء الصفحة الرئيسية من إعادة التوجيه
-            if (window.location.pathname.endsWith('main.html')) {
+            if (window.location.pathname.endsWith('main')) {
                 return false;
             }
             this.redirectToLogin();
@@ -36,7 +36,7 @@ class UserProfileManager {
     init() {
         if (!this.checkAuth()) {
             // إذا كانت الصفحة الرئيسية ولا يوجد مستخدم، لا تقم بأي شيء
-            if (window.location.pathname.endsWith('main.html')) {
+            if (window.location.pathname.endsWith('main')) {
                 return;
             }
             return;

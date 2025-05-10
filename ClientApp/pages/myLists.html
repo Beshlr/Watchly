@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -15,19 +16,19 @@
             margin-bottom: 3rem;
             position: relative;
         }
-        
+
         .section-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 1.5rem;
         }
-        
+
         .movie-container {
             position: relative;
             overflow: hidden;
         }
-        
+
         .movie-grid {
             display: flex;
             gap: 1.5rem;
@@ -36,28 +37,28 @@
             padding-bottom: 1rem;
             scrollbar-width: none;
         }
-        
+
         .movie-grid::-webkit-scrollbar {
             display: none;
         }
-        
+
         .movie-card {
             transition: transform 0.3s ease;
             cursor: pointer;
             flex: 0 0 180px;
         }
-        
+
         .movie-card:hover {
             transform: translateY(-5px);
         }
-        
+
         .movie-card img {
             border-radius: 8px;
             height: 270px;
             object-fit: cover;
             width: 100%;
         }
-        
+
         .scroll-btn {
             position: absolute;
             top: 50%;
@@ -76,23 +77,23 @@
             opacity: 0;
             transition: opacity 0.3s;
         }
-        
+
         .scroll-btn.left {
             left: 10px;
         }
-        
+
         .scroll-btn.right {
             right: 10px;
         }
-        
+
         .category-section:hover .scroll-btn {
             opacity: 1;
         }
-        
+
         .scroll-btn:hover {
             background-color: rgba(0, 0, 0, 0.9);
         }
-        
+
         .scroll-btn i {
             font-size: 1.2rem;
         }
@@ -127,11 +128,12 @@
         }
     </style>
 </head>
+
 <body>
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark sticky-top">
         <div class="container">
-            <a href="main.html"><img class="project_logo" src="/ClientApp/images/download (1).png" alt=""></a>
+            <a href="main.html"><img class="project_logo" src="../images/download (1).png" alt=""></a>
             <a class="navbar-brand" href="../pages/main.html">
                 <h4 class="mb-0">Watchly</h4>
             </a>
@@ -152,10 +154,11 @@
                     <li class="nav-item">
                         <a class="nav-link active" href="myLists.html">My Lists</a>
                     </li>
-                    
+
                 </ul>
                 <form class="d-flex position-relative me-2">
-                    <input class="form-control me-2" type="search" placeholder="Search movies..." id="searchInput" autocomplete="off">
+                    <input class="form-control me-2" type="search" placeholder="Search movies..." id="searchInput"
+                        autocomplete="off">
                     <button class="btn btn-outline-light" id="searchButton" type="submit">Search</button>
                     <div class="dropdown-menu w-100" id="searchResults" style="display: none;"></div>
                 </form>
@@ -187,7 +190,8 @@
                 <h2>My Favorites</h2>
             </div>
             <div class="movie-container">
-                <button class="scroll-btn left" onclick="scrollSection('favoritesMovies', -1)"><i class="bi bi-chevron-left"></i></button>
+                <button class="scroll-btn left" onclick="scrollSection('favoritesMovies', -1)"><i
+                        class="bi bi-chevron-left"></i></button>
                 <div class="movie-grid" id="favoritesMovies">
                     <div class="text-center py-5" style="min-width: 100%;">
                         <div class="spinner-border text-primary" role="status">
@@ -195,7 +199,8 @@
                         </div>
                     </div>
                 </div>
-                <button class="scroll-btn right" onclick="scrollSection('favoritesMovies', 1)"><i class="bi bi-chevron-right"></i></button>
+                <button class="scroll-btn right" onclick="scrollSection('favoritesMovies', 1)"><i
+                        class="bi bi-chevron-right"></i></button>
             </div>
         </div>
 
@@ -205,7 +210,8 @@
                 <h2>Watched Movies</h2>
             </div>
             <div class="movie-container">
-                <button class="scroll-btn left" onclick="scrollSection('watchedMovies', -1)"><i class="bi bi-chevron-left"></i></button>
+                <button class="scroll-btn left" onclick="scrollSection('watchedMovies', -1)"><i
+                        class="bi bi-chevron-left"></i></button>
                 <div class="movie-grid" id="watchedMovies">
                     <div class="text-center py-5" style="min-width: 100%;">
                         <div class="spinner-border text-primary" role="status">
@@ -213,7 +219,8 @@
                         </div>
                     </div>
                 </div>
-                <button class="scroll-btn right" onclick="scrollSection('watchedMovies', 1)"><i class="bi bi-chevron-right"></i></button>
+                <button class="scroll-btn right" onclick="scrollSection('watchedMovies', 1)"><i
+                        class="bi bi-chevron-right"></i></button>
             </div>
         </div>
 
@@ -223,7 +230,8 @@
                 <h2>Recently Searched</h2>
             </div>
             <div class="movie-container">
-                <button class="scroll-btn left" onclick="scrollSection('searchedMovies', -1)"><i class="bi bi-chevron-left"></i></button>
+                <button class="scroll-btn left" onclick="scrollSection('searchedMovies', -1)"><i
+                        class="bi bi-chevron-left"></i></button>
                 <div class="movie-grid" id="searchedMovies">
                     <div class="text-center py-5" style="min-width: 100%;">
                         <div class="spinner-border text-primary" role="status">
@@ -231,7 +239,8 @@
                         </div>
                     </div>
                 </div>
-                <button class="scroll-btn right" onclick="scrollSection('searchedMovies', 1)"><i class="bi bi-chevron-right"></i></button>
+                <button class="scroll-btn right" onclick="scrollSection('searchedMovies', 1)"><i
+                        class="bi bi-chevron-right"></i></button>
             </div>
         </div>
 
@@ -241,7 +250,8 @@
                 <h2>Unliked Movies</h2>
             </div>
             <div class="movie-container">
-                <button class="scroll-btn left" onclick="scrollSection('unlikedMovies', -1)"><i class="bi bi-chevron-left"></i></button>
+                <button class="scroll-btn left" onclick="scrollSection('unlikedMovies', -1)"><i
+                        class="bi bi-chevron-left"></i></button>
                 <div class="movie-grid" id="unlikedMovies">
                     <div class="text-center py-5" style="min-width: 100%;">
                         <div class="spinner-border text-primary" role="status">
@@ -249,7 +259,8 @@
                         </div>
                     </div>
                 </div>
-                <button class="scroll-btn right" onclick="scrollSection('unlikedMovies', 1)"><i class="bi bi-chevron-right"></i></button>
+                <button class="scroll-btn right" onclick="scrollSection('unlikedMovies', 1)"><i
+                        class="bi bi-chevron-right"></i></button>
             </div>
         </div>
     </main>
@@ -295,4 +306,5 @@
         }
     </script>
 </body>
+
 </html>

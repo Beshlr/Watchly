@@ -438,33 +438,68 @@
             return Array.isArray(genres) ? genres : [genres];
         }
 
-        function displayMovie(movie) {
-            hideLoadingState();
-            
-            // تعيين بيانات الفيلم
-            moviePoster.src = movie.posterImageURL || 'https://placehold.co/600x400?text=Poster+Not+Found';
-            movieTitle.textContent = movie.movieName || 'Unknown Title';
-            movieYear.textContent = movie.year || 'Unknown Year';
-            movieRating.textContent = movie.rate ? `⭐ ${movie.rate.toFixed(1)}` : '⭐ N/A';
-            
-            // عرض الأنواع
-            movieGenres.innerHTML = '';
-            if (movie.genre) {
-                movie.genre.split(',').forEach(genre => {
-                    const genreElement = document.createElement('span');
-                    genreElement.className = 'genre-badge';
-                    genreElement.textContent = genre.trim();
-                    movieGenres.appendChild(genreElement);
-                });
-            }
-            
-            // عرض الحبكة (إن وجدت)
-            moviePlot.textContent = movie.plot || 'Plot not available.';
-            
-            // إظهار بطاقة الفيلم
-            movieCard.classList.add('active');
+        // في دالة displayMovie() سأقوم بإضافة استدعاء لنقطة النهاية AddMovieToRecommendedMovies
+async function displayMovie(movie) {
+    hideLoadingState();
+    
+    // تعيين بيانات الفيلم
+    moviePoster.src = movie.posterImageURL || 'https://placehold.co/600x400?text=Poster+Not+Found';
+    movieTitle.textContent = movie.movieName || 'Unknown Title';
+    movieYear.textContent = movie.year || 'Unknown Year';
+    movieRating.textContent = movie.rate ? `⭐ ${movie.rate.toFixed(1)}` : '⭐ N/A';
+    
+    // عرض الأنواع
+    movieGenres.innerHTML = '';
+    if (movie.genre) {
+        movie.genre.split(',').forEach(genre => {
+            const genreElement = document.createElement('span');
+            genreElement.className = 'genre-badge';
+            genreElement.textContent = genre.trim();
+            movieGenres.appendChild(genreElement);
+        });
+    }
+    
+    // عرض الحبكة (إن وجدت)
+    moviePlot.textContent = movie.plot || 'Plot not available.';
+    
+    // إظهار بطاقة الفيلم
+    movieCard.classList.add('active');
+
+    // إضافة الفيلم إلى قائمة الأفلام الموصى بها إذا كان المستخدم مسجل الدخول
+    try {
+        const user = JSON.parse(localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser'));
+        if (user && user.id) {
+            await addMovieToRecommendedMovies(movie.id, user.id);
+        }
+    } catch (error) {
+        console.error('Error adding movie to recommended list:', error);
+    }
+}
+
+// دالة جديدة لإضافة الفيلم إلى قائمة الأفلام الموصى بها
+async function addMovieToRecommendedMovies(movieId, userId) {
+    try {
+        const response = await fetch('https://watchly.runasp.net/api/UsersAPI/AddMovieToRecommendedMovies', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                MovieID: movieId,
+                UserID: userId
+            })
+        });
+
+        if (!response.ok) {
+            throw new Error(`Failed to add movie to recommended list (Status: ${response.status})`);
         }
 
+        console.log('Movie added to recommended list successfully');
+    } catch (error) {
+        console.error('Error adding movie to recommended list:', error);
+        throw error;
+    }
+}
         function displayError(message) {
             hideLoadingState();
             

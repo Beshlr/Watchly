@@ -331,6 +331,21 @@ namespace MovieRecommendations_BusinessLayer
         {
             return clsUsersData.DeleteMovieFromUnlikedList(MovieID, UserID);
         }
+
+        public static bool AddMovieToRecommendedMovies(int MovieID, int UserID)
+        {
+            return clsUsersData.AddMovieToRecommendedMovies(MovieID, UserID);
+        }
+
+        public static List<MovieDTO> GetAllRecommendedMoviesForUser(int UserID)
+        {
+            return clsUsersData.GetAllRecommendedMoviesForUser(UserID);
+        }
+
+        public static bool IsMovieInRecommendedList(int MovieID, int UserID)
+        {
+            return clsUsersData.CheckIfMovieInRecommendationList(MovieID, UserID);
+        }
     }
 
     

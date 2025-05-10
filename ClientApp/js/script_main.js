@@ -1,5 +1,5 @@
 document.addEventListener('DOMContentLoaded', function() {
-    const baseApiUrl = 'https://watchly.runasp.net/api/MovieRecommenderAPI';
+    let baseApiUrl = 'https://watchly.runasp.net/api/UsersAPI';
     const userJson = localStorage.getItem('loggedInUser');
     
     const user = JSON.parse(userJson);
@@ -18,10 +18,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Show Manage Users link only for admins
 
     // Load popular movies
-    loadMovies(`GetTop100MovieWithGenre/${user.id}?GenreName=Sci_FI`, 'popularMovies');
+    loadMovies(`GetTop15TrendingMovies/${user.id}`, 'popularMovies');
     
     // Load recommended movies (using user ID 1 for demo)
-    loadMovies(`GetRecommandedMovies/${user.id}`, 'recommendedMovies');
+    loadMovies(`GetAllRecommendedMoviesForUser/${user.id}`, 'recommendedMovies');
     if (user) {
         document.getElementById('welcomeText').innerText = `Welcome, ${user.username}!`;
     }
@@ -32,7 +32,10 @@ document.addEventListener('DOMContentLoaded', function() {
     function loadMovies(endpoint, containerId) {
         const container = document.getElementById(containerId);
         container.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">Loading...</span></div></div>';
-        
+        if(containerId === 'popularMovies')
+        {
+            
+        }
         fetch(`${baseApiUrl}/${endpoint}`)
             .then(response => {
                 if (!response.ok) throw new Error('Network response was not ok');

@@ -1216,6 +1216,98 @@ namespace MovieRecommendations_DataLayer
                 }
             }
         }
+    
+        public static bool AddMovieToRecommendedMovies(int MovieID, int UserID)
+        {
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_AddMovieToRecommendedMovies", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    cmd.Parameters.AddWithValue("@MovieID", MovieID);
+                    
+                    var ReturnParam = new SqlParameter("@ReturnValue", SqlDbType.Int)
+                    {
+                        Direction = ParameterDirection.ReturnValue
+                    };
+                    cmd.Parameters.Add(ReturnParam);
+                    con.Open();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        return (int)ReturnParam.Value == 1;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error ", ex.Message);
+                        return false;
+                    }
+                }
+            }
+        }
+
+        public static bool CheckIfMovieInRecommendationList(int MovieID, int UserID)
+        {
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_CheckIfMovieInRecommendationList", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    cmd.Parameters.AddWithValue("@MovieID", MovieID);
+                    var ReturnParam = new SqlParameter("@ReturnValue", SqlDbType.Int)
+                    {
+                        Direction = ParameterDirection.ReturnValue
+                    };
+                    cmd.Parameters.Add(ReturnParam);
+
+                    con.Open();
+                    cmd.ExecuteNonQuery();
+                    return (int)ReturnParam.Value == 1;
+                }
+            }
+        }
+
+        public static List<MovieDTO> GetAllRecommendedMoviesForUser(int UserID)
+        {
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_GetAllRecommendedMoviesForUser", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    con.Open();
+
+                    using (SqlDataReader reader = cmd.ExecuteReader())
+                    {
+                        List<MovieDTO> MDTOs = new List<MovieDTO>();
+                        while (reader.Read())
+                        {
+                            MovieDTO MDTO = null;
+                            MDTO = new
+                            (
+                                reader.IsDBNull(reader.GetOrdinal("ID")) ? 0 : reader.GetInt32(reader.GetOrdinal("ID")),
+                                reader.IsDBNull(reader.GetOrdinal("movie_title")) ? null : reader.GetString(reader.GetOrdinal("movie_title")),
+                                reader.IsDBNull(reader.GetOrdinal("title_year")) ? 0 : reader.GetInt32(reader.GetOrdinal("title_year")),
+                                reader.IsDBNull(reader.GetOrdinal("imdb_score")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("imdb_score")),
+                                reader.IsDBNull(reader.GetOrdinal("poster_url")) ? @"https://www.movienewz.com/img/films/poster-holder.jpg"
+                                                                                 : reader.GetString(reader.GetOrdinal("poster_url")),
+                                reader.IsDBNull(reader.GetOrdinal("trailer_url")) ? null : reader.GetString(reader.GetOrdinal("trailer_url")),
+                                reader.IsDBNull(reader.GetOrdinal("Duration")) ? null : reader.GetString(reader.GetOrdinal("duration")),
+                                reader.IsDBNull(reader.GetOrdinal("language")) ? null : reader.GetString(reader.GetOrdinal("language")),
+                                reader.IsDBNull(reader.GetOrdinal("country")) ? null : reader.GetString(reader.GetOrdinal("country")),
+                                reader.IsDBNull(reader.GetOrdinal("aspect_ratio")) ? 0f : (float)reader.GetDouble(reader.GetOrdinal("aspect_ratio")),
+                                reader.IsDBNull(reader.GetOrdinal("Genres")) ? null : reader.GetString(reader.GetOrdinal("Genres")),
+                                reader.IsDBNull(reader.GetOrdinal("movie_imdb_link")) ? null : reader.GetString(reader.GetOrdinal("movie_imdb_link"))
+                            );
+                            MDTOs.Add(MDTO);
+                        }
+                        return MDTOs;
+                    }
+                }
+            }
+        }
     }
 
 }

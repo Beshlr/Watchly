@@ -32,7 +32,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Load personalized recommendations with actual user ID
     const userId = JSON.parse(userJson).id;
-    loadRecommendedMovies(`https://watchly.runasp.net/api/RecommendationAPI/GetMovieRecommendation`, 'personalRecommendations');
+    loadRecommendedMovies(`${baseUsersApiUrl}/GetAllRecommendedMoviesForUser/${user.id}`, 'personalRecommendations');
     
     // Load favorite genres movies
     loadFavoriteGenresMovies(userId);
@@ -199,48 +199,47 @@ async function getNameOfMoviesForUser(userID) {
 
 async function loadRecommendedMovies(endpoint, containerId) {
     const container = document.getElementById(containerId);
-    let moviesNames = await getNameOfMoviesForUser(userId) || [];
     
-    moviesNames = moviesNames
-        .filter(name => typeof name === 'string' && name.trim().length > 0)
-        .map(name => name.trim());
-
-    if (moviesNames.length === 0) {
-        container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No valid favorite movies found to generate recommendations.</p></div>';
-        return;
-    }
-
     try {
-        const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({ Movies_Name: moviesNames })
-        });
-
+        // جلب الأفلام الموصى بها من نقطة النهاية الجديدة
+        const response = await fetch(`${baseUsersApiUrl}/GetAllRecommendedMoviesForUser/${user.id}`);
+        
         if (!response.ok) {
-            const errorText = await response.text();
-            throw new Error(errorText || "Failed to load recommendations");
+            throw new Error(`Failed to load recommendations (Status: ${response.status})`);
         }
 
         const movies = await response.json();
 
         if (!movies || movies.length === 0) {
-            container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-muted">No recommendations found.</p></div>';
+            // إذا لم تكن هناك أفلام موصى بها، نعرض رسالة بديلة
+            container.innerHTML = `
+                <div class="col-12 text-center py-5">
+                    <p class="text-muted">No recommendations found. Try adding some favorite movies first.</p>
+                    <a href="favorites.html" class="btn btn-primary mt-2">Go to Favorites</a>
+                </div>
+            `;
             return;
         }
 
-        const userId = JSON.parse(localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser')).id;
+        // التحقق من الأفلام المفضلة لكل فيلم
         const moviesWithFavorites = await Promise.all(movies.map(async movie => {
-            const isFav = await checkIfMovieIsFavorite(userId, movie.id);
+            const isFav = await checkIfMovieIsFavorite(user.id, movie.id);
             return { ...movie, isFavorite: isFav };
         }));
 
         displayMovies(moviesWithFavorites, containerId);
+        
     } catch (error) {
-        console.error("Error in loadRecommendedMovies:", error);
-        container.innerHTML = '<div class="col-12 text-center py-5"><p class="text-danger">Error loading recommendations. Please try again later.</p></div>';
+        console.error("Error loading recommended movies:", error);
+        container.innerHTML = `
+            <div class="col-12 text-center py-5">
+                <p class="text-danger">Error loading recommendations. Please try again later.</p>
+                <button onclick="loadRecommendedMovies('${endpoint}', '${containerId}')" 
+                        class="btn btn-sm btn-outline-primary mt-2">
+                    Retry
+                </button>
+            </div>
+        `;
     }
 }
 

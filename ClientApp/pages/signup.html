@@ -19,9 +19,11 @@
             color: #dc3545;
             font-size: 0.875em;
         }
+
         .is-invalid {
             border-color: #dc3545 !important;
         }
+
         .show-password {
             position: absolute;
             right: 10px;
@@ -29,6 +31,7 @@
             transform: translateY(10%);
             cursor: pointer;
         }
+
         .password-container {
             position: relative;
         }
@@ -39,7 +42,7 @@
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
         <div class="container">
-            <a href="main.html"><img class="project_logo" src="/ClientApp/images/download (1).png" alt=""></a>
+            <a href="main.html"><img class="project_logo" src="../images/download (1).png" alt=""></a>
             <a class="navbar-brand" href="main.html">
                 <h4>Watchly</h4>
             </a>
@@ -67,7 +70,7 @@
                 <h2>Join Movie Recommender</h2>
                 <p>Create an account to get personalized recommendations</p>
             </div>
-            
+
             <form id="signupForm">
                 <div class="row">
                     <div class="col-md-6 mb-3">
@@ -108,7 +111,7 @@
                     <p>Already have an account? <a href="login.html">Login</a></p>
                 </div>
             </form>
-            
+
             <div class="auth-social">
                 <p class="text-center text-muted">Or sign up with</p>
                 <div class="d-flex justify-content-center gap-3">
@@ -156,15 +159,15 @@
 
     <script>
         // إظهار/إخفاء كلمة المرور
-        document.getElementById('togglePassword').addEventListener('click', function() {
+        document.getElementById('togglePassword').addEventListener('click', function () {
             const passwordInput = document.getElementById('password');
             const type = passwordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             passwordInput.setAttribute('type', type);
             this.classList.toggle('bi-eye-slash');
             this.classList.toggle('bi-eye');
         });
-    
-        document.getElementById('toggleConfirmPassword').addEventListener('click', function() {
+
+        document.getElementById('toggleConfirmPassword').addEventListener('click', function () {
             const confirmPasswordInput = document.getElementById('confirmPassword');
             const type = confirmPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
             confirmPasswordInput.setAttribute('type', type);
