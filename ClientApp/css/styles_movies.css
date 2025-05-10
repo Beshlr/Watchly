@@ -23,6 +23,11 @@ body {
     background-color: var(--dark-color) !important;
 }
 
+.project_logo{
+    width: 70px;
+    height: 50px;
+    margin-right: 10px;
+}
 
 /* Filters Container */
 .filters-container {
