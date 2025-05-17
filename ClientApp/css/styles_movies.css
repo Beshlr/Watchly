@@ -138,9 +138,116 @@ body {
 }
 /* Footer */
 footer {
-    margin-top: auto;
-    background-color: var(--dark-color);
-    z-index: 100;
+    background: linear-gradient(90deg, #232526 0%, #414345 100%);
+    color: #f8f9fa;
+    padding: 40px 0 20px 0;
+    margin-top: 60px;
+    box-shadow: 0 -2px 24px rgba(44,62,80,0.08);
+    position: relative;
+    font-size: 1.05rem;
+}
+
+.footer-modern .footer-logo {
+    font-size: 2rem;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: #4a6bff;
+}
+
+.footer-modern small {
+    color: #b0b3b8;
+}
+
+.footer-modern ul.list-inline {
+    padding-left: 0;
+    margin-bottom: 0;
+}
+
+.footer-modern ul.list-inline li {
+    margin: 0 10px;
+}
+
+.footer-modern ul.list-inline a {
+    color: #f8f9fa;
+    padding: 6px 12px;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+    font-weight: 500;
+}
+
+.footer-modern ul.list-inline a:hover {
+    background: #4a6bff;
+    color: #fff;
+    text-decoration: none;
+}
+
+.footer-modern .social-icons a {
+    font-size: 1.5rem;
+    margin-right: 12px;
+    color: #f8f9fa;
+    transition: color 0.2s, transform 0.2s;
+    display: inline-block;
+}
+
+.footer-modern .social-icons a:last-child {
+    margin-right: 0;
+}
+
+.footer-modern .social-icons a:hover {
+    color: #4a6bff;
+    transform: scale(1.15);
+}
+
+.footer-modern .back-to-top {
+    position: absolute;
+    right: 20px;
+    bottom: 60px;
+    background: #4a6bff;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(44,62,80,0.15);
+    cursor: pointer;
+    transition: background 0.2s, transform 0.2s;
+    z-index: 10;
+}
+
+.footer-modern .back-to-top:hover {
+    background: #232526;
+    color: #4a6bff;
+    transform: translateY(-4px) scale(1.08);
+}
+
+.footer-modern hr {
+    border-top: 1.5px solid #444857;
+    margin: 28px 0 16px 0;
+}
+
+.footer-modern p, .footer-modern small {
+    margin-bottom: 0;
+}
+
+footer .mb-3{
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+footer .mb-3 a i{
+    
+    transition: 0.3s;
+}
+footer .mb-3 a i:hover{
+    color:#2196f3;
+}
+
+footer .mb-3:last-child {
+    text-align: center;
+    display: block;
     position: relative;
 }
 

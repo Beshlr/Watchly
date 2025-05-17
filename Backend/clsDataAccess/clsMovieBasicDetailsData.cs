@@ -726,7 +726,7 @@ namespace clsDataAccess
             return MDTOs;
         }
 
-        public static bool DeleteMovieByID(int MovieID)
+        public static bool DeleteMovieByID(int MovieID,int UserID)
         {
             using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
             {
@@ -734,6 +734,7 @@ namespace clsDataAccess
                 {
                     cmd.CommandType = CommandType.StoredProcedure;
                     cmd.Parameters.AddWithValue("@MovieID", MovieID);
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
                     con.Open();
                     try
                     {
@@ -793,6 +794,81 @@ namespace clsDataAccess
             }
             return MDTOs;
         }
+    
+        public static bool MarkMovieAsAdult(int MovieID, int UserID)
+        {
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_MarkMovieAsAdult", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@MovieID", MovieID);
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    var ReturnValue = new SqlParameter("@ReturnValue", SqlDbType.Int)
+                    {
+                        Direction = ParameterDirection.ReturnValue
+                    };
+                    cmd.Parameters.Add(ReturnValue);
+                    con.Open();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        return (int)ReturnValue.Value > 0;
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error ", ex.Message);
+                    }
+                }
+            }
+            return false;
+        }
+
+        public static bool UnMarkMovieAsAdult(int MovieID, int UserID, ref string Message)
+        {
+            using (SqlConnection con = new SqlConnection(clsDataAccessSettings.ConnectionString))
+            {
+                using (SqlCommand cmd = new SqlCommand("SP_UnMarkMovieAsAdult", con))
+                {
+                    cmd.CommandType = CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@MovieID", MovieID);
+                    cmd.Parameters.AddWithValue("@UserID", UserID);
+                    var ReturnValue = new SqlParameter("@ReturnValue", SqlDbType.Int)
+                    {
+                        Direction = ParameterDirection.ReturnValue
+                    };
+                    cmd.Parameters.Add(ReturnValue);
+                    con.Open();
+                    try
+                    {
+                        cmd.ExecuteNonQuery();
+                        if((int)ReturnValue.Value == 0)
+                        {
+                            Message = "Movie is not marked as adult";
+                            return false;
+                        }
+                        else if ((int)ReturnValue.Value == 2)
+                        {
+                            Message = "Movie is already unmarked as adult";
+                            return false;
+                        }
+                        else if ((int)ReturnValue.Value == 1)
+                        {
+                            Message = "Movie UnMarked Successfully";
+                            return true;
+                        }
+                   
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("Error ", ex.Message);
+                    }
+                }
+            }
+            return false;
+        }
+
+
     }
 
     

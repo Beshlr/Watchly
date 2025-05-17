@@ -35,5 +35,24 @@ namespace WatchlyAPI.Settings
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
         }
+
+        public static string IncryptEmail(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+            {
+                return email;
+            }
+            string newEmail = String.Empty;
+            for (int i = 0; i < email.Length; i++)
+            {
+                if (email[i] == '@')
+                {
+                    newEmail = email.Substring(0, i) + new string('*', email.Length - i);
+                }
+
+
+            }
+            return newEmail;
+        }
     }
 }

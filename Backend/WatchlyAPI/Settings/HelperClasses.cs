@@ -159,7 +159,13 @@ namespace WatchlyAPI.Settings
             public int Year { get; set; }
 
         }
-        
-        
+
+        public class clsSendCodeToUser
+        {
+            public string Email { get; set; }
+            public string Code { get; set; }
+        }
+
+
     }
 }

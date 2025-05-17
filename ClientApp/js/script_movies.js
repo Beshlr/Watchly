@@ -331,7 +331,7 @@ moviesGrid.innerHTML = moviesToDisplay.map(movie => `
                     
                     <button class="btn btn-sm btn-watched mb-1" 
                         onclick="event.preventDefault(); event.stopPropagation(); toggleWatched(${movie.id}, this)"
-                        style="background-color: rgba(255, 255, 255, 0.9); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                        style="background-color: rgba(255, 255, 255, 0.9); margin-top:7px; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
                         <i class="bi bi-eye${watchedIds.includes(movie.id) ? '-fill text-success' : ''}" style="font-size: 1.2rem;"></i>
                     </button>
                 </div>
@@ -345,19 +345,27 @@ moviesGrid.innerHTML = moviesToDisplay.map(movie => `
                     
                     <button class="btn btn-sm btn-watched mb-1" 
                         onclick="event.preventDefault(); event.stopPropagation(); toggleWatched(${movie.id}, this)"
-                        style="background-color: rgba(255, 255, 255, 0.9); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                        style="background-color: rgba(255, 255, 255, 0.9); margin-top:7px; border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
                         <i class="bi bi-eye${watchedIds.includes(movie.id) ? '-fill text-success' : ''}" style="font-size: 1.2rem;"></i>
                     </button>
                 </div>
                 `}
                 
                 ${isAdminOrOwner ? `
-                <button class="btn btn-sm btn-danger position-absolute top-0 start-0 m-2 delete-movie-btn" 
-                    onclick="event.preventDefault(); event.stopPropagation(); confirmDeleteMovie(${movie.id}, '${movie.movieName.replace(/'/g, "\\'")}')"
-                    style="border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
-                    <i class="bi bi-trash" style="font-size: 1rem;"></i>
-                </button>
-                ` : ''}
+                    <div class="position-absolute top-0 start-0 d-flex flex-column m-2">
+                        <button class="btn btn-sm btn-danger delete-movie-btn mb-1" 
+                            onclick="event.preventDefault(); event.stopPropagation(); confirmDeleteMovie(${movie.id}, '${movie.movieName.replace(/'/g, "\\'")}')"
+                            style="border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                            <i class="bi bi-trash" style="font-size: 1rem;"></i>
+                        </button>
+                        
+                        <button class="btn btn-sm btn-dark adult-movie-btn" 
+                            onclick="event.preventDefault(); event.stopPropagation(); ${movie.posterImageURL.includes('placeHolderOlderMovies.jpg') ? 'unmarkAsAdult' : 'markAsAdult'}(${movie.id}, this)"
+                            style="border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); margin-top: 60px;">
+                            <i class="bi bi-eye-slash${movie.posterImageURL.includes('placeHolderOlderMovies.jpg') ? '-fill text-danger' : ''}" style="font-size: 1rem;"></i>
+                        </button>
+                    </div>
+                    ` : ''}
                 
                 <button class="btn btn-sm btn-warning position-absolute ${isAdminOrOwner ? 'start-0 m-2' : 'top-0 start-0 m-2'} dislike-movie-btn" 
                     onclick="event.preventDefault(); event.stopPropagation(); toggleUnlike(${movie.id}, this)"
@@ -719,7 +727,7 @@ moviesGrid.innerHTML = moviesToDisplay.map(movie => `
 
     async function deleteMovie(movieId) {
         try {
-            const response = await fetch(`https://watchly.runasp.net/api/MovieRecommenderAPI/DeleteMovie/${movieId}`, {
+            const response = await fetch(`https://watchly.runasp.net/api/MovieRecommenderAPI/DeleteMovie/${movieId}/${loggedInUser.id}`, {
                 method: 'DELETE',
                 headers: {
                     'Content-Type': 'application/json',
@@ -991,6 +999,80 @@ moviesGrid.innerHTML = moviesToDisplay.map(movie => `
             return false;
         }
     }
+
+    window.markAsAdult = async function(movieId, buttonElement) {
+        const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+        if (!userJson) {
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        const user = JSON.parse(userJson);
+        const icon = buttonElement.querySelector('i');
+        
+        try {
+            const response = await fetch('https://watchly.runasp.net/api/MovieRecommenderAPI/MarkMovieAsAdult', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    UserID: user.id,
+                    MovieID: movieId
+                })
+            });
+    
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(error);
+            }
+    
+            // تحديث الأيقونة
+            icon.classList.remove('bi-eye-slash');
+            icon.classList.add('bi-eye-slash-fill', 'text-danger');
+            alert('Movie marked as adult successfully!');
+        } catch (error) {
+            console.error('Error marking movie as adult:', error);
+            alert('Failed to mark movie as adult: ' + error.message);
+        }
+    }
+    
+    window.unmarkAsAdult = async function(movieId, buttonElement) {
+        const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
+        if (!userJson) {
+            window.location.href = 'login.html';
+            return;
+        }
+        
+        const user = JSON.parse(userJson);
+        const icon = buttonElement.querySelector('i');
+        
+        try {
+            const response = await fetch('https://watchly.runasp.net/api/MovieRecommenderAPI/UnMarkMovieAsAdult', {
+                method: 'PUT',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    UserID: user.id,
+                    MovieID: movieId
+                })
+            });
+    
+            if (!response.ok) {
+                const error = await response.text();
+                throw new Error(error);
+            }
+    
+            // تحديث الأيقونة
+            icon.classList.remove('bi-eye-slash-fill', 'text-danger');
+            icon.classList.add('bi-eye-slash');
+            alert('Movie unmarked as adult successfully!');
+        } catch (error) {
+            console.error('Error unmarking movie as adult:', error);
+            alert('Failed to unmark movie as adult: ' + error.message);
+        }
+    }
     
     async function loadFavorites() {
         const userJson = localStorage.getItem('loggedInUser') || sessionStorage.getItem('loggedInUser');
@@ -1007,7 +1089,13 @@ moviesGrid.innerHTML = moviesToDisplay.map(movie => `
             .filter(movie => movie && movie.id !== undefined)
             .map(movie => movie.id);
 
+        if (favorites.length === 0) {
+            displayEmptyListMessage('No favorite movies found');
+            return;
+        }
+
             localStorage.setItem('userFavorites', JSON.stringify(favoriteIds));
+        displayMovies(favorites);
         } catch (error) {
             console.error('Error loading favorites:', error);
         }

@@ -102,9 +102,9 @@ namespace clsBusinessLayer
             return clsMovieBasicDetailsData.GetMovieByName(MovieName);
         }
 
-        public static bool DeleteMovieByID(int ID)
+        public static bool DeleteMovieByID(int ID,int UserID)
         {
-            return clsMovieBasicDetailsData.DeleteMovieByID(ID);
+            return clsMovieBasicDetailsData.DeleteMovieByID(ID, UserID);
         }
 
         /// <summary>
@@ -327,6 +327,17 @@ namespace clsBusinessLayer
         {
             throw new NotImplementedException();
         }
+
+        public static bool MarkMovieAsAdult(int MovieID, int UserID)
+        {
+            return clsMovieBasicDetailsData.MarkMovieAsAdult(MovieID, UserID);
+        }
+
+         public static bool UnMarkMovieAsAdult(int MovieID, int UserID, ref string ErrorMessage)
+        {
+            return clsMovieBasicDetailsData.UnMarkMovieAsAdult(MovieID, UserID,ref ErrorMessage);
+        }
+
 
         
     }

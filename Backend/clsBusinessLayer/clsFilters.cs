@@ -77,16 +77,16 @@ namespace clsBusinessLayer
                 {
                     if(user != null)
                     {
-                        if ((!IsAdult && movie.RatingCode != "X") || IsAdult)
-                        {
-                            filteredMovies.Add(movie);
-
-                        }
-                        else
+                        if (movie.RatingCode == "X")
                         {
                             movie.PosterImageURL = @"../images/placeHolderOlderMovies.jpg";
-
+                            if(!IsAdult)
+                            {
+                                continue;
+                            }
                         }
+                            filteredMovies.Add(movie);
+                        
 
                     }
                     else

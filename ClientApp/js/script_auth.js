@@ -51,9 +51,9 @@ document.addEventListener('DOMContentLoaded', () => {
             val => val.length >= 3 && val.length <= 20,
             'Username must be between 3-20 characters');
             
-        setupFieldValidation('password',
-            val => val.length >= 6,
-            'Password must be at least 6 characters');
+            setupFieldValidation('password',
+                val => val.length >= 6 && !/^\d+$/.test(val),
+                'Password must be at least 6 characters and cannot contain only numbers');
 
         loginForm.addEventListener('submit', async (e) => {
             e.preventDefault();
@@ -135,6 +135,9 @@ document.addEventListener('DOMContentLoaded', () => {
         setupFieldValidation('email',
             val => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
             'Please enter a valid email address');
+            setupFieldValidation('password',
+                val => val.length >= 6 && !/^\d+$/.test(val),
+                'Password must be at least 6 characters and cannot contain only numbers');
 
         signupForm.addEventListener('submit', async (e) => {
             e.preventDefault();

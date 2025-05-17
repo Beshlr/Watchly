@@ -52,12 +52,26 @@ async function loadFavoriteGenresMovies(userId) {
         const genresResponse = await fetch(`${baseUsersApiUrl}/GetTop5GenresUserInterstIn/${userId}`);
         if (!genresResponse.ok) throw new Error('Failed to load favorite genres');
         
-        const genres = await genresResponse.json();
-        if (!genres || genres.length === 0) return;
-        
-        // عرض تبويبات الأنواع
         const genreTabs = document.getElementById('genreTabs');
         const genreSectionsContainer = document.getElementById('genreSectionsContainer');
+        
+        const genres = await genresResponse.json();
+        if (!genres || genres.length === 0)
+            {
+                genreSectionsContainer.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-collection"></i>
+                    </div>
+                    <h3>No genres found</h3>
+                    <p>Your genres list is empty, Please add some movies to favorite list </p>
+                </div>
+            `;
+            return;
+                return;
+            } 
+        
+        // عرض تبويبات الأنواع
         
         genreTabs.innerHTML = '';
         genreSectionsContainer.innerHTML = '';
@@ -104,11 +118,7 @@ async function loadFavoriteGenresMovies(userId) {
         });        
     } catch (error) {
         console.error('Error loading favorite genres:', error);
-        document.getElementById('genreSectionsContainer').innerHTML = `
-            <div class="col-12 text-center py-5">
-                <p class="text-muted">Could not load your favorite genres. Try again later.</p>
-            </div>
-        `;
+        
     }
 }
 
@@ -212,10 +222,14 @@ async function loadRecommendedMovies(endpoint, containerId) {
 
         if (!movies || movies.length === 0) {
             // إذا لم تكن هناك أفلام موصى بها، نعرض رسالة بديلة
+            
             container.innerHTML = `
-                <div class="col-12 text-center py-5">
-                    <p class="text-muted">No recommendations found. Try adding some favorite movies first.</p>
-                    <a href="favorites.html" class="btn btn-primary mt-2">Go to Favorites</a>
+                <div class="empty-state">
+                    <div class="empty-state-icon">
+                        <i class="bi bi-collection"></i>
+                    </div>
+                    <h3>No movies found</h3>
+                    <p>Your ${containerId.replace('Movies', '').toLowerCase()} list is empty.</p>
                 </div>
             `;
             return;

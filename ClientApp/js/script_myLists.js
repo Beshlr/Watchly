@@ -174,11 +174,10 @@ document.addEventListener('DOMContentLoaded', function() {
     // Generic function to load a movie list
     async function loadMoviesList(endpoint, containerId) {
         const container = document.getElementById(containerId);
-        
         try {
             const response = await fetch(endpoint);
             if (!response.ok) throw new Error(`Failed to load ${containerId} movies`);
-            
+
             const movies = await response.json();
             
             if (!movies || movies.length === 0) {
@@ -213,7 +212,12 @@ document.addEventListener('DOMContentLoaded', function() {
     function displayMovieList(movies, containerId) {
         const container = document.getElementById(containerId);
         const listType = containerId.replace('Movies', '').toLowerCase();
-        
+
+        if (!movies || movies.length === 0) {
+            displayEmptyState(containerId, 'No movies found', `Your ${listType} list is empty.`);
+            return;
+        }
+
         container.innerHTML = movies.map(movie => `
             <div class="movie-card">
                 <a href="${movie.imDbMovieURL || '#'}" target="_blank" class="text-decoration-none d-block">
@@ -234,6 +238,20 @@ document.addEventListener('DOMContentLoaded', function() {
                 </a>
             </div>
         `).join('');
+    }
+
+    // Function to display empty state
+    function displayEmptyState(containerId, title, message) {
+        const container = document.getElementById(containerId);
+        container.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-icon">
+                    <i class="bi bi-collection"></i>
+                </div>
+                <h3>${title}</h3>
+                <p>${message}</p>
+            </div>
+        `;
     }
 
     // Function to remove a movie from a list

@@ -350,12 +350,67 @@ namespace MovieRecommendationAPI.Controllers
 
         }
 
-        [HttpDelete("DeleteMovie/{ID}", Name = "UpdateMovie")]
+        [HttpPut("MarkMovieAsAdult", Name = "MarkMovieAsAdult")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public ActionResult DeleteMoiveByID(int ID)
+        public ActionResult MarkMovieAsAdult([FromBody] HelperClasses.clsUserAndMovieID userAndMovieID)
+        {
+            if (userAndMovieID == null)
+            {
+                return BadRequest("Bad Request: User and Movie ID can't be null");
+            }
+            string errorMessage = string.Empty;
+            if (!HelperClasses.clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
+            {
+                return BadRequest(errorMessage);
+            }
+            int MovieID = userAndMovieID.MovieID;
+            int UserID = userAndMovieID.UserID;
+
+            if (!clsMovieBasicDetails.MarkMovieAsAdult(MovieID, UserID))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Movie not marked as adult");
+            }
+
+            return Ok("Movie marked as adult successfully");
+        }
+
+        [HttpPut("UnMarkMovieAsAdult", Name = "UnMarkMovieAsAdult")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult UnMarkMovieAsAdult([FromBody] HelperClasses.clsUserAndMovieID userAndMovieID)
+        {
+            if (userAndMovieID == null)
+            {
+                return BadRequest("Bad Request: User and Movie ID can't be null");
+            }
+            string errorMessage = string.Empty;
+            if (!HelperClasses.clsUserValidations.CheckUserAndMovieInputs(userAndMovieID, ref errorMessage))
+            {
+                return BadRequest(errorMessage);
+            }
+            int MovieID = userAndMovieID.MovieID;
+            int UserID = userAndMovieID.UserID;
+
+            string ErrorMessage = String.Empty;
+            if (!clsMovieBasicDetails.UnMarkMovieAsAdult(MovieID, UserID, ref ErrorMessage))
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Movie not Unmarked as adult");
+            }
+
+            return Ok("Movie marked as adult successfully");
+        }
+
+        [HttpDelete("DeleteMovie/{ID}/{UserID}", Name = "UpdateMovie")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public ActionResult DeleteMoiveByID(int ID, int UserID)
         {
             if (ID < 1)
             {
@@ -366,12 +421,14 @@ namespace MovieRecommendationAPI.Controllers
             {
                 return NotFound($"Not Found: Movie with id {ID} is not found");
             }
-            if (!clsMovieBasicDetails.DeleteMovieByID(ID))
+            if (!clsMovieBasicDetails.DeleteMovieByID(ID, UserID))
             {
                 return StatusCode(StatusCodes.Status500InternalServerError, "Internal Server Error: Movie not deleted");
             }
             return Ok("Movie deleted successfully");
         }
+
+        
     }
     // End Movies API
 
@@ -483,10 +540,7 @@ namespace MovieRecommendationAPI.Controllers
 
             genres = clsUsers.GetTop5GenresUserInterstIn(UserID);
 
-            if (genres.Count < 1)
-            {
-                return NotFound($"No genres found for user with Username: {userInfo.Username} Check Favorate movies");
-            }
+            
             return Ok(genres);
         }
 
@@ -526,10 +580,7 @@ namespace MovieRecommendationAPI.Controllers
                 return NotFound($"Bad Request: User with ID {UserID} is not exists");
             }
             List<MovieDTO> movies = clsUsers.GetAllFavorateMoviesForUser(UserID);
-            if (movies == null || movies.Count == 0)
-            {
-                return NotFound($"Not Found: No movie found for user with ID {UserID}");
-            }
+            
             return Ok(movies);
         }
 
@@ -560,7 +611,7 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<ActionResult<string>> SendCodeToUserEmail(string Username)
+        public async Task<ActionResult<HelperClasses.clsSendCodeToUser>> SendCodeToUserEmail(string Username)
         {
             if (String.IsNullOrEmpty(Username))
             {
@@ -588,6 +639,14 @@ namespace MovieRecommendationAPI.Controllers
             // Generate a random 6-digit code
             Random random = new Random();
             string code = random.Next(100000, 999999).ToString();
+            
+            string Email = user.Email;
+
+            HelperClasses.clsSendCodeToUser codeAndEmail = new HelperClasses.clsSendCodeToUser
+            {
+                Email = Email,
+                Code = code
+            };
 
             if (String.IsNullOrEmpty(code))
             {
@@ -601,7 +660,7 @@ namespace MovieRecommendationAPI.Controllers
             // Send the email
             await _emailService.SendEmailAsync(user.Email, subject, body);
 
-            return Ok(code);
+            return Ok(codeAndEmail);
         }
 
         [HttpGet("GetAllFavorateMoviesNameForUser/{UserID}", Name = "GetAllFavorateMoviesNameForUser")]
@@ -620,10 +679,7 @@ namespace MovieRecommendationAPI.Controllers
                 return NotFound($"Bad Request: User with ID {UserID} is not exists");
             }
             List<string> movies = clsUsers.GetAllFavorateMoviesNameForUser(UserID);
-            if (movies == null || movies.Count == 0)
-            {
-                return NotFound($"Not Found: No movie found for user with ID {UserID}");
-            }
+            
             return Ok(movies);
         }
 
@@ -643,10 +699,7 @@ namespace MovieRecommendationAPI.Controllers
                 return NotFound($"Bad Request: User with ID {UserID} is not exists");
             }
             List<MovieDTO> movies = clsUsers.GetAllSearchedMoviesForUser(UserID);
-            if (movies == null || movies.Count == 0)
-            {
-                return NotFound($"Not Found: No movie found for user with ID {UserID}");
-            }
+            
             return Ok(movies);
         }
 
@@ -666,10 +719,7 @@ namespace MovieRecommendationAPI.Controllers
                 return NotFound($"Bad Request: User with ID {UserID} is not exists");
             }
             List<MovieDTO> movies = clsUsers.GetAllWatchedMoviesForUser(UserID);
-            if (movies == null || movies.Count == 0)
-            {
-                return NotFound($"Not Found: No movie found for user with ID {UserID}");
-            }
+            
             return Ok(movies);
         }
 
@@ -689,10 +739,7 @@ namespace MovieRecommendationAPI.Controllers
                 return NotFound($"Bad Request: User with ID {UserID} is not exists");
             }
             List<MovieDTO> movies = clsUsers.GetAllUnlikedMoviesToUser(UserID);
-            if (movies == null || movies.Count == 0)
-            {
-                return NotFound($"Not Found: No movie found for user with ID {UserID}");
-            }
+            
             return Ok(movies);
         }
 
@@ -722,17 +769,19 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public ActionResult<List<MovieDTO>> GetTop15TrendingMovies(int UserID)
+        public ActionResult<List<MovieDTO>> GetTop15TrendingMovies(int UserID = -1)
         {
-            if (UserID < 1)
+            clsUsers LoggedInUser = null;
+            if (UserID > 0)
             {
-                return BadRequest($"Bad Request: UserID: {UserID} Is Not valid");
+                if (!clsUsers.IsUserExist(UserID))
+                {
+                    return NotFound($"Bad Request: User with ID {UserID} is not exists");
+                }
+                LoggedInUser  = clsUsers.Find(UserID);
+
             }
-            if (!clsUsers.IsUserExist(UserID))
-            {
-                return NotFound($"Bad Request: User with ID {UserID} is not exists");
-            }
-            clsUsers LoggedInUser = clsUsers.Find(UserID);
+
             List<MovieDTO> movies = clsMovieBasicDetails.GetTop15TrendingMovies(LoggedInUser);
             if (movies == null || movies.Count == 0)
             {
@@ -758,10 +807,7 @@ namespace MovieRecommendationAPI.Controllers
                 return NotFound($"Bad Request: User with ID {UserID} is not exists");
             }
             List<MovieDTO> movies = clsUsers.GetAllRecommendedMoviesForUser(UserID);
-            if (movies == null || movies.Count == 0)
-            {
-                return NotFound("Not Found: No movie found");
-            }
+            
             return Ok(movies);
 
         }
@@ -1180,7 +1226,7 @@ namespace MovieRecommendationAPI.Controllers
                 return NotFound($"Not Found: Admin user with id {DeletedByUserID} is not found");
             }
 
-            if(deletedByUser.Permissions != 3 && userToDelete.Permissions == 2)
+            if(deletedByUser.Permissions != 3 && userToDelete.Permissions == 1)
             {
                 return BadRequest($"User with id {DeletedByUserID} is not an Owner and cannot delete Admins");
             }

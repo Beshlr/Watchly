@@ -14,11 +14,15 @@ document.addEventListener('DOMContentLoaded', function() {
             window.location.href = 'login.html';
         };
         
+        loadMovies(`GetTop15TrendingMovies/${user.id}`, 'popularMovies');
     }
+    else
+    loadMovies(`GetTop15TrendingMovies/${-1}`, 'popularMovies');
+
     // Show Manage Users link only for admins
 
     // Load popular movies
-    loadMovies(`GetTop15TrendingMovies/${user.id}`, 'popularMovies');
+    
     
     // Load recommended movies (using user ID 1 for demo)
     loadMovies(`GetAllRecommendedMoviesForUser/${user.id}`, 'recommendedMovies');
@@ -58,27 +62,41 @@ document.addEventListener('DOMContentLoaded', function() {
             return;
         }
         
+        const userJson = localStorage.getItem('loggedInUser');
+        const user = userJson ? JSON.parse(userJson) : null;
+        const favorites = JSON.parse(localStorage.getItem('userFavorites') || '[]');
+    
         container.innerHTML = movies.map(movie => `
-            <div class="col-md-6 col-lg-3">
-                <div class="card movie-card">
-                    <div class="position-relative">
-                        <img src="${movie.posterImageURL || 'https://via.placeholder.com/300x450'}" 
-                            class="card-img-top" 
-                            alt="${movie.movieName}"
-                            onerror="this.src='https://via.placeholder.com/300x450'">
-                        <button class="btn btn-sm btn-favorite position-absolute top-0 end-0 m-2" 
-                                onclick="event.stopPropagation(); toggleFavorite(${movie.id}, this)">
-                            <i class="bi bi-heart${isFavorite(movie.id) ? '-fill text-danger' : ''}"></i>
-                        </button>
-                    </div>
-                    <div class="card-body">
+            <div class="col-md-6 col-lg-3 mb-4 movie-card-container">
+                <div class="card h-100 position-relative">
+                    <!-- Link covering the entire card (except favorite button) -->
+                    <a href="${movie.imDbMovieURL || '#'}" 
+                       class="stretched-link card-link"
+                       target="_blank"
+                       style="z-index: 1;"></a>
+                    
+                    <!-- Movie Poster -->
+                    <img src="${movie.posterImageURL || 'https://via.placeholder.com/300x450'}" 
+                        class="card-img-top" 
+                        alt="${movie.movieName}"
+                        onerror="this.src='https://via.placeholder.com/300x450?text=Poster+Not+Found'">
+                    
+                    <!-- Favorite Button (positioned above the link) -->
+                    <button class="btn btn-sm btn-favorite position-absolute top-0 end-0 m-2" 
+                            onclick="event.preventDefault(); event.stopPropagation(); toggleFavorite(${movie.id}, this)"
+                            style="z-index: 2; background-color: rgba(255, 255, 255, 0.9); border-radius: 50%; width: 36px; height: 36px; display: flex; align-items: center; justify-content: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2);">
+                        <i class="bi bi-heart${favorites.includes(movie.id) ? '-fill text-danger' : ''}" style="font-size: 1.2rem;"></i>
+                    </button>
+                    
+                    <!-- Movie Info -->
+                    <div class="card-body" style="position: relative; z-index: 1;">
                         <h5 class="card-title">${movie.movieName}</h5>
-                        <p class="card-text">${movie.year} • ⭐ ${movie.rate?.toFixed(1) || 'N/A'}</p>
-                        <a href="${movie.imDbMovieURL || '#'}" 
-                           class="btn btn-sm btn-outline-primary"
-                           target="_blank">
-                            Details
-                        </a>
+                        <p class="card-text">
+                            <span class="text-muted">${movie.year}</span>
+                            <span class="float-end">
+                                ⭐ ${movie.rate?.toFixed(1) || 'N/A'}
+                            </span>
+                        </p>
                     </div>
                 </div>
             </div>
