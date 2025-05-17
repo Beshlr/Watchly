@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 namespace MovieRecommendationAPI.Controllers
 {
     // Start Movie API
+    
     [Route("api/MovieRecommenderAPI")]
     [ApiController]
     public class MovieRecommenderAPI : ControllerBase
@@ -100,7 +101,6 @@ namespace MovieRecommendationAPI.Controllers
             return Ok(movies);
         }
 
-
         [HttpGet("GetTop100MovieWithGenre/{UserID}", Name = "GetTop100MovieWithGenreAndOrderThemByRatingDESC")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -187,7 +187,6 @@ namespace MovieRecommendationAPI.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-
         public ActionResult<IEnumerable<MovieDTO>> GetTop100MovieBetweenTwoYears(int Year1, int Year2,int UserID, string Genre="Action")
         {
             if (Year1 < 1900 || Year1 > DateTime.Now.Year || Year2 < 1900 || Year2 > DateTime.Now.Year || Year1 > Year2)
@@ -430,11 +429,13 @@ namespace MovieRecommendationAPI.Controllers
 
         
     }
+    
     // End Movies API
 
     // =======================================
 
     //Start Users API
+    
     [Route("api/UsersAPI")]
     [ApiController]
     public class UsersAPI : ControllerBase
@@ -1336,16 +1337,18 @@ namespace MovieRecommendationAPI.Controllers
             return Ok("Movie removed from searching list successfully");
         }
 
-        // End Users API
     }
+    
+    // End Users API
 
     // =======================================
 
+    // Start Logs API
+    
     [Route("api/LogsAPI")]
     [ApiController]
     public class LogsController : ControllerBase
     {
-        // Start Logs API
 
 
         [HttpGet("GetAllLogs", Name = "GetAllLogs")]
@@ -1407,8 +1410,9 @@ namespace MovieRecommendationAPI.Controllers
             return Ok("Log deleted successfully");
         }
     
-        // End Logs API
     }
+    
+    // End Logs API
 
     // =======================================
 
